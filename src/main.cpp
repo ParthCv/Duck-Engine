@@ -1,7 +1,3 @@
-//
-// Created by User on 10/28/2025.
-//
-
 #include "config.h"
 
 int main()
