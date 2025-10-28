@@ -6,9 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(OpenGL REQUIRED)
 
 add_executable(DuckEngine
-        src/config.h
         src/main.cpp
         dependencies/glad.c
+        src/engine/core/Engine.cpp
 )
 
 # Include directories for headers
