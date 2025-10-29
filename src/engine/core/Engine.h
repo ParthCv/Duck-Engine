@@ -2,6 +2,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "../renderer/Camera.h"
+#include "../renderer/Shader.h"
+
 class Engine {
 public:
     bool initialize(int width, int height);
@@ -16,4 +19,14 @@ private:
     void processInput();
     void update(float deltaTime);
     void render();
+
+    Camera camera;
+
+    // Temp variable
+    Shader basicShader;
+
+    GLuint cubeVAO = 0, cubeVBO = 0;
+
+    void createCube();
+    void renderCube();
 };
