@@ -4,12 +4,16 @@
 
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
+#include "../renderer/Texture.h"
+
 
 class Engine {
 public:
     bool initialize(int width, int height);
     void run();
     void shutdown();
+
+    Texture texture1;
 
 private:
     GLFWwindow* window = nullptr;

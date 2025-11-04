@@ -10,11 +10,14 @@ add_executable(DuckEngine
         dependencies/glad.c
         src/engine/core/Engine.cpp
         src/engine/renderer/Shader.cpp
+        src/engine/renderer/Texture.cpp
+        src/engine/renderer/GBuffer.cpp
 )
 
 # Include directories for headers
 target_include_directories(DuckEngine PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies
+        ${CMAKE_SOURCE_DIR}/dependencies/stb_image
 )
 
 # Import GLFW as a static library
