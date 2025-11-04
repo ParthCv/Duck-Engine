@@ -17,10 +17,32 @@ struct Velocity
 };
 
 struct Transform {
-    glm::vec3 position{};
-    glm::vec3 rotation{};
+    glm::vec3 position = glm::vec3(0,0,0);
+    glm::vec3 rotation = glm::vec3(0,0,0);
     glm::vec3 scale{1.0f};
     glm::vec3 oldPosition{};
+
+    void SetTransform(glm::vec3 InTransform) {
+        position = InTransform;
+    }
+
+    void AddTransform(glm::vec3 InTransform) {
+        position += InTransform;
+    }
+
+    void SetRotation(glm::vec3 InRotation)
+    {
+        rotation = InRotation;
+    }
+
+    void Rotate(glm::vec3 InRotation)
+    {
+        rotation += InRotation;
+    }
+
+    glm::mat4 Rotate(glm::mat4 ModelMatrix, float InAngle, glm::vec3 InAxis) {
+        return glm::rotate(ModelMatrix, InAngle, InAxis);
+    }
 };
 
 struct StaticMesh
@@ -36,10 +58,15 @@ struct Material
 
 struct StaticMeshComponent
 {
-    StaticMeshComponent(Transform& InTransform) : Transform(&InTransform), VAO(0), VBO(0)
+    StaticMeshComponent(Entity& InEntity, Transform& InTransform) :
+        OwningEntity(&InEntity),
+        Transform(&InTransform),
+        VAO(0),
+        VBO(0)
     {
     }
 
+    Entity* OwningEntity;
     Transform* Transform;
 
     GLuint VAO;

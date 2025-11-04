@@ -15,10 +15,10 @@ World::World()
     Entity& FirstEntity = CreateEntity(*this);
     auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f));
     FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
-    FirstEntity.AddComponent<StaticMeshComponent>(transform);
+    FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
 }
 
-void World::Update()
+void World::Update(float deltaTime)
 {
 
     // TODO: Get the first entity
@@ -31,7 +31,26 @@ void World::Update()
     std::cout << "Entity One Transform.X: " << FirstEntityTransform.position.x << std::endl;
 
     // TODO: Rotate the StaticMesh
-    // ..
+    // Rotating the Owning Entity, not the StaticMeshComponent
+    // Entity& OwningEntity = *FirstEntityStaticMesh.OwningEntity;
+    // auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
+    // OwningEntityTransform->Rotate(glm::vec3(0.005, 0 ,0));
+
+    // TODO: Rotating the StaticMeshComponent, not the OwningEntity
+    // FirstEntityStaticMesh.Transform->Rotate(glm::vec3(0, 0.5,0));
+
+    // TODO: Rotate entity transform
+    // FirstEntityTransform.Rotate(glm::vec3(0,10,0) * deltaTime);
+    glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.GetTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
+
+    // srand(time(0));
+    // int randX = rand() % 1;
+    // int randY = rand() % 1;
+    // int randZ = rand() % 1;
+    // FirstEntityStaticMesh.Transform->SetTransform(OwningEntityTransform->position + glm::vec3(randX,randY,randZ));
+
+    // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
+
 }
 
 void World::Render()
@@ -57,8 +76,9 @@ void World::Render()
         if (entity->HasComponent<StaticMeshComponent>())
         {
             auto& FirstEntityStaticMeshComponent = entity->GetComponent<StaticMeshComponent>();
+
+            // Getting the Model.
             glm::mat4 model = FirstEntityStaticMeshComponent.GetTransformMatrix();
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
             basicShader->setMat4("model", model);
 

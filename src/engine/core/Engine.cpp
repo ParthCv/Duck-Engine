@@ -87,7 +87,7 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
-    World.Update();
+    World.Update(deltaTime);
 }
 
 void Engine::render() {

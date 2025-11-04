@@ -24,7 +24,7 @@ public:
 
     World();
 
-    void Update();
+    void Update(float deltaTime);
 
     void Render();
 
