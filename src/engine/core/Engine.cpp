@@ -1,5 +1,7 @@
 #include "Engine.h"
 #include <iostream>
+#include <algorithm>
+#include <cfloat>
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -50,8 +52,32 @@ bool Engine::initialize(int width, int height) {
 
     // Setup cube
     createCube();
+    // Setup lines
+    createLine();
 
     std::cout << "Engine initialized successfully!" << std::endl;
+
+    // Raycast logic
+    glm::vec3 rayDir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f));
+    glm::vec3 rayOrigin = camera.position + glm::vec3(0.1f, 0.1f, 1.0f);
+
+    float hitDistance;
+    if (rayIntersectsAABB(rayOrigin, rayDir, cubeAABBMin, cubeAABBMax, hitDistance)) {
+        rayStart = rayOrigin;
+        rayEnd = rayOrigin + rayDir * hitDistance;  // End at hit point
+
+        std::cout << "HIT! Distance: " << hitDistance << std::endl;
+    } else {
+        rayStart = rayOrigin;
+        rayEnd = rayOrigin + rayDir * 100.0f;  // Extend ray into distance
+
+        std::cout << "MISS" << std::endl;
+    }
+
+    updateLineVertices(rayStart, rayEnd);
+
+    std::cout << "Engine initialized successfully!" << std::endl;
+
     return true;
 }
 
@@ -108,11 +134,23 @@ void Engine::render() {
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
+
+    // Draw line
+    glLineWidth(3.0f);
+
+    glm::mat4 lineModel = glm::mat4(1.0f);
+    basicShader.setMat4("model", lineModel);
+
+    glBindVertexArray(lineVAO);
+    glDrawArrays(GL_LINES, 0, 2);  // Draw 2 vertices as a line
+    glBindVertexArray(0);
 }
 
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVBO);
+    glDeleteVertexArrays(1, &lineVAO);
+    glDeleteBuffers(1, &lineVBO);
 
     glfwDestroyWindow(window);
     glfwTerminate();
@@ -183,4 +221,72 @@ void Engine::createCube() {
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+}
+
+void Engine::createLine() {
+    glGenVertexArrays(1, &lineVAO);
+    glGenBuffers(1, &lineVBO);
+
+    glBindVertexArray(lineVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, nullptr, GL_DYNAMIC_DRAW);
+
+    // Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+}
+
+void Engine::updateLineVertices(const glm::vec3& start, const glm::vec3& end){
+    float lineVertices[] = {
+        // Position and Color
+        start.x, start.y, start.z,   1.0f, 0.0f, 0.0f,
+        end.x,   end.y,   end.z,     1.0f, 0.0f, 0.0f
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(lineVertices), lineVertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+bool Engine::rayIntersectsAABB(
+    const glm::vec3& rayOrigin,
+    const glm::vec3& rayDir,
+    const glm::vec3& aabbMin,
+    const glm::vec3& aabbMax,
+    float& hitDistance)
+{
+    float tMin = 0.0f;
+    float tMax = FLT_MAX;
+
+    for (int i = 0; i < 3; ++i) {
+        if (std::abs(rayDir[i]) < 0.0001f) {
+            if (rayOrigin[i] < aabbMin[i] || rayOrigin[i] > aabbMax[i]) {
+                return false;
+            }
+        } else {
+            float t1 = (aabbMin[i] - rayOrigin[i]) / rayDir[i];
+            float t2 = (aabbMax[i] - rayOrigin[i]) / rayDir[i];
+
+            if (t1 > t2) std::swap(t1, t2);
+
+            tMin = std::max(tMin, t1);
+            tMax = std::min(tMax, t2);
+
+            if (tMin > tMax) return false;
+        }
+    }
+
+    if (tMax >= 0.0f) {
+        hitDistance = tMin >= 0.0f ? tMin : tMax;
+        return true;
+    }
+
+    return false;
 }
