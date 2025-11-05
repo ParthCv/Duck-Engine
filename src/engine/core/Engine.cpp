@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cfloat>
 
+#include "../debug/DebugRenderer.h"
+
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
     screenHeight = height;
@@ -52,9 +54,9 @@ bool Engine::initialize(int width, int height) {
 
     // Setup cube
     createCube();
-    createDebugCube();
-    // Setup lines
-    createLine();
+
+    // Sets up debug cube and line
+    DebugRenderer::getInstance().init();
 
     std::cout << "Engine initialized successfully!" << std::endl;
 
@@ -74,11 +76,7 @@ bool Engine::initialize(int width, int height) {
 
         std::cout << "MISS" << std::endl;
     }
-
-    updateLineVertices(rayStart, rayEnd);
-
-    std::cout << "Engine initialized successfully!" << std::endl;
-
+    // updateLineVertices(rayStart, rayEnd);
     return true;
 }
 
@@ -137,28 +135,14 @@ void Engine::render() {
     glBindVertexArray(0);
 
     // Draw Debug collision cube wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    DebugRenderer::getInstance().drawBox(
+        basicShader,
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    );
 
-    // Set a different model matrix for the debug cube
-    glm::mat4 debugModel = glm::mat4(1.0f);
-    // debugModel = glm::translate(debugModel, glm::vec3(2.0f, 0.0f, 0.0f)); // Move it to the side
-
-    basicShader.setMat4("model", debugModel);
-
-    glBindVertexArray(debugCubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    // Draw line
-    glLineWidth(3.0f);
-
-    glm::mat4 lineModel = glm::mat4(1.0f);
-    basicShader.setMat4("model", lineModel);
-
-    glBindVertexArray(lineVAO);
-    glDrawArrays(GL_LINES, 0, 2);  // Draw 2 vertices as a line
-    glBindVertexArray(0);
+    DebugRenderer::getInstance().drawLine(basicShader, rayStart, rayEnd);
 }
 
 void Engine::shutdown() {
@@ -168,6 +152,8 @@ void Engine::shutdown() {
     glDeleteBuffers(1, &debugCubeVBO);
     glDeleteVertexArrays(1, &lineVAO);
     glDeleteBuffers(1, &lineVBO);
+
+    DebugRenderer::getInstance().cleanup();
 
     glfwDestroyWindow(window);
     glfwTerminate();
