@@ -37,6 +37,8 @@ bool Engine::initialize(int width, int height) {
     glEnable(GL_DEPTH_TEST);
 
     // Temp code for now
+    gBuffer.initialize(screenWidth, screenHeight);
+    setupQuad();  // Also call this
 
     // Load shader
     if (!basicShader.loadFromFiles("../assets/shaders/basic.vert", "../assets/shaders/basic.frag")) {
@@ -53,6 +55,12 @@ bool Engine::initialize(int width, int height) {
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
     camera.position = glm::vec3(0.0f, 0.0f, 3.0f);
+
+    displayShader.loadFromFiles("../assets/shaders/display.vert", "../assets/shaders/display.frag");
+    displayShader.use();
+    displayShader.setInt("gPosition", 0);
+    displayShader.setInt("gNormal", 1);
+    displayShader.setInt("gAlbedo", 2);
 
     // Setup cube
     createCube();
@@ -90,32 +98,26 @@ void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
+    gBuffer.bindForWriting();
+
     // Clear with color
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // TODO: Render stuff here
+    renderCube();
 
-    // Use shader
-    basicShader.use();
+    // Unbind GBuffer framebuffer and switch back to screen
+    gBuffer.unbind();
+    glViewport(0, 0, screenWidth, screenHeight);
 
-    // Set matrices
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
-
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = camera.getProjectionMatrix();
-
-    basicShader.use();
-    texture1.bind();
-    basicShader.setMat4("model", model);
-    basicShader.setMat4("view", view);
-    basicShader.setMat4("projection", projection);
-
-    // Draw cube
-    glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
+    // DISPLAY PASS
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    displayShader.use();
+    gBuffer.bindForReading();
+    renderQuad();
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Engine::shutdown() {
