@@ -26,8 +26,10 @@ private:
     Shader basicShader;
 
     GLuint cubeVAO = 0, cubeVBO = 0;
+    GLuint debugCubeVAO = 0, debugCubeVBO = 0;
 
     void createCube();
+    void createDebugCube();
     void renderCube();
     void createLine();
     void updateLineVertices(const glm::vec3& start, const glm::vec3& end);

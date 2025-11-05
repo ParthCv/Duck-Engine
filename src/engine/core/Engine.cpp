@@ -52,13 +52,14 @@ bool Engine::initialize(int width, int height) {
 
     // Setup cube
     createCube();
+    createDebugCube();
     // Setup lines
     createLine();
 
     std::cout << "Engine initialized successfully!" << std::endl;
 
     // Raycast logic
-    glm::vec3 rayDir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f));
+    glm::vec3 rayDir = glm::normalize(glm::vec3(0.2f, 0.2f, -1.0f));
     glm::vec3 rayOrigin = camera.position + glm::vec3(0.1f, 0.1f, 1.0f);
 
     float hitDistance;
@@ -135,6 +136,20 @@ void Engine::render() {
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 
+    // Draw Debug collision cube wireframe
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Set a different model matrix for the debug cube
+    glm::mat4 debugModel = glm::mat4(1.0f);
+    // debugModel = glm::translate(debugModel, glm::vec3(2.0f, 0.0f, 0.0f)); // Move it to the side
+
+    basicShader.setMat4("model", debugModel);
+
+    glBindVertexArray(debugCubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     // Draw line
     glLineWidth(3.0f);
 
@@ -149,6 +164,8 @@ void Engine::render() {
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVBO);
+    glDeleteVertexArrays(1, &debugCubeVAO);
+    glDeleteBuffers(1, &debugCubeVBO);
     glDeleteVertexArrays(1, &lineVAO);
     glDeleteBuffers(1, &lineVBO);
 
@@ -210,6 +227,74 @@ void Engine::createCube() {
     // Bind and upload data
     glBindVertexArray(cubeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+}
+
+
+void Engine::createDebugCube() {
+    // Cube vertices with colors
+    float vertices[] = {
+        // Positions          // Colors
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, // Front face (red)
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f, // Back face (green)
+         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, // Left face (blue)
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // Right face (yellow)
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // Bottom face (magenta)
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, // Top face (cyan)
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f
+    };
+
+    // Generate VAO and VBO
+    glGenVertexArrays(1, &debugCubeVAO);
+    glGenBuffers(1, &debugCubeVBO);
+
+    // Bind and upload data
+    glBindVertexArray(debugCubeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, debugCubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Position attribute
