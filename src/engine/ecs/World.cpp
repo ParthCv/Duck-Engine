@@ -27,30 +27,36 @@ void World::Update(float deltaTime)
     auto& FirstEntityStaticMesh = FirstEntity->GetComponent<StaticMeshComponent>();
 
     // TODO: Manually transforming the First Entity every Update.
-    FirstEntityTransform.position.x += 0.005f;
-    std::cout << "Entity One Transform.X: " << FirstEntityTransform.position.x << std::endl;
+    // FirstEntityTransform.position.x += 1.0f * deltaTime;
+    // std::cout << "Entity One Transform.X: " << FirstEntityTransform.position.x << std::endl;
+
+    // TODO: Adding to the Entities' Transform
+    FirstEntityTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
 
     // TODO: Rotate the StaticMesh
     // Rotating the Owning Entity, not the StaticMeshComponent
-    // Entity& OwningEntity = *FirstEntityStaticMesh.OwningEntity;
-    // auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
+    Entity& OwningEntity = *FirstEntityStaticMesh.OwningEntity;
+    auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
     // OwningEntityTransform->Rotate(glm::vec3(0.005, 0 ,0));
 
     // TODO: Rotating the StaticMeshComponent, not the OwningEntity
-    // FirstEntityStaticMesh.Transform->Rotate(glm::vec3(0, 0.5,0));
+    FirstEntityStaticMesh.Transform->Rotate(glm::vec3(0, 10,0) * deltaTime);
 
     // TODO: Rotate entity transform
     // FirstEntityTransform.Rotate(glm::vec3(0,10,0) * deltaTime);
-    glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.GetTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
+    // glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.GetTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
 
     // srand(time(0));
-    // int randX = rand() % 1;
-    // int randY = rand() % 1;
-    // int randZ = rand() % 1;
-    // FirstEntityStaticMesh.Transform->SetTransform(OwningEntityTransform->position + glm::vec3(randX,randY,randZ));
+    int randX = rand() % 3;
+    int randY = rand() % 3;
+    int randZ = rand() % 3;
+    // FirstEntityStaticMesh.Transform->SetTransform(glm::vec3(0,3,0));
 
     // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
 
+
+    // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position + glm::vec3(0, randY, 0) * deltaTime);
+    // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position);
 }
 
 void World::Render()
@@ -96,6 +102,9 @@ void World::BeginPlay()
     if (FirstEntity->HasComponent<StaticMeshComponent>())
     {
         auto& FirstEntityStaticMeshComponent = FirstEntity->GetComponent<StaticMeshComponent>();
+
+        // FirstEntityStaticMeshComponent.Transform->SetTransform(glm::vec3(0,2,0));
+
         CreateCube(FirstEntityStaticMeshComponent.VAO, FirstEntityStaticMeshComponent.VBO);
     }
 }
