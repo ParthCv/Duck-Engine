@@ -5,7 +5,7 @@
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
 #include "../renderer/Texture.h"
-
+#include "../renderer/GBuffer.h"
 
 class Engine {
 public:
@@ -13,7 +13,14 @@ public:
     void run();
     void shutdown();
 
+    GBuffer gBuffer;
+    // Temp
     Texture texture1;
+    Shader displayShader;
+    // Temp for GBuffer
+    GLuint quadVAO, quadVBO;
+    void setupQuad();
+    void renderQuad();
 
 private:
     GLFWwindow* window = nullptr;

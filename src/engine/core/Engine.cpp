@@ -196,3 +196,51 @@ void Engine::createCube() {
 
     glBindVertexArray(0);
 }
+
+void Engine::renderCube() {
+    // Use shader
+    basicShader.use();
+
+    // Set matrices
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
+
+    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 projection = camera.getProjectionMatrix();
+
+    basicShader.use();
+    texture1.bind();
+    basicShader.setMat4("model", model);
+    basicShader.setMat4("view", view);
+    basicShader.setMat4("projection", projection);
+
+    // Draw cube
+    glBindVertexArray(cubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+}
+
+void Engine::setupQuad() {
+    float quadVertices[] = {
+        // pos        // tex
+        -1.0f,  1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+         1.0f, -1.0f, 1.0f, 0.0f,
+    };
+
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+}
+
+void Engine::renderQuad() {
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}

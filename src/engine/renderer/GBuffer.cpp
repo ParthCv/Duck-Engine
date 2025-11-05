@@ -103,13 +103,10 @@ void GBuffer::bindForWriting() {
 void GBuffer::bindForReading() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gPosition);
-
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, gNormal);
-
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, gAlbedo);
-
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, gMetallicRoughness);
 }
