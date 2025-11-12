@@ -17,6 +17,21 @@ struct Velocity
 };
 
 struct Transform {
+
+    Transform()
+    {
+        position = glm::vec3(0.0f);
+        rotation = glm::vec3(0.0f);
+        scale = glm::vec3(1.0f);
+    }
+
+    Transform(glm::vec3 InPosition, glm::vec3 InRotation, glm::vec3 InScale)
+    {
+        position = InPosition;
+        rotation = InRotation;
+        scale = InScale;
+    }
+
     glm::vec3 position = glm::vec3(0,0,0);
     glm::vec3 rotation = glm::vec3(0,0,0);
     glm::vec3 scale{1.0f};
@@ -43,6 +58,12 @@ struct Transform {
     glm::mat4 Rotate(glm::mat4 ModelMatrix, float InAngle, glm::vec3 InAxis) {
         return glm::rotate(ModelMatrix, InAngle, InAxis);
     }
+
+    Transform operator+(const Transform& InTransform)
+    {
+        return Transform(position + InTransform.position, rotation + InTransform.rotation, scale + InTransform.scale);
+    }
+
 };
 
 struct StaticMesh
@@ -58,16 +79,25 @@ struct Material
 
 struct StaticMeshComponent
 {
-    StaticMeshComponent(Entity& InEntity, Transform& InTransform) :
+    StaticMeshComponent(Entity& InEntity) :
         OwningEntity(&InEntity),
-        Transform(&InTransform),
+        StaticMeshTransform(Transform{}),
+        VAO(0),
+        VBO(0)
+    {
+        StaticMeshTransform = InEntity.GetComponent<Transform>();
+    }
+
+    StaticMeshComponent(Entity& InEntity, Transform InTransform) :
+        OwningEntity(&InEntity),
+        StaticMeshTransform(InTransform),
         VAO(0),
         VBO(0)
     {
     }
 
     Entity* OwningEntity;
-    Transform* Transform;
+    Transform StaticMeshTransform;
 
     GLuint VAO;
     GLuint VBO;
@@ -85,11 +115,11 @@ struct StaticMeshComponent
     glm::mat4 GetTransformMatrix()
     {
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, Transform->position);
-        model = glm::rotate(model, Transform->rotation.x, glm::vec3(1,0,0));
-        model = glm::rotate(model, Transform->rotation.y, glm::vec3(0,1,0));
-        model = glm::rotate(model, Transform->rotation.z, glm::vec3(0,0,1));
-        model = glm::scale(model, Transform->scale);
+        model = glm::translate(model, StaticMeshTransform.position);
+        model = glm::rotate(model, StaticMeshTransform.rotation.x, glm::vec3(1,0,0));
+        model = glm::rotate(model, StaticMeshTransform.rotation.y, glm::vec3(0,1,0));
+        model = glm::rotate(model, StaticMeshTransform.rotation.z, glm::vec3(0,0,1));
+        model = glm::scale(model, StaticMeshTransform.scale);
 
         return model;
     }
@@ -97,6 +127,12 @@ struct StaticMeshComponent
     void SetTransformMatrix(glm::mat4 InTransform)
     {
         ModelMatrix = InTransform;
+    }
+
+    void SetPosition(glm::vec3 InPosition)
+    {
+        auto& OwningEntityTransform = OwningEntity->GetComponent<Transform>();
+        StaticMeshTransform.position = OwningEntityTransform.position + InPosition;
     }
 };
 

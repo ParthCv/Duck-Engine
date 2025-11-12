@@ -13,7 +13,7 @@ World::World()
 {
     // TODO: Create first entity and test if we can move it per Update.
     Entity& FirstEntity = CreateEntity(*this);
-    auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f));
+    auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(1,1,1));
     FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
     FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
 }
@@ -40,17 +40,21 @@ void World::Update(float deltaTime)
     // OwningEntityTransform->Rotate(glm::vec3(0.005, 0 ,0));
 
     // TODO: Rotating the StaticMeshComponent, not the OwningEntity
-    FirstEntityStaticMesh.Transform->Rotate(glm::vec3(0, 10,0) * deltaTime);
+    FirstEntityStaticMesh.StaticMeshTransform.Rotate(glm::vec3(0, 10,0) * deltaTime);
+
+    // TODO: Moving the StaticMeshComponent, not the OwningEntity
+    // FirstEntityStaticMesh.StaticMeshTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
 
     // TODO: Rotate entity transform
     // FirstEntityTransform.Rotate(glm::vec3(0,10,0) * deltaTime);
     // glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.GetTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
 
     // srand(time(0));
-    int randX = rand() % 3;
-    int randY = rand() % 3;
-    int randZ = rand() % 3;
-    // FirstEntityStaticMesh.Transform->SetTransform(glm::vec3(0,3,0));
+    int randX = rand() % 2;
+    int randY = rand() % 2;
+    int randZ = rand() % 2;
+    FirstEntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
+
 
     // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
 
