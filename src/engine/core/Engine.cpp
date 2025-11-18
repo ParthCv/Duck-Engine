@@ -61,7 +61,7 @@ bool Engine::initialize(int width, int height) {
     std::cout << "Engine initialized successfully!" << std::endl;
 
     // Raycast logic
-    glm::vec3 rayDir = glm::normalize(glm::vec3(0.2f, 0.2f, -1.0f));
+    glm::vec3 rayDir = glm::normalize(glm::vec3(0.1f, 0.1f, -1.0f));
     glm::vec3 rayOrigin = camera.position + glm::vec3(0.1f, 0.1f, 1.0f);
 
     float hitDistance;
@@ -76,7 +76,6 @@ bool Engine::initialize(int width, int height) {
 
         std::cout << "MISS" << std::endl;
     }
-    // updateLineVertices(rayStart, rayEnd);
     return true;
 }
 
@@ -148,10 +147,6 @@ void Engine::render() {
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVBO);
-    glDeleteVertexArrays(1, &debugCubeVAO);
-    glDeleteBuffers(1, &debugCubeVBO);
-    glDeleteVertexArrays(1, &lineVAO);
-    glDeleteBuffers(1, &lineVBO);
 
     DebugRenderer::getInstance().cleanup();
 
@@ -224,106 +219,6 @@ void Engine::createCube() {
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
-}
-
-
-void Engine::createDebugCube() {
-    // Cube vertices with colors
-    float vertices[] = {
-        // Positions          // Colors
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, // Front face (red)
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f, // Back face (green)
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, // Left face (blue)
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // Right face (yellow)
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // Bottom face (magenta)
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, // Top face (cyan)
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f
-    };
-
-    // Generate VAO and VBO
-    glGenVertexArrays(1, &debugCubeVAO);
-    glGenBuffers(1, &debugCubeVBO);
-
-    // Bind and upload data
-    glBindVertexArray(debugCubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, debugCubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-}
-
-void Engine::createLine() {
-    glGenVertexArrays(1, &lineVAO);
-    glGenBuffers(1, &lineVBO);
-
-    glBindVertexArray(lineVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, nullptr, GL_DYNAMIC_DRAW);
-
-    // Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-}
-
-void Engine::updateLineVertices(const glm::vec3& start, const glm::vec3& end){
-    float lineVertices[] = {
-        // Position and Color
-        start.x, start.y, start.z,   1.0f, 0.0f, 0.0f,
-        end.x,   end.y,   end.z,     1.0f, 0.0f, 0.0f
-    };
-
-    glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(lineVertices), lineVertices);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 bool Engine::rayIntersectsAABB(

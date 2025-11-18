@@ -26,19 +26,14 @@ private:
     Shader basicShader;
 
     GLuint cubeVAO = 0, cubeVBO = 0;
-    GLuint debugCubeVAO = 0, debugCubeVBO = 0;
 
     void createCube();
-    void createDebugCube();
     void renderCube();
-    void createLine();
-    void updateLineVertices(const glm::vec3& start, const glm::vec3& end);
 
     bool rayIntersectsAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                            const glm::vec3& aabbMin, const glm::vec3& aabbMax,
                            float& hitDistance);
 
-    GLuint lineVAO, lineVBO;
     glm::vec3 rayStart, rayEnd;
 
     glm::vec3 cubeAABBMin = glm::vec3(-0.5f, -0.5f, -0.5f);
