@@ -52,7 +52,7 @@ bool Engine::initialize(int width, int height) {
     camera.position = glm::vec3(0.0f, 0.0f, 3.0f);
 
     // Setup cube
-    createCube();
+    // createCube();
 
     // Optional: Set up state change callback for debugging
     gameStateManager.setOnStateChange([](GameState oldState, GameState newState) {
@@ -60,6 +60,12 @@ bool Engine::initialize(int width, int height) {
     });
 
     std::cout << "Engine initialized successfully!" << std::endl;
+
+    // TODO: ABSOLUTELY REMEMBER TO REMOVE THIS
+    World.camera = &camera;
+    World.basicShader = &basicShader;
+    World.BeginPlay();
+
     return true;
 }
 
@@ -257,6 +263,7 @@ void Engine::processOptionsInput() {
 // ============================================================================
 
 void Engine::update(float deltaTime) {
+    World.Update(deltaTime);
     // Update the game state manager
     gameStateManager.update(deltaTime);
 
@@ -295,6 +302,7 @@ void Engine::render() {
 
     // Render state-specific UI (will add later)
     gameStateManager.render();
+    World.Render();
 }
 
 void Engine::shutdown() {

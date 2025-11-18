@@ -10,6 +10,14 @@ add_executable(DuckEngine
         dependencies/glad.c
         src/engine/core/Engine.cpp
         src/engine/renderer/Shader.cpp
+        src/engine/ecs/Entity.cpp
+        src/engine/ecs/Entity.h
+        src/engine/ecs/ComponentType.h
+        src/engine/ecs/Component.h
+        src/engine/ecs/World.cpp
+        src/engine/ecs/World.h
+        src/engine/system/EntityManager.cpp
+        src/engine/system/EntityManager.h
         src/engine/input/InputManager.cpp
         src/engine/game/GameStateManager.cpp
 )
