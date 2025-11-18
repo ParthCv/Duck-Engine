@@ -24,6 +24,8 @@ public:
     int getHitCount() const { return hitCount; }
     int getMissCount() const { return missCount; }
 
+    bool getRayHit() const { return rayHit; }
+
 
 private:
     void fireRandomRaycast();
@@ -41,6 +43,7 @@ private:
     // Stats
     int hitCount;
     int missCount;
+    bool rayHit;
 
     // Cube AABB (hardcoded for now)
     glm::vec3 cubeMin;

@@ -33,6 +33,4 @@ private:
 
     void createCube();
     void renderCube();
-
-    TestGame* game = nullptr;
 };

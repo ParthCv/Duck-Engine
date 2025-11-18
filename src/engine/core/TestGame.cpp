@@ -15,7 +15,8 @@ TestGame::TestGame()
       hitCount(0),
       missCount(0),
       cubeMin(-0.5f, -0.5f, -0.5f),
-      cubeMax(0.5f, 0.5f, 0.5f)
+      cubeMax(0.5f, 0.5f, 0.5f),
+      rayHit(false)
 {
     srand(static_cast<unsigned int>(time(nullptr)));
 }
@@ -65,6 +66,7 @@ void TestGame::onHit(const Physics::RaycastHit& hit) {
     hitCount++;
     rayStart = hit.point - glm::normalize(hit.point) * hit.distance;
     rayEnd = hit.point;
+    rayHit = true;
 
     std::cout << "✓ HIT! Distance: " << hit.distance << std::endl;
     std::cout << "  Hit Point: (" << hit.point.x << ", " << hit.point.y << ", " << hit.point.z << ")" << std::endl;
@@ -76,6 +78,7 @@ void TestGame::onMiss(const glm::vec3& origin, const glm::vec3& direction) {
     missCount++;
     rayStart = origin;
     rayEnd = origin + direction * 10.0f;
+    rayHit = false;
 
     std::cout << "MISS!" << std::endl;
     std::cout << "Score: " << hitCount << " hits / " << missCount << " misses" << std::endl;

@@ -8,6 +8,8 @@
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
 #include "GLFW/glfw3.h"
+#include "../debug/DebugRenderer.h"
+#include "../core/TestGame.h"
 
 World::World()
 {
@@ -55,6 +57,10 @@ void World::Update(float deltaTime)
     int randZ = rand() % 2;
     FirstEntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
 
+    if (game) {
+        game->update(deltaTime);
+    }
+
 
     // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
 
@@ -97,6 +103,21 @@ void World::Render()
         }
     }
 
+       // Draw Debug collision cube wireframe
+       DebugRenderer::getInstance().drawBox(
+           *basicShader,
+           glm::vec3(0.0f, 0.0f, 0.0f),
+           glm::vec3(1.0f, 1.0f, 1.0f),
+           glm::vec3(0.0f, 1.0f, 0.0f)
+       );
+
+       DebugRenderer::getInstance().drawLine(
+        *basicShader,
+        game->getRayStart(),
+        game->getRayEnd(),
+        game->getRayHit()
+    );
+
     glBindVertexArray(0);
 }
 
@@ -111,6 +132,7 @@ void World::BeginPlay()
 
         CreateCube(FirstEntityStaticMeshComponent.VAO, FirstEntityStaticMeshComponent.VBO);
     }
+    game = new TestGame();
 }
 
 Entity& World::CreateEntity(World& InWorld)

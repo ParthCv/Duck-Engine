@@ -110,12 +110,15 @@ void DebugRenderer::drawBox(Shader basicShader, const glm::vec3& position, const
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void DebugRenderer::drawLine(Shader basicShader, const glm::vec3& start, const glm::vec3& end) {
+void DebugRenderer::drawLine(Shader basicShader, const glm::vec3& start, const glm::vec3& end, const bool hit) {
     // Update line vertices
+
+    glm::vec3 lineColor = hit ? glm::vec3(0.0f, 1.0f, 0.0f)  // Green
+                              : glm::vec3(1.0f, 0.0f, 0.0f); // Red
+
     float lineVertices[] = {
-        // Position and Color
-        start.x, start.y, start.z,   1.0f, 0.0f, 0.0f,
-        end.x,   end.y,   end.z,     1.0f, 0.0f, 0.0f
+        start.x, start.y, start.z,  lineColor.r, lineColor.g, lineColor.b,
+        end.x,   end.y,   end.z,    lineColor.r, lineColor.g, lineColor.b
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, lineVBO);

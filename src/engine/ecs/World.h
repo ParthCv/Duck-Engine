@@ -9,6 +9,7 @@
 
 #include "Entity.h"
 #include "glad/glad.h"
+#include "../core/TestGame.h"
 
 class Shader;
 class Camera;
@@ -41,6 +42,8 @@ public:
 
     // TODO: Temporary testing function
     void CreateCube(GLuint& InVAO, GLuint& InVBO);
+
+    TestGame* game = nullptr;
 };
 
 
