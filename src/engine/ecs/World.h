@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Entity.h"
+#include "../system/EntityManager.h"
 #include "glad/glad.h"
 
 class Shader;
@@ -15,12 +16,11 @@ class Camera;
 
 class World
 {
-private:
-    std::vector<std::unique_ptr<Entity>> Entities;
 public:
     // TODO: Remove later: Temp Variables
     Camera* camera;
     Shader* basicShader;
+    EntityManager EntityManager;
 
     World();
 
@@ -29,10 +29,6 @@ public:
     void Render();
 
     void BeginPlay();
-
-    Entity& CreateEntity(World& InWorld);
-
-    std::vector<std::unique_ptr<Entity>>& GetEntities();
 
     /*
      * Garbage collecting deactivated entities.
