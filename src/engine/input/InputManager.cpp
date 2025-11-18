@@ -56,10 +56,11 @@ void InputManager::update() {
 
     // === POLL ALL INPUT DIRECTLY ===
 
-    // Poll commonly used keys (add more as needed)
+    // Poll commonly used keys
     keys[GLFW_KEY_SPACE] = (glfwGetKey(windowPtr, GLFW_KEY_SPACE) == GLFW_PRESS);
     keys[GLFW_KEY_ESCAPE] = (glfwGetKey(windowPtr, GLFW_KEY_ESCAPE) == GLFW_PRESS);
     keys[GLFW_KEY_ENTER] = (glfwGetKey(windowPtr, GLFW_KEY_ENTER) == GLFW_PRESS);
+    keys[GLFW_KEY_BACKSPACE] = (glfwGetKey(windowPtr, GLFW_KEY_BACKSPACE) == GLFW_PRESS);
 
     // WASD
     keys[GLFW_KEY_W] = (glfwGetKey(windowPtr, GLFW_KEY_W) == GLFW_PRESS);
@@ -82,6 +83,10 @@ void InputManager::update() {
     keys[GLFW_KEY_R] = (glfwGetKey(windowPtr, GLFW_KEY_R) == GLFW_PRESS);
     keys[GLFW_KEY_Q] = (glfwGetKey(windowPtr, GLFW_KEY_Q) == GLFW_PRESS);
     keys[GLFW_KEY_E] = (glfwGetKey(windowPtr, GLFW_KEY_E) == GLFW_PRESS);
+    keys[GLFW_KEY_M] = (glfwGetKey(windowPtr, GLFW_KEY_M) == GLFW_PRESS);
+    keys[GLFW_KEY_O] = (glfwGetKey(windowPtr, GLFW_KEY_O) == GLFW_PRESS);
+    keys[GLFW_KEY_G] = (glfwGetKey(windowPtr, GLFW_KEY_G) == GLFW_PRESS);
+    keys[GLFW_KEY_T] = (glfwGetKey(windowPtr, GLFW_KEY_T) == GLFW_PRESS);
 
     // Number keys (for testing)
     keys[GLFW_KEY_1] = (glfwGetKey(windowPtr, GLFW_KEY_1) == GLFW_PRESS);

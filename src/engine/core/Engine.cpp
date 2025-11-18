@@ -54,6 +54,11 @@ bool Engine::initialize(int width, int height) {
     // Setup cube
     createCube();
 
+    // Optional: Set up state change callback for debugging
+    gameStateManager.setOnStateChange([](GameState oldState, GameState newState) {
+        std::cout << "[Engine] Game state changed!" << std::endl;
+    });
+
     std::cout << "Engine initialized successfully!" << std::endl;
     return true;
 }
@@ -79,21 +84,56 @@ void Engine::run() {
 }
 
 void Engine::processInput() {
-
-    // Escape Key to exit game
-    if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
-        glfwSetWindowShouldClose(window, true);
-    }
-
     ////////////////////////////////////////////////////////////////////////
-    // Temporary Code To Test Inputs (NORMAN)
+    // GLOBAL INPUT (works in all states)
     ////////////////////////////////////////////////////////////////////////
 
-    // Test 1: ESC to exit (should work now!)
+    // ESC - Context-dependent behavior
     if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
         std::cout << "[TEST] ESC pressed via InputManager!" << std::endl;
-        glfwSetWindowShouldClose(window, true);
+
+        if (gameStateManager.isPlaying() || gameStateManager.isPaused()) {
+            // In game, ESC toggles pause
+            gameStateManager.togglePause();
+        } else {
+            // In menu or game over, ESC quits
+            glfwSetWindowShouldClose(window, true);
+        }
     }
+
+    ////////////////////////////////////////////////////////////////////////
+    // STATE-SPECIFIC INPUT
+    ////////////////////////////////////////////////////////////////////////
+
+    switch (gameStateManager.getCurrentState()) {
+        case GameState::MENU:
+            processMenuInput();
+            break;
+
+        case GameState::PLAYING:
+            processGameplayInput();
+            break;
+
+        case GameState::PAUSED:
+            processPauseInput();
+            break;
+
+        case GameState::GAME_OVER:
+            processGameOverInput();
+            break;
+
+        case GameState::ROUND_TRANSITION:
+            // No input during transition
+            break;
+
+        case GameState::OPTIONS:
+            processOptionsInput();
+            break;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // NORMAN'S TEST CODE (keeping for now)
+    ////////////////////////////////////////////////////////////////////////
 
     // Test 2: SPACE single press
     if (InputManager::isKeyPressed(GLFW_KEY_SPACE)) {
@@ -113,7 +153,7 @@ void Engine::processInput() {
     // Test 5: Mouse click
     if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
         glm::vec2 mousePos = InputManager::getMousePosition();
-        std::cout << "[TEST]  MOUSE CLICKED at (" << mousePos.x << ", " << mousePos.y << ")" << std::endl;
+        std::cout << "[TEST] MOUSE CLICKED at (" << mousePos.x << ", " << mousePos.y << ")" << std::endl;
     }
 
     // Test 6: Mouse position (Very spammy, commmented out)
@@ -124,21 +164,106 @@ void Engine::processInput() {
     //     std::cout << "[TEST] Mouse position: (" << mousePos.x << ", " << mousePos.y << ")" << std::endl;
     // }
 
-    // Test 7: Mouse delta (movement)
-    glm::vec2 mouseDelta = InputManager::getMouseDelta();
-    if (glm::length(mouseDelta) > 5.0f) { // If mouse moved significantly
-        std::cout << "[TEST]  Mouse moved: (" << mouseDelta.x << ", " << mouseDelta.y << ")" << std::endl;
-    }
-
-    // Test 8: Number keys
-    if (InputManager::isKeyPressed(GLFW_KEY_1)) {
-        std::cout << "[TEST]  Key 1 pressed!" << std::endl;
-    }
+    // // Test 7: Mouse delta (movement) (Spammy, commented out)
+    // glm::vec2 mouseDelta = InputManager::getMouseDelta();
+    // if (glm::length(mouseDelta) > 5.0f) { // If mouse moved significantly
+    //     std::cout << "[TEST] Mouse moved: (" << mouseDelta.x << ", " << mouseDelta.y << ")" << std::endl;
+    // }
 
 }
 
+// ============================================================================
+// STATE-SPECIFIC INPUT HANDLERS
+// ============================================================================
+
+void Engine::processMenuInput() {
+    // SPACE or ENTER to start game
+    if (InputManager::isKeyPressed(GLFW_KEY_SPACE) ||
+        InputManager::isKeyPressed(GLFW_KEY_ENTER)) {
+        std::cout << "[Engine] Starting game from menu!" << std::endl;
+        gameStateManager.setState(GameState::PLAYING);
+    }
+
+    // O for options
+    if (InputManager::isKeyPressed(GLFW_KEY_O)) {
+        std::cout << "[Engine] Opening options menu" << std::endl;
+        gameStateManager.setState(GameState::OPTIONS);
+    }
+}
+
+void Engine::processGameplayInput() {
+    // P to pause
+    if (InputManager::isKeyPressed(GLFW_KEY_P)) {
+        std::cout << "[Engine] Pausing game" << std::endl;
+        gameStateManager.togglePause();
+    }
+
+    // R to restart (commented out for now to not conflict with test)
+    // if (InputManager::isKeyPressed(GLFW_KEY_R)) {
+    //     std::cout << "[Engine] Restarting game" << std::endl;
+    //     gameStateManager.restartGame();
+    // }
+
+    // Debug keys
+    if (InputManager::isKeyPressed(GLFW_KEY_G)) {
+        std::cout << "[Debug] Game Over triggered" << std::endl;
+        gameStateManager.setState(GameState::GAME_OVER);
+    }
+
+    if (InputManager::isKeyPressed(GLFW_KEY_T)) {
+        std::cout << "[Debug] Round Transition triggered" << std::endl;
+        gameStateManager.setState(GameState::ROUND_TRANSITION);
+    }
+}
+
+void Engine::processPauseInput() {
+    // P to resume (ESC also works via global input)
+    if (InputManager::isKeyPressed(GLFW_KEY_P)) {
+        std::cout << "[Engine] Resuming game" << std::endl;
+        gameStateManager.resumeGame();
+    }
+
+    // M to return to menu
+    if (InputManager::isKeyPressed(GLFW_KEY_M)) {
+        std::cout << "[Engine] Returning to menu from pause" << std::endl;
+        gameStateManager.returnToMenu();
+    }
+}
+
+void Engine::processGameOverInput() {
+    // R to restart (commented out to not conflict with test)
+    // if (InputManager::isKeyPressed(GLFW_KEY_R)) {
+    //     std::cout << "[Engine] Restarting from game over" << std::endl;
+    //     gameStateManager.restartGame();
+    // }
+
+    // M to return to menu
+    if (InputManager::isKeyPressed(GLFW_KEY_M)) {
+        std::cout << "[Engine] Returning to menu from game over" << std::endl;
+        gameStateManager.returnToMenu();
+    }
+}
+
+void Engine::processOptionsInput() {
+    // BACKSPACE to return to menu (ESC also works via global input)
+    if (InputManager::isKeyPressed(GLFW_KEY_BACKSPACE)) {
+        std::cout << "[Engine] Returning to menu from options" << std::endl;
+        gameStateManager.returnToMenu();
+    }
+}
+
+// ============================================================================
+// UPDATE AND RENDER
+// ============================================================================
+
 void Engine::update(float deltaTime) {
-    // Future game logic here
+    // Update the game state manager
+    gameStateManager.update(deltaTime);
+
+    // State-specific updates
+    if (gameStateManager.isPlaying()) {
+        // Update game logic (ducks, score, etc.) - will add later
+    }
 }
 
 void Engine::render() {
@@ -146,24 +271,30 @@ void Engine::render() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Use shader
-    basicShader.use();
+    // Render game scene (for now, just the cube)
+    if (gameStateManager.isPlaying() || gameStateManager.isPaused()) {
+        // Use shader
+        basicShader.use();
 
-    // Set matrices
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
+        // Set matrices
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = camera.getProjectionMatrix();
+        glm::mat4 view = camera.getViewMatrix();
+        glm::mat4 projection = camera.getProjectionMatrix();
 
-    basicShader.setMat4("model", model);
-    basicShader.setMat4("view", view);
-    basicShader.setMat4("projection", projection);
+        basicShader.setMat4("model", model);
+        basicShader.setMat4("view", view);
+        basicShader.setMat4("projection", projection);
 
-    // Draw cube
-    glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
+        // Draw cube
+        glBindVertexArray(cubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+    }
+
+    // Render state-specific UI (will add later)
+    gameStateManager.render();
 }
 
 void Engine::shutdown() {

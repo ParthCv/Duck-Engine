@@ -11,6 +11,7 @@ add_executable(DuckEngine
         src/engine/core/Engine.cpp
         src/engine/renderer/Shader.cpp
         src/engine/input/InputManager.cpp
+        src/engine/game/GameStateManager.cpp
 )
 
 # Include directories for headers
