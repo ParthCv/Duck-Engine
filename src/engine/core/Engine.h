@@ -5,6 +5,8 @@
 #include "../ecs/World.h"
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
+#include "../input/InputManager.h"
+#include "../game/GameStateManager.h"
 
 class Engine {
 public:
@@ -23,7 +25,15 @@ private:
     void update(float deltaTime);
     void render();
 
+    // State-specific input handlers
+    void processMenuInput();
+    void processGameplayInput();
+    void processPauseInput();
+    void processGameOverInput();
+    void processOptionsInput();
+
     Camera camera;
+    GameStateManager gameStateManager;
 
     // Temp variable
     Shader basicShader;
@@ -31,5 +41,4 @@ private:
     GLuint cubeVAO = 0, cubeVBO = 0;
 
     void createCube();
-    void renderCube();
 };

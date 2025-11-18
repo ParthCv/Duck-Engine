@@ -70,10 +70,6 @@ void World::Update(float deltaTime)
 
 void World::Render()
 {
-    // Clear with color
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // TODO: Render stuff here
 
     // Use shader
