@@ -263,13 +263,15 @@ void Engine::processOptionsInput() {
 // ============================================================================
 
 void Engine::update(float deltaTime) {
-    World.Update(deltaTime);
     // Update the game state manager
     gameStateManager.update(deltaTime);
 
-    // State-specific updates
+    // Only update world when actually playing
     if (gameStateManager.isPlaying()) {
+
+        World.Update(deltaTime);
         // Update game logic (ducks, score, etc.) - will add later
+
     }
 }
 
