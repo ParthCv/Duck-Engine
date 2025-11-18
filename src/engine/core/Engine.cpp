@@ -274,35 +274,18 @@ void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
-    // Clear with color
+
+    // Clear ONCE at the start
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Render game scene (for now, just the cube)
+    // Render game scene through World
     if (gameStateManager.isPlaying() || gameStateManager.isPaused()) {
-        // Use shader
-        basicShader.use();
-
-        // Set matrices
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-        glm::mat4 view = camera.getViewMatrix();
-        glm::mat4 projection = camera.getProjectionMatrix();
-
-        basicShader.setMat4("model", model);
-        basicShader.setMat4("view", view);
-        basicShader.setMat4("projection", projection);
-
-        // Draw cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
+        World.Render();  // World renders all entities
     }
 
-    // Render state-specific UI (will add later)
-    gameStateManager.render();
-    World.Render();
+    // Render UI/HUD on top
+    gameStateManager.render();  // This should only render UI overlays
 }
 
 void Engine::shutdown() {
