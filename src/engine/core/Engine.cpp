@@ -49,9 +49,15 @@ bool Engine::initialize(int width, int height) {
     camera.position = glm::vec3(0.0f, 0.0f, 3.0f);
 
     // Setup cube
-    createCube();
+    // createCube();
 
     std::cout << "Engine initialized successfully!" << std::endl;
+
+    // TODO: ABSOLUTELY REMEMBER TO REMOVE THIS
+    World.camera = &camera;
+    World.basicShader = &basicShader;
+    World.BeginPlay();
+
     return true;
 }
 
@@ -81,33 +87,35 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
+    World.Update(deltaTime);
 }
 
 void Engine::render() {
     // Clear with color
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // TODO: Render stuff here
-
-    // Use shader
-    basicShader.use();
-
-    // Set matrices
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
-
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = camera.getProjectionMatrix();
-
-    basicShader.setMat4("model", model);
-    basicShader.setMat4("view", view);
-    basicShader.setMat4("projection", projection);
-
-    // Draw cube
-    glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
+    // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //
+    // // TODO: Render stuff here
+    //
+    // // Use shader
+    // basicShader.use();
+    //
+    // // Set matrices
+    // glm::mat4 model = glm::mat4(1.0f);
+    // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
+    //
+    // glm::mat4 view = camera.getViewMatrix();
+    // glm::mat4 projection = camera.getProjectionMatrix();
+    //
+    // basicShader.setMat4("model", model);
+    // basicShader.setMat4("view", view);
+    // basicShader.setMat4("projection", projection);
+    //
+    // // Draw cube
+    // glBindVertexArray(cubeVAO);
+    // glDrawArrays(GL_TRIANGLES, 0, 36);
+    // glBindVertexArray(0);
+    World.Render();
 }
 
 void Engine::shutdown() {
