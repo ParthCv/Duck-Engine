@@ -13,6 +13,11 @@ EntityManager::EntityManager()
 
 void EntityManager::BeginPlay()
 {
+    // TODO: Call BeginPlay on all entities
+    for (auto& entity : Entities)
+    {
+        entity->BeginPlay();
+    }
 }
 
 std::vector<std::unique_ptr<Entity>>& EntityManager::GetEntities()
