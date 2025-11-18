@@ -34,12 +34,12 @@ using ComponentArray = std::array<void*, MAX_COMPONENTS>;
 class Entity
 {
 private:
-    bool bIsActive = true;
     ComponentArray ComponentArray{};
     ComponentBitSet ComponentBitSet{};
 
 public:
     World* world;
+    bool bIsActive = true;
 
     Entity(World& InWorld);
 
