@@ -50,7 +50,7 @@ bool Engine::initialize(int width, int height) {
     camera.position = glm::vec3(0.0f, 0.0f, 3.0f);
 
     // Setup cube
-    createCube();
+    // createCube();
 
     // Sets up debug renderer
     DebugRenderer::getInstance().init();
@@ -59,6 +59,12 @@ bool Engine::initialize(int width, int height) {
     game = new TestGame();
 
     std::cout << "Engine initialized successfully!" << std::endl;
+
+    // TODO: ABSOLUTELY REMEMBER TO REMOVE THIS
+    World.camera = &camera;
+    World.basicShader = &basicShader;
+    World.BeginPlay();
+
     std::cout << "Random raycasts will fire every 2 seconds..." << std::endl;
 
     return true;
@@ -66,6 +72,7 @@ bool Engine::initialize(int width, int height) {
 
 void Engine::run() {
     float lastFrame = 0.0f;
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         float deltaTime = currentFrame - lastFrame;
@@ -92,6 +99,7 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
+    World.Update(deltaTime);
 }
 
 void Engine::render() {
@@ -133,6 +141,8 @@ void Engine::render() {
      game->getRayStart(),
      game->getRayEnd()
  );
+    // add above to world render
+    World.Render();
 }
 
 void Engine::shutdown() {
