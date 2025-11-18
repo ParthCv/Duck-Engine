@@ -8,6 +8,7 @@
 #include <vector>
 
 
+class DuckEntity;
 class World;
 class Entity;
 
@@ -22,11 +23,13 @@ public:
 
     Entity& CreateEntity(World& InWorld);
 
+    DuckEntity& CreateDuckEntity(World& InWorld);
+
     Entity& CreateDeferredEntity(World& InWorld);
 
     void SynchronizeEntities();
 
-    void Update();
+    void Update(float deltaTime);
 
     void CleanupInactiveEntities();
 

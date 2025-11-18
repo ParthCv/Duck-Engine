@@ -5,45 +5,48 @@
 #include "World.h"
 #include <iostream>
 #include "Component.h"
+#include "../game/DuckEntity.h"
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
 #include "GLFW/glfw3.h"
 
 World::World()
 {
-    Entity& FirstEntity = EntityManager.CreateEntity(*this);
+    // Entity& FirstEntity = EntityManager.CreateEntity(*this);
 
     // TODO: Create first entity and test if we can move it per Update.
     // Entity& FirstEntity = CreateEntity(*this);
 
-    auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1));
-    FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
-    FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
+    // auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1));
+    // FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
+    // FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
+
+    DuckEntity& Duck = EntityManager.CreateDuckEntity(*this);
 }
 
 void World::Update(float deltaTime)
 {
 
     // TODO: Get the first entity
-    auto& FirstEntity = EntityManager.GetEntities()[0];
-    auto& FirstEntityTransform = FirstEntity->GetComponent<Transform>();
-    auto& FirstEntityStaticMesh = FirstEntity->GetComponent<StaticMeshComponent>();
+    // auto& FirstEntity = EntityManager.GetEntities()[0];
+    // auto& FirstEntityTransform = FirstEntity->GetComponent<Transform>();
+    // auto& FirstEntityStaticMesh = FirstEntity->GetComponent<StaticMeshComponent>();
 
     // TODO: Manually transforming the First Entity every Update.
     // FirstEntityTransform.position.x += 1.0f * deltaTime;
     // std::cout << "Entity One Transform.X: " << FirstEntityTransform.position.x << std::endl;
 
     // TODO: Adding to the Entities' Transform
-    FirstEntityTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
+    // FirstEntityTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
 
     // TODO: Rotate the StaticMesh
     // Rotating the Owning Entity, not the StaticMeshComponent
-    Entity& OwningEntity = *FirstEntityStaticMesh.OwningEntity;
-    auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
+    // Entity& OwningEntity = *FirstEntityStaticMesh.OwningEntity;
+    // auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
     // OwningEntityTransform->Rotate(glm::vec3(0.005, 0 ,0));
 
     // TODO: Rotating the StaticMeshComponent, not the OwningEntity
-    FirstEntityStaticMesh.StaticMeshTransform.Rotate(glm::vec3(0, 10,0) * deltaTime);
+    // FirstEntityStaticMesh.StaticMeshTransform.Rotate(glm::vec3(0, 10,0) * deltaTime);
 
     // TODO: Moving the StaticMeshComponent, not the OwningEntity
     // FirstEntityStaticMesh.StaticMeshTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
@@ -53,10 +56,10 @@ void World::Update(float deltaTime)
     // glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.GetTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
 
     // srand(time(0));
-    int randX = rand() % 2;
-    int randY = rand() % 2;
-    int randZ = rand() % 2;
-    FirstEntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
+    // int randX = rand() % 2;
+    // int randY = rand() % 2;
+    // int randZ = rand() % 2;
+    // FirstEntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
 
 
     // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
@@ -65,7 +68,7 @@ void World::Update(float deltaTime)
     // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position + glm::vec3(0, randY, 0) * deltaTime);
     // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position);
 
-    EntityManager.Update();
+    EntityManager.Update(deltaTime);
 }
 
 void World::Render()

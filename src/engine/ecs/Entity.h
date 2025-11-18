@@ -38,10 +38,16 @@ private:
     ComponentBitSet ComponentBitSet{};
 
 public:
+    virtual ~Entity();
+
     World* world;
     bool bIsActive = true;
 
     Entity(World& InWorld);
+
+    virtual void Update(float deltaTime);
+
+    virtual void BeginPlay();
 
     bool GetIsActive() const;
 
