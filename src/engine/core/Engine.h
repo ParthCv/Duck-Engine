@@ -4,6 +4,7 @@
 
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
+#include "TestGame.h"
 
 class Engine {
 public:
@@ -30,12 +31,5 @@ private:
     void createCube();
     void renderCube();
 
-    bool rayIntersectsAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-                           const glm::vec3& aabbMin, const glm::vec3& aabbMax,
-                           float& hitDistance);
-
-    glm::vec3 rayStart, rayEnd;
-
-    glm::vec3 cubeAABBMin = glm::vec3(-0.5f, -0.5f, -0.5f);
-    glm::vec3 cubeAABBMax = glm::vec3(0.5f, 0.5f, 0.5f);
+    TestGame* game = nullptr;
 };

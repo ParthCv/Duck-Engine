@@ -11,6 +11,10 @@ add_executable(DuckEngine
         src/engine/core/Engine.cpp
         src/engine/renderer/Shader.cpp
         src/engine/debug/DebugRenderer.cpp
+        src/engine/physics/RaycastUtils.h
+        src/engine/physics/RaycastUtils.cpp
+        src/engine/core/TestGame.cpp
+        src/engine/core/TestGame.h
 )
 
 # Include directories for headers

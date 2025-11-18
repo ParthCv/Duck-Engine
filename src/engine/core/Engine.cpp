@@ -1,9 +1,8 @@
 #include "Engine.h"
 #include <iostream>
-#include <algorithm>
-#include <cfloat>
 
 #include "../debug/DebugRenderer.h"
+#include "./TestGame.h"
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -40,8 +39,6 @@ bool Engine::initialize(int width, int height) {
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
 
-    // Temp code for now
-
     // Load shader
     if (!basicShader.loadFromFiles("../assets/shaders/basic.vert", "../assets/shaders/basic.frag")) {
         std::cerr << "Failed to load shaders" << std::endl;
@@ -55,33 +52,20 @@ bool Engine::initialize(int width, int height) {
     // Setup cube
     createCube();
 
-    // Sets up debug cube and line
+    // Sets up debug renderer
     DebugRenderer::getInstance().init();
 
+    // Initialize simple game
+    game = new TestGame();
+
     std::cout << "Engine initialized successfully!" << std::endl;
+    std::cout << "Random raycasts will fire every 2 seconds..." << std::endl;
 
-    // Raycast logic
-    glm::vec3 rayDir = glm::normalize(glm::vec3(0.1f, 0.1f, -1.0f));
-    glm::vec3 rayOrigin = camera.position + glm::vec3(0.1f, 0.1f, 1.0f);
-
-    float hitDistance;
-    if (rayIntersectsAABB(rayOrigin, rayDir, cubeAABBMin, cubeAABBMax, hitDistance)) {
-        rayStart = rayOrigin;
-        rayEnd = rayOrigin + rayDir * hitDistance;  // End at hit point
-
-        std::cout << "HIT! Distance: " << hitDistance << std::endl;
-    } else {
-        rayStart = rayOrigin;
-        rayEnd = rayOrigin + rayDir * 100.0f;  // Extend ray into distance
-
-        std::cout << "MISS" << std::endl;
-    }
     return true;
 }
 
 void Engine::run() {
     float lastFrame = 0.0f;
-
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         float deltaTime = currentFrame - lastFrame;
@@ -90,6 +74,9 @@ void Engine::run() {
         processInput();
         update(deltaTime);
         render();
+        if (game) {
+            game->update(deltaTime);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -141,7 +128,11 @@ void Engine::render() {
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    DebugRenderer::getInstance().drawLine(basicShader, rayStart, rayEnd);
+    DebugRenderer::getInstance().drawLine(
+     basicShader,
+     game->getRayStart(),
+     game->getRayEnd()
+ );
 }
 
 void Engine::shutdown() {
@@ -219,40 +210,4 @@ void Engine::createCube() {
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
-}
-
-bool Engine::rayIntersectsAABB(
-    const glm::vec3& rayOrigin,
-    const glm::vec3& rayDir,
-    const glm::vec3& aabbMin,
-    const glm::vec3& aabbMax,
-    float& hitDistance)
-{
-    float tMin = 0.0f;
-    float tMax = FLT_MAX;
-
-    for (int i = 0; i < 3; ++i) {
-        if (std::abs(rayDir[i]) < 0.0001f) {
-            if (rayOrigin[i] < aabbMin[i] || rayOrigin[i] > aabbMax[i]) {
-                return false;
-            }
-        } else {
-            float t1 = (aabbMin[i] - rayOrigin[i]) / rayDir[i];
-            float t2 = (aabbMax[i] - rayOrigin[i]) / rayDir[i];
-
-            if (t1 > t2) std::swap(t1, t2);
-
-            tMin = std::max(tMin, t1);
-            tMax = std::min(tMax, t2);
-
-            if (tMin > tMax) return false;
-        }
-    }
-
-    if (tMax >= 0.0f) {
-        hitDistance = tMin >= 0.0f ? tMin : tMax;
-        return true;
-    }
-
-    return false;
 }
