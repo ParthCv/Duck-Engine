@@ -3,6 +3,7 @@
 //
 
 #include "DuckEntity.h"
+#include "../ecs/World.h"
 #include "../ecs/Component.h"
 #include "GLFW/glfw3.h"
 
@@ -33,4 +34,8 @@ void DuckEntity::Update(float deltaTime) {
 
 void DuckEntity::BeginPlay() {
     Entity::BeginPlay();
+
+    // TODO: Implement specific BeginPlay logic for only DuckEntity here.
+    auto& EntityStaticMesh = this->GetComponent<StaticMeshComponent>();
+    world->CreateCube(EntityStaticMesh.VAO, EntityStaticMesh.VBO);
 }

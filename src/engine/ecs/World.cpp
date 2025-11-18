@@ -110,15 +110,15 @@ void World::BeginPlay()
     EntityManager.BeginPlay();
 
     // TODO: Implement all other BeginPlay logic below.
-    auto& FirstEntity = EntityManager.GetEntities()[0];
-    if (FirstEntity->HasComponent<StaticMeshComponent>())
-    {
-        auto& FirstEntityStaticMeshComponent = FirstEntity->GetComponent<StaticMeshComponent>();
-
-        // FirstEntityStaticMeshComponent.Transform->SetTransform(glm::vec3(0,2,0));
-
-        CreateCube(FirstEntityStaticMeshComponent.VAO, FirstEntityStaticMeshComponent.VBO);
-    }
+    // auto& FirstEntity = EntityManager.GetEntities()[0];
+    // if (FirstEntity->HasComponent<StaticMeshComponent>())
+    // {
+    //     auto& FirstEntityStaticMeshComponent = FirstEntity->GetComponent<StaticMeshComponent>();
+    //
+    //     // FirstEntityStaticMeshComponent.Transform->SetTransform(glm::vec3(0,2,0));
+    //
+    //     CreateCube(FirstEntityStaticMeshComponent.VAO, FirstEntityStaticMeshComponent.VBO);
+    // }
 }
 
 void World::CleanUp()
