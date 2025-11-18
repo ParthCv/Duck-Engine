@@ -5,6 +5,8 @@
 #include "../ecs/Entity.h"
 #include "EntityManager.h"
 
+#include "../game/DuckEntity.h"
+
 EntityManager::EntityManager()
 {
 }
@@ -24,6 +26,12 @@ Entity& EntityManager::CreateEntity(World& InWorld)
     return *Entities.back();
 }
 
+DuckEntity& EntityManager::CreateDuckEntity(World &InWorld)
+{
+    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld));
+    return dynamic_cast<DuckEntity&>(*Entities.back());
+}
+
 Entity& EntityManager::CreateDeferredEntity(World& InWorld)
 {
     DeferredEntities.emplace_back(std::make_unique<Entity>(InWorld));
@@ -38,10 +46,12 @@ void EntityManager::SynchronizeEntities()
     }
 }
 
-void EntityManager::Update()
+void EntityManager::Update(float deltaTime)
 {
     // TODO: Do all the updating below.
-    // ....
+    for (auto& entity : Entities) {
+        entity->Update(deltaTime);
+    }
 
     // TODO: Cleanup at the end.
     CleanupInactiveEntities();
