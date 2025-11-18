@@ -11,9 +11,12 @@
 
 World::World()
 {
+    Entity& FirstEntity = EntityManager.CreateEntity(*this);
+
     // TODO: Create first entity and test if we can move it per Update.
-    Entity& FirstEntity = CreateEntity(*this);
-    auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(1,1,1));
+    // Entity& FirstEntity = CreateEntity(*this);
+
+    auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1));
     FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
     FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
 }
@@ -22,7 +25,7 @@ void World::Update(float deltaTime)
 {
 
     // TODO: Get the first entity
-    auto& FirstEntity = Entities[0];
+    auto& FirstEntity = EntityManager.GetEntities()[0];
     auto& FirstEntityTransform = FirstEntity->GetComponent<Transform>();
     auto& FirstEntityStaticMesh = FirstEntity->GetComponent<StaticMeshComponent>();
 
@@ -61,6 +64,8 @@ void World::Update(float deltaTime)
 
     // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position + glm::vec3(0, randY, 0) * deltaTime);
     // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position);
+
+    EntityManager.Update();
 }
 
 void World::Render()
@@ -81,7 +86,7 @@ void World::Render()
     basicShader->setMat4("projection", projection);
 
     // Draw each entity
-    for (auto& entity : GetEntities())
+    for (auto& entity : EntityManager.GetEntities())
     {
         if (entity->HasComponent<StaticMeshComponent>())
         {
@@ -102,7 +107,11 @@ void World::Render()
 
 void World::BeginPlay()
 {
-    auto& FirstEntity = Entities[0];
+    // TODO: Call all system BeginPlay below.
+    EntityManager.BeginPlay();
+
+    // TODO: Implement all other BeginPlay logic below.
+    auto& FirstEntity = EntityManager.GetEntities()[0];
     if (FirstEntity->HasComponent<StaticMeshComponent>())
     {
         auto& FirstEntityStaticMeshComponent = FirstEntity->GetComponent<StaticMeshComponent>();
@@ -111,17 +120,6 @@ void World::BeginPlay()
 
         CreateCube(FirstEntityStaticMeshComponent.VAO, FirstEntityStaticMeshComponent.VBO);
     }
-}
-
-Entity& World::CreateEntity(World& InWorld)
-{
-    Entities.emplace_back(std::make_unique<Entity>(InWorld));
-    return *Entities.back();
-}
-
-std::vector<std::unique_ptr<Entity>>& World::GetEntities()
-{
-    return Entities;
 }
 
 void World::CleanUp()
