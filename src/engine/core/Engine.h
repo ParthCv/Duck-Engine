@@ -4,6 +4,7 @@
 
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
+#include "../input/InputManager.h"
 
 class Engine {
 public:

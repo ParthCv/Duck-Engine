@@ -10,6 +10,7 @@ add_executable(DuckEngine
         dependencies/glad.c
         src/engine/core/Engine.cpp
         src/engine/renderer/Shader.cpp
+        src/engine/input/InputManager.cpp
 )
 
 # Include directories for headers

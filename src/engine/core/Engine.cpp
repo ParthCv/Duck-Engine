@@ -32,6 +32,9 @@ bool Engine::initialize(int width, int height) {
         return false;
     }
 
+    // Initialize InputManager (After window creation)
+    InputManager::initialize(window);
+
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
@@ -63,6 +66,9 @@ void Engine::run() {
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // Update input state at the start of each frame
+        InputManager::update();
+
         processInput();
         update(deltaTime);
         render();
@@ -73,22 +79,72 @@ void Engine::run() {
 }
 
 void Engine::processInput() {
-    // Escape Key to exit game for now
-    // TODO: remove later maybe
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+
+    // Escape Key to exit game
+    if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
         glfwSetWindowShouldClose(window, true);
     }
+
+    ////////////////////////////////////////////////////////////////////////
+    // Temporary Code To Test Inputs (NORMAN)
+    ////////////////////////////////////////////////////////////////////////
+
+    // Test 1: ESC to exit (should work now!)
+    if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
+        std::cout << "[TEST] ESC pressed via InputManager!" << std::endl;
+        glfwSetWindowShouldClose(window, true);
+    }
+
+    // Test 2: SPACE single press
+    if (InputManager::isKeyPressed(GLFW_KEY_SPACE)) {
+        std::cout << "[TEST] SPACE just pressed!" << std::endl;
+    }
+
+    // Test 3: W held down
+    if (InputManager::isKeyDown(GLFW_KEY_W)) {
+        std::cout << "[TEST] W is held down" << std::endl;
+    }
+
+    // Test 4: Key release
+    if (InputManager::isKeyReleased(GLFW_KEY_R)) {
+        std::cout << "[TEST] R was released!" << std::endl;
+    }
+
+    // Test 5: Mouse click
+    if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        glm::vec2 mousePos = InputManager::getMousePosition();
+        std::cout << "[TEST]  MOUSE CLICKED at (" << mousePos.x << ", " << mousePos.y << ")" << std::endl;
+    }
+
+    // Test 6: Mouse position (Very spammy, commmented out)
+    // static int frameCount = 0;
+    // frameCount++;
+    // if (frameCount % 60 == 0) { // Every second
+    //     glm::vec2 mousePos = InputManager::getMousePosition();
+    //     std::cout << "[TEST] Mouse position: (" << mousePos.x << ", " << mousePos.y << ")" << std::endl;
+    // }
+
+    // Test 7: Mouse delta (movement)
+    glm::vec2 mouseDelta = InputManager::getMouseDelta();
+    if (glm::length(mouseDelta) > 5.0f) { // If mouse moved significantly
+        std::cout << "[TEST]  Mouse moved: (" << mouseDelta.x << ", " << mouseDelta.y << ")" << std::endl;
+    }
+
+    // Test 8: Number keys
+    if (InputManager::isKeyPressed(GLFW_KEY_1)) {
+        std::cout << "[TEST]  Key 1 pressed!" << std::endl;
+    }
+
 }
 
 void Engine::update(float deltaTime) {
+    // Future game logic here
 }
 
 void Engine::render() {
     // Clear with color
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // TODO: Render stuff here
 
     // Use shader
     basicShader.use();
