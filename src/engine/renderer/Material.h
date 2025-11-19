@@ -1,24 +1,40 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <memory>
+
+#include "Shader.h"
 #include "Texture.h"
 
-struct Material {
-    glm::vec3 albedo = glm::vec3(1.0f);
-    std::shared_ptr<Texture> albedoMap = nullptr;
+class Material {
+public:
+    Material();
+    ~Material();
 
-    float metallic = 0.0f;
-    std::shared_ptr<Texture> metallicMap = nullptr;
+    bool loadAlbedoMap(const std::string& path);
+    bool loadNormalMap(const std::string& path);
+    bool loadMetallicMap(const std::string& path);
+    bool loadRoughnessMap(const std::string& path);
+    bool loadAOMap(const std::string& path);
+    bool loadMetallicRoughnessMap(const std::string& path);
 
-    float roughness = 0.5f;
-    std::shared_ptr<Texture> roughnessMap = nullptr;
+    void setAlbedo(const glm::vec3& color);
+    void setMetallic(float metallic);
+    void setRoughness(float roughness);
+    void setAO(float ao);
 
-    std::shared_ptr<Texture> normalMap = nullptr;
+    void bind(Shader& shader, unsigned int startUnit = 0);
+    void unbind();
 
-    Material() = default;
+private:
+    std::unique_ptr<Texture> albedoMap;
+    std::unique_ptr<Texture> normalMap;
+    std::unique_ptr<Texture> metallicMap;
+    std::unique_ptr<Texture> roughnessMap;
+    std::unique_ptr<Texture> aoMap;
+    std::unique_ptr<Texture> metallicRoughnessMap;
 
-    bool hasAlbedoMap() const { return albedoMap != nullptr; }
-    bool hasMetallicMap() const { return metallicMap != nullptr; }
-    bool hasRoughnessMap() const { return roughnessMap != nullptr; }
-    bool hasNormalMap() const { return normalMap != nullptr; }
+    glm::vec3 albedoValue = glm::vec3(1.0f);
+    float metallicValue = 0.0f;
+    float roughnessValue = 0.5f;
+    float aoValue = 1.0f;
 };

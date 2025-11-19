@@ -12,6 +12,8 @@ add_executable(DuckEngine
         src/engine/renderer/Shader.cpp
         src/engine/renderer/Texture.cpp
         src/engine/renderer/GBuffer.cpp
+        src/engine/renderer/light/LightManager.cpp
+        src/engine/renderer/Material.cpp
 )
 
 # Include directories for headers

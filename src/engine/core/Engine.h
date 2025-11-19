@@ -4,8 +4,9 @@
 
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
-#include "../renderer/Texture.h"
+#include "../renderer/Material.h"
 #include "../renderer/GBuffer.h"
+#include "../renderer/light/LightManager.h"
 
 class Engine {
 public:
@@ -14,8 +15,9 @@ public:
     void shutdown();
 
     GBuffer gBuffer;
+    LightManager lightManager;
     // Temp
-    Texture texture1;
+    Material cubeMaterial;
     Shader displayShader;
     // Temp for GBuffer
     GLuint quadVAO, quadVBO;
@@ -35,6 +37,7 @@ private:
 
     // Temp variable
     Shader basicShader;
+    Shader lightingShader;
 
     GLuint cubeVAO = 0, cubeVBO = 0;
 

@@ -38,34 +38,64 @@ bool Engine::initialize(int width, int height) {
 
     // Temp code for now
     gBuffer.initialize(screenWidth, screenHeight);
-    setupQuad();  // Also call this
+    setupQuad();
 
-    // Load shader
+    // Load shaders
     if (!basicShader.loadFromFiles("../assets/shaders/basic.vert", "../assets/shaders/basic.frag")) {
-        std::cerr << "Failed to load shaders" << std::endl;
+        std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
 
-    // Change this line (remove Texture):
-    texture1.loadFromFile("../assets/textures/pbr/albedo.png", 0);
+    if (!lightingShader.loadFromFiles("../assets/shaders/light.vert", "../assets/shaders/light.frag")) {
+        std::cerr << "Failed to load light shaders" << std::endl;
+        return false;
+    }
 
-    basicShader.use();
-    basicShader.setInt("texture1", static_cast<int>(texture1.textureUnit));
+    cubeMaterial.loadAlbedoMap("../assets/textures/pbr/albedo.png");
+    cubeMaterial.loadNormalMap("../assets/textures/pbr/normal.png");
+    cubeMaterial.loadMetallicMap("../assets/textures/pbr/metallic.png");
+    cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
+    cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
+
+    cubeMaterial.setMetallic(0.0f);      // Non-metallic
+    cubeMaterial.setRoughness(0.5f);     // Mid-rough
+    cubeMaterial.setAO(1.0f);            // Full ambient occlusion
+
+    DirectionalLight sunLight(
+        glm::vec3(-0.5f, -1.0f, -0.3f),
+        glm::vec3(1.0f, 0.95f, 0.9f),
+        1.0f
+    );
+    lightManager.addDirectionalLight(sunLight);
+
+    PointLight light1(
+        glm::vec3(2.0f, 2.0f, 2.0f),
+        glm::vec3(0.0f, 1.0f, 1.0f),
+        15.0f,
+        5.0f
+    );
+    lightManager.addPointLight(light1);
+
+    PointLight light2(
+        glm::vec3(-2.0f, 1.0f, 1.0f),
+        glm::vec3(0.2f, 0.5f, 0.6f),
+        80.0f,
+        3.0f
+    );
+    lightManager.addPointLight(light2);
 
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
     camera.position = glm::vec3(0.0f, 0.0f, 3.0f);
 
-    displayShader.loadFromFiles("../assets/shaders/display.vert", "../assets/shaders/display.frag");
-    displayShader.use();
-    displayShader.setInt("gPosition", 0);
-    displayShader.setInt("gNormal", 1);
-    displayShader.setInt("gAlbedo", 2);
 
     // Setup cube
     createCube();
 
     std::cout << "Engine initialized successfully!" << std::endl;
+    std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
+    std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
+
     return true;
 }
 
@@ -92,12 +122,26 @@ void Engine::processInput() {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+
+    // Example: Toggle first point light with L key
+    static bool lKeyPressed = false;
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && !lKeyPressed) {
+        if (lightManager.getPointLightCount() > 0) {
+            auto& light = lightManager.getPointLight(0);
+            light.enabled = !light.enabled;
+        }
+        lKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE) {
+        lKeyPressed = false;
+    }
 }
 
 void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
+    // ==== GEOMETRY PASS ====
     gBuffer.bindForWriting();
 
     // Clear with color
@@ -107,6 +151,7 @@ void Engine::render() {
     // TODO: Render stuff here
     renderCube();
 
+    // ==== LIGHTING PASS ====
     // Unbind GBuffer framebuffer and switch back to screen
     gBuffer.unbind();
     glViewport(0, 0, screenWidth, screenHeight);
@@ -114,71 +159,87 @@ void Engine::render() {
     // DISPLAY PASS
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
-    displayShader.use();
+
+    lightingShader.use();
+    lightingShader.setVec3("viewPos", camera.position);
+
+    // Get all lights and pass to shader
+    lightManager.uploadToShader(lightingShader);
+
+    lightingShader.setInt("gPosition", 0);
+    lightingShader.setInt("gNormal", 1);
+    lightingShader.setInt("gAlbedo", 2);
+    lightingShader.setInt("gMetallicRoughness", 3);
     gBuffer.bindForReading();
+
+    // Render final quad
     renderQuad();
     glEnable(GL_DEPTH_TEST);
 }
 
 void Engine::shutdown() {
+    // Temp
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVBO);
-    texture1.unbind();
+
+
+    glDeleteVertexArrays(1, &quadVAO);
+    glDeleteBuffers(1, &quadVBO);
+    cubeMaterial.unbind();
     glfwDestroyWindow(window);
     glfwTerminate();
 }
 
 void Engine::createCube() {
-    // Cube vertices with UVs
     float vertices[] = {
-        // Positions          // TexCoords
-        // Front face
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        // Positions          // Normals           // TexCoords
+        // Front face (Z+)
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-        // Back face
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        // Back face (Z-)
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
 
-        // Left face
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        // Left face (X-)
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        // Right face
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        // Right face (X+)
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        // Bottom face
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        // Bottom face (Y-)
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-        // Top face
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+        // Top face (Y+)
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
     glGenVertexArrays(1, &cubeVAO);
@@ -188,13 +249,17 @@ void Engine::createCube() {
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Position attribute (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    // Position (location = 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // TexCoord attribute (location = 1)
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    // Normal (location = 1)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // TexCoord (location = 2)
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }
@@ -210,11 +275,11 @@ void Engine::renderCube() {
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = camera.getProjectionMatrix();
 
-    basicShader.use();
-    texture1.bind();
     basicShader.setMat4("model", model);
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
+
+    cubeMaterial.bind(basicShader);
 
     // Draw cube
     glBindVertexArray(cubeVAO);

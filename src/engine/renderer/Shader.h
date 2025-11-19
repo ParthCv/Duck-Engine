@@ -18,6 +18,7 @@ public:
     void setVec3(const char* name, const glm::vec3& vec) const;
     void setFloat(const char* name, float value) const;
     void setInt(const char* name, int value) const;
+    void setBool(const char* name, bool value) const;
 
 private:
     static bool compileShader(const char* source, GLenum type, GLuint& shader);
