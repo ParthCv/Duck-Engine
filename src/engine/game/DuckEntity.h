@@ -1,10 +1,7 @@
-//
-// Created by User on 11/18/2025.
-//
-
 #ifndef DUCKENGINE_DUCKENTITY_H
 #define DUCKENGINE_DUCKENTITY_H
 #include "../ecs/Entity.h"
+#include "glm/vec3.hpp"
 
 
 class DuckEntity : public Entity
@@ -14,14 +11,13 @@ public:
 
     DuckEntity(World& InWorld);
 
+    DuckEntity(World& InWorld, glm::vec3& InPosition);
+
     ~DuckEntity() override;
 
     void Update(float deltaTime) override;
 
     void BeginPlay() override;
-
-private:
-
 };
 
 

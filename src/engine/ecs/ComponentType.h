@@ -1,7 +1,3 @@
-//
-// Created by super on 2025-11-03.
-//
-
 #ifndef DUCKENGINE_COMPONENTTYPE_H
 #define DUCKENGINE_COMPONENTTYPE_H
 #include <cstddef>

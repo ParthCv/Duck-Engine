@@ -1,7 +1,3 @@
-//
-// Created by Norm on 11/1/2025.
-//
-
 #include "InputManager.h"
 #include <cstring>
 #include <iostream>

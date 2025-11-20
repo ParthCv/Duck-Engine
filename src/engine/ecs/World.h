@@ -1,18 +1,9 @@
-//
-// Created by super on 2025-11-03.
-//
-
-#ifndef DUCKENGINE_WORLD_H
-#define DUCKENGINE_WORLD_H
-#include <memory>
-#include <vector>
-
-#include "Entity.h"
-#include "../system/EntityManager.h"
+#pragma once
+#include "../src/engine/system/EntityManager.h"
+#include "../src/engine/renderer/light/LightManager.h"
+#include "../src/engine/renderer/Shader.h"
+#include "../src/engine/renderer/Camera.h"
 #include "glad/glad.h"
-
-class Shader;
-class Camera;
 
 class World
 {
@@ -21,6 +12,7 @@ public:
     Camera* camera;
     Shader* basicShader;
     EntityManager EntityManager;
+    LightManager lightManager;
 
     World();
 
@@ -30,6 +22,8 @@ public:
 
     void BeginPlay();
 
+    void addLightsToWorld();
+
     /*
      * Garbage collecting deactivated entities.
      */
@@ -37,7 +31,19 @@ public:
 
     // TODO: Temporary testing function
     void CreateCube(GLuint& InVAO, GLuint& InVBO);
+
+private:
+    std::vector<glm::vec3> duckPos = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.5f, 0.0f, 0.0f),
+        glm::vec3(-2.5f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 2.5f),
+        glm::vec3(0.0f, 0.0f, -2.5f),
+        glm::vec3(2.5f, 0.0f, 2.5f),
+        glm::vec3(-2.5f, 0.0f, 2.5f),
+        glm::vec3(2.5f, 0.0f, -2.5f),
+        glm::vec3(-2.5f, 0.0f, -2.5f),
+        glm::vec3(0.0f, 2.0f, 0.0f),
+    };
 };
 
-
-#endif //DUCKENGINE_WORLD_H

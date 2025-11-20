@@ -18,10 +18,14 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
     AddComponent<StaticMeshComponent>(*this, transform);
 }
 
-DuckEntity::~DuckEntity()
-{
+DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) {
+    auto& transform = AddComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
+    AddComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
+    AddComponent<StaticMeshComponent>(*this, transform);
 }
+
+DuckEntity::~DuckEntity() {}
 
 void DuckEntity::Update(float deltaTime) {
     Entity::Update(deltaTime);
@@ -38,6 +42,11 @@ void DuckEntity::Update(float deltaTime) {
     accumulatedTime += deltaTime;
     float randY = std::sin(accumulatedTime);
     EntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
+
+    Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
+    auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
+    OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
+
 }
 
 void DuckEntity::BeginPlay() {

@@ -1,9 +1,4 @@
-//
-// Created by super on 2025-11-03.
-//
-
 #include "Entity.h"
-
 #include "World.h"
 
 Entity::~Entity() {

@@ -5,16 +5,32 @@
 #include "../ecs/World.h"
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
+#include "../renderer/Material.h"
+#include "../renderer/GBuffer.h"
+#include "../renderer/light/LightManager.h"
+#include "../renderer/Cubemap.h"
+#include "../renderer/Skybox.h"
 #include "../input/InputManager.h"
 #include "../game/GameStateManager.h"
 
+
 class Engine {
 public:
-    World World;
+    World world;
 
     bool initialize(int width, int height);
     void run();
     void shutdown();
+
+    GBuffer gBuffer;
+    LightManager lightManager;
+    // Temp
+    Material cubeMaterial;
+    Shader displayShader;
+    // Temp for GBuffer
+    GLuint quadVAO, quadVBO;
+    void setupQuad();
+    void renderQuad();
 
 private:
     GLFWwindow* window = nullptr;
@@ -33,12 +49,33 @@ private:
     void processOptionsInput();
 
     Camera camera;
-    GameStateManager gameStateManager;
+    // GameStateManager gameStateManager;
 
-    // Temp variable
     Shader basicShader;
+    Shader lightingShader;
 
+    Texture hdrTexture;
+    Shader equirectShader;
+    Cubemap envCubemap;
+    Skybox skybox;
+
+    Cubemap irradianceMap;
+    Shader irradianceShader;
+
+    Shader prefilterShader;
+    Cubemap prefilterMap;
+
+    Shader brdfLUTShader;
+    Texture brdfLUT;
+
+    // temp
     GLuint cubeVAO = 0, cubeVBO = 0;
 
+    // Multiple cube positions
+    std::vector<glm::vec3> cubePositions;
+
+    // temp too
     void createCube();
+
+    void renderEntities();
 };

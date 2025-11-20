@@ -1,9 +1,4 @@
-//
-// Created by super on 2025-11-03.
-//
-
-#ifndef DUCKENGINE_ENTITY_H
-#define DUCKENGINE_ENTITY_H
+#pragma once
 #include <array>
 #include <bitset>
 #include <cstddef>
@@ -33,9 +28,8 @@ using ComponentArray = std::array<void*, MAX_COMPONENTS>;
 
 class Entity
 {
-private:
-    ComponentArray ComponentArray{};
-    ComponentBitSet ComponentBitSet{};
+ComponentArray ComponentArray{};
+ComponentBitSet ComponentBitSet{};
 
 public:
     virtual ~Entity();
@@ -86,5 +80,3 @@ public:
         ComponentBitSet[GetComponentTypeID<T>()] = false;
     }
 };
-
-#endif //DUCKENGINE_ENTITY_H

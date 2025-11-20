@@ -1,7 +1,3 @@
-//
-// Created by super on 2025-11-03.
-//
-
 #include "World.h"
 #include <iostream>
 #include "Component.h"
@@ -21,11 +17,31 @@ World::World()
     // FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
     // FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
 
-    DuckEntity& Duck = EntityManager.CreateDuckEntity(*this);
+    for (size_t i = 0; i < duckPos.size(); ++i) {
+        DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
+    }
+    std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
 }
 
 void World::Update(float deltaTime)
 {
+    float time = glfwGetTime();
+    float radius = 10.0f;
+    float height = 3.0f;
+
+    camera->position.x = sin(time * 0.5f) * radius;
+    camera->position.z = cos(time * 0.5f) * radius;
+    camera->position.y = height;
+
+    camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
+
+    if (lightManager.getPointLightCount() > 1) {
+        auto& light = lightManager.getPointLight(1);
+        light.position.x = sin(time) * 3.0f;
+        light.position.z = cos(time) * 3.0f;
+
+        // Update game logic (ducks, score, etc.) - will add later
+    }
 
     // TODO: Get the first entity
     // auto& FirstEntity = EntityManager.GetEntities()[0];
@@ -73,39 +89,14 @@ void World::Update(float deltaTime)
 
 void World::Render()
 {
-    // TODO: Render stuff here
-
-    // Use shader
-    basicShader->use();
-
-    glm::mat4 view = camera->getViewMatrix();
-    glm::mat4 projection = camera->getProjectionMatrix();
-
-    basicShader->setMat4("view", view);
-    basicShader->setMat4("projection", projection);
-
-    // Draw each entity
-    for (auto& entity : EntityManager.GetEntities())
-    {
-        if (entity->HasComponent<StaticMeshComponent>())
-        {
-            auto& FirstEntityStaticMeshComponent = entity->GetComponent<StaticMeshComponent>();
-
-            // Getting the Model.
-            glm::mat4 model = FirstEntityStaticMeshComponent.GetTransformMatrix();
-
-            basicShader->setMat4("model", model);
-
-            glBindVertexArray(FirstEntityStaticMeshComponent.VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-    }
-
-    glBindVertexArray(0);
 }
 
 void World::BeginPlay()
 {
+    addLightsToWorld();
+    std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
+    std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
+
     // TODO: Call all system BeginPlay below.
     EntityManager.BeginPlay();
 
@@ -121,74 +112,130 @@ void World::BeginPlay()
     // }
 }
 
+void World::addLightsToWorld() {
+    DirectionalLight sunLight(
+        glm::vec3(-0.5f, -1.0f, -0.3f),
+        glm::vec3(1.0f, 0.95f, 0.9f),
+        1.0f
+    );
+    lightManager.addDirectionalLight(sunLight);
+
+    // Add point lights
+    PointLight light1(
+        glm::vec3(3.0f, 2.0f, 3.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),     // White
+        10.0f,
+        15.0f
+    );
+    lightManager.addPointLight(light1);
+
+    PointLight light2(
+        glm::vec3(-3.0f, 2.0f, -3.0f),
+        glm::vec3(0.2f, 0.5f, 1.0f),     // Blue
+        10.0f,
+        15.0f
+    );
+    lightManager.addPointLight(light2);
+
+    PointLight light3(
+        glm::vec3(0.0f, 3.0f, 0.0f),
+        glm::vec3(1.0f, 0.3f, 0.1f),     // Orange
+        8.0f,
+        12.0f
+    );
+    lightManager.addPointLight(light3);
+
+    PointLight light4(
+        glm::vec3(-3.0f, 1.0f, 3.0f),
+        glm::vec3(0.1f, 1.0f, 0.3f),     // Green
+        8.0f,
+        12.0f
+    );
+    lightManager.addPointLight(light4);
+
+    PointLight light5(
+        glm::vec3(3.0f, 1.0f, -3.0f),
+        glm::vec3(1.0f, 0.1f, 0.8f),     // Purple
+        8.0f,
+        12.0f
+    );
+    lightManager.addPointLight(light5);
+}
+
 void World::CleanUp()
 {
 }
 
-void World::CreateCube(GLuint& InVAO, GLuint& InVBO)
-{
-    // Cube vertices with colors
-    float vertices[] = {
-        // Positions          // Colors
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, // Front face (red)
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
+        float vertices[] = {
+        // Positions          // Normals           // TexCoords
+        // Front face (Z+)
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f, // Back face (green)
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+        // Back face (Z-)
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, // Left face (blue)
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+        // Left face (X-)
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // Right face (yellow)
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+        // Right face (X+)
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // Bottom face (magenta)
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
+        // Bottom face (Y-)
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, // Top face (cyan)
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f
+        // Top face (Y+)
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
-    // Generate VAO and VBO
-    glGenVertexArrays(1, &InVAO);
-    glGenBuffers(1, &InVBO);
+    glGenVertexArrays(1, &inVAO);
+    glGenBuffers(1, &inVBO);
 
-    // Bind and upload data
-    glBindVertexArray(InVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, InVBO);
+    glBindVertexArray(inVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, inVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    // Position (location = 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // Normal (location = 1)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // TexCoord (location = 2)
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }

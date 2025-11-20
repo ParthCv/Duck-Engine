@@ -1,6 +1,3 @@
-//
-// Created by super on 2025-11-17.
-//
 
 #include "../ecs/Entity.h"
 #include "EntityManager.h"
@@ -35,6 +32,11 @@ Entity& EntityManager::CreateEntity(World& InWorld)
 DuckEntity& EntityManager::CreateDuckEntity(World &InWorld)
 {
     Entities.emplace_back(std::make_unique<DuckEntity>(InWorld));
+    return dynamic_cast<DuckEntity&>(*Entities.back());
+}
+
+DuckEntity & EntityManager::CreateDuckEntity(World &InWorld, glm::vec3 &InPosition) {
+    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld, InPosition));
     return dynamic_cast<DuckEntity&>(*Entities.back());
 }
 

@@ -1,7 +1,3 @@
-//
-// Created by super on 2025-11-03.
-//
-
 #ifndef DUCKENGINE_COMPONENT_H
 #define DUCKENGINE_COMPONENT_H
 #include "glad/glad.h"
@@ -9,6 +5,8 @@
 #include "glm/mat4x4.hpp"
 #include "glm/vec3.hpp"
 #include "glm/ext/matrix_transform.hpp"
+
+#include "../ecs/Entity.h"
 
 struct Velocity
 {
@@ -78,11 +76,11 @@ struct StaticMesh
     GLuint VAO;
     GLuint VBO;
 };
-
-struct Material
-{
-
-};
+//
+// struct Material
+// {
+//
+// };
 
 struct StaticMeshComponent
 {
