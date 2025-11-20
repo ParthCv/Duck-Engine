@@ -36,6 +36,8 @@ bool Engine::initialize(int width, int height) {
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     gBuffer.initialize(screenWidth, screenHeight);
     setupQuad();
 
@@ -55,8 +57,12 @@ bool Engine::initialize(int width, int height) {
         return false;
     }
 
+    if (!irradianceShader.loadFromFiles("../assets/shaders/irradiance_cubemap.vert", "../assets/shaders/irradiance_cubemap.frag")) {
+        std::cerr << "Failed to load irradiance shader" << std::endl;
+        return false;
+    }
+
     hdrTexture.loadHDR("../assets/textures/hdri/dark_sky.hdr", 0);
-    std::cout << "HDR texture ID: " << hdrTexture.id << ", size: " << hdrTexture.width << "x" << hdrTexture.height << std::endl;
 
     cubeMaterial.loadAlbedoMap("../assets/textures/pbr/albedo.png");
     cubeMaterial.loadNormalMap("../assets/textures/pbr/normal.png");
@@ -71,6 +77,9 @@ bool Engine::initialize(int width, int height) {
     envCubemap.fromHDR(hdrTexture, equirectShader);
     glViewport(0, 0, screenWidth, screenHeight); // RESET THE VIEWPORT!!
     skybox.initialize("../assets/shaders/skybox.vert", "../assets/shaders/skybox.frag");
+
+    irradianceMap.generateIrradiance(envCubemap, irradianceShader, 64);
+    glViewport(0, 0, screenWidth, screenHeight);
 
     DirectionalLight sunLight(
         glm::vec3(-0.5f, -1.0f, -0.3f),
@@ -192,7 +201,7 @@ void Engine::processInput() {
 void Engine::update(float deltaTime) {
     float time = glfwGetTime();
     float radius = 10.0f;
-    float height = 5.0f;
+    float height = 3.0f;
 
     camera.position.x = sin(time * 0.5f) * radius;
     camera.position.z = cos(time * 0.5f) * radius;
@@ -238,6 +247,9 @@ void Engine::render() {
     lightingShader.setInt("gAlbedo", 2);
     lightingShader.setInt("gMetallicRoughness", 3);
     gBuffer.bindForReading();
+
+    lightingShader.setInt("irradianceMap", 4);
+    irradianceMap.bind(4);
 
     // Render final quad
     renderQuad();

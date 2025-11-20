@@ -7,6 +7,7 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D gMetallicRoughness;
+uniform samplerCube irradianceMap;
 
 uniform vec3 viewPos;
 
@@ -135,10 +136,17 @@ void main() {
         accumLight += calculateLighting(L, radiance, Normal, View, F0, Albedo, Metallic, Roughness);
     }
 
-    // Ambient lighting
-    vec3 ambient = vec3(0.02) * Albedo;
+    vec3 F = fresnelSchlick(max(dot(Normal, View), 0.0), F0);
+    vec3 kD = (1.0 - F) * (1.0 - Metallic);
+
+    vec3 irradiance = texture(irradianceMap, Normal).rgb;
+    vec3 diffuse = irradiance * Albedo;
+    vec3 ambient = kD * diffuse;
+
     vec3 color = ambient + accumLight;
 
+    // Tone mapping
+    color = color / (color + vec3(1.0));
     // Gamma correction
     color = pow(color, vec3(1.0/2.2));
 

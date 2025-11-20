@@ -45,6 +45,9 @@ private:
     Cubemap envCubemap;
     Skybox skybox;
 
+    Cubemap irradianceMap;
+    Shader irradianceShader;
+
     // temp
     GLuint cubeVAO = 0, cubeVBO = 0;
 

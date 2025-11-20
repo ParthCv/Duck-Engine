@@ -127,10 +127,10 @@ void Cubemap::generateIrradiance(const Cubemap &envMap, Shader &irradianceShader
     };
 
     irradianceShader.use();
-    irradianceShader.setInt("equirectangularMap", 0);
+    irradianceShader.setInt("environmentMap", 0);
     irradianceShader.setMat4("projection", projection);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, envMap.id);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envMap.id);
 
     glViewport(0, 0, faceSize, faceSize);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
