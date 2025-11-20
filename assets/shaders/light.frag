@@ -72,8 +72,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 // Calculate lighting contribution from a single light
-vec3 calculateLighting(vec3 L, vec3 radiance, vec3 N, vec3 V, vec3 F0,
-vec3 albedo, float metallic, float roughness) {
+vec3 calculateLighting(vec3 L, vec3 radiance, vec3 N, vec3 V, vec3 F0, vec3 albedo, float metallic, float roughness) {
     vec3 H = normalize(V + L);
 
     // Cook-Torrance BRDF
@@ -96,20 +95,18 @@ vec3 albedo, float metallic, float roughness) {
 void main() {
     // Sample G-Buffer
     vec3 FragPos = texture(gPosition, TexCoords).rgb;
-    vec3 N = normalize(texture(gNormal, TexCoords).rgb);
+    vec3 Normal = normalize(texture(gNormal, TexCoords).rgb);
     vec3 Albedo = texture(gAlbedo, TexCoords).rgb;
     vec2 MetallicRoughness = texture(gMetallicRoughness, TexCoords).rg;
     float Metallic = MetallicRoughness.r;
     float Roughness = MetallicRoughness.g;
 
-    vec3 V = normalize(viewPos - FragPos);
+    vec3 View = normalize(viewPos - FragPos);
 
-    // Calculate F0 (surface reflection at zero incidence)
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, Albedo, Metallic);
 
-    // Accumulate lighting
-    vec3 Lo = vec3(0.0);
+    vec3 accumLight = vec3(0.0);
 
     // Directional lights
     for (int i = 0; i < numDirLights; i++) {
@@ -118,7 +115,7 @@ void main() {
         vec3 L = normalize(-dirLights[i].direction);
         vec3 radiance = dirLights[i].color;
 
-        Lo += calculateLighting(L, radiance, N, V, F0, Albedo, Metallic, Roughness);
+        accumLight += calculateLighting(L, radiance, Normal, View, F0, Albedo, Metallic, Roughness);
     }
 
     // Point lights
@@ -128,21 +125,19 @@ void main() {
         vec3 L = normalize(pointLights[i].position - FragPos);
         float distance = length(pointLights[i].position - FragPos);
 
-        // Smooth attenuation with radius falloff
         float attenuation = 1.0 / (distance * distance);
-        // Optional: smooth falloff at radius edge
         float falloff = clamp(1.0 - (distance / pointLights[i].radius), 0.0, 1.0);
         falloff = falloff * falloff;
         attenuation *= falloff;
 
         vec3 radiance = pointLights[i].color * attenuation;
 
-        Lo += calculateLighting(L, radiance, N, V, F0, Albedo, Metallic, Roughness);
+        accumLight += calculateLighting(L, radiance, Normal, View, F0, Albedo, Metallic, Roughness);
     }
 
     // Ambient lighting
-    vec3 ambient = vec3(0.03) * Albedo;
-    vec3 color = ambient + Lo;
+    vec3 ambient = vec3(0.02) * Albedo;
+    vec3 color = ambient + accumLight;
 
     // Gamma correction
     color = pow(color, vec3(1.0/2.2));
