@@ -72,6 +72,44 @@ bool Texture::loadFromFile(const std::string& filePath, unsigned int textureSlot
 
 }
 
+bool Texture::loadHDR(const std::string& filePath, unsigned int textureSlot) {
+    this->path = filePath;
+    this->textureUnit = textureSlot;
+
+    stbi_set_flip_vertically_on_load(true);
+    float *data = stbi_loadf(filePath.c_str(), &width, &height, &nrChannels, 0);
+
+    if (!data) {
+        std::cerr << "Failed to load HDR" << std::endl;
+        return false;
+    }
+
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGB16F,
+        width,
+        height,
+        0,
+        GL_RGB,
+        GL_FLOAT,
+        data
+    );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_image_free(data);
+
+    std::cout << "Loaded texture: " << this->path << " (" << width << "x" << height << ", " << nrChannels << " channels)" << std::endl;
+    return true;
+}
+
 void Texture::bind() const {
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, id);

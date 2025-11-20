@@ -14,6 +14,7 @@ public:
     ~Texture();
 
     bool loadFromFile(const std::string& filePath, unsigned int textureSlot);
+    bool loadHDR(const std::string& filePath, unsigned int textureSlot);
 
     void bind() const;
     void unbind() const;
