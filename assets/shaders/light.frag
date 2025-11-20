@@ -7,7 +7,12 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D gMetallicRoughness;
+
 uniform samplerCube irradianceMap;
+uniform samplerCube prefilterMap;
+uniform sampler2D brdfLUT;
+
+const float MAX_REFLECTION_LOD = 4.0;
 
 uniform vec3 viewPos;
 
@@ -140,8 +145,13 @@ void main() {
     vec3 kD = (1.0 - F) * (1.0 - Metallic);
 
     vec3 irradiance = texture(irradianceMap, Normal).rgb;
+    vec3 R = reflect(-View, Normal);
+    vec3 prefilteredColor = textureLod(prefilterMap, R, Roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 brdf = texture(brdfLUT, vec2(max(dot(Normal, View), 0.0), Roughness)).rg;
+    vec3 specularIBL = prefilteredColor * (F * brdf.x + brdf.y);
+
     vec3 diffuse = irradiance * Albedo;
-    vec3 ambient = kD * diffuse;
+    vec3 ambient = kD * diffuse + specularIBL;
 
     vec3 color = ambient + accumLight;
 
