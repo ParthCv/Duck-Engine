@@ -1,5 +1,9 @@
 #include "Engine.h"
 #include <iostream>
+#include "../src/engine/ecs/Entity.h"
+#include "../src/engine/ecs/Component.h"
+
+struct StaticMeshComponent;
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -31,6 +35,9 @@ bool Engine::initialize(int width, int height) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return false;
     }
+
+    // // Initialize InputManager (After window creation)
+    // InputManager::initialize(window);
 
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
@@ -99,79 +106,39 @@ bool Engine::initialize(int width, int height) {
     std::cout << "BRDF LUT ID: " << brdfLUT.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
-    DirectionalLight sunLight(
-        glm::vec3(-0.5f, -1.0f, -0.3f),
-        glm::vec3(1.0f, 0.95f, 0.9f),
-        1.0f
-    );
-    lightManager.addDirectionalLight(sunLight);
-
-    // Add point lights
-    PointLight light1(
-        glm::vec3(3.0f, 2.0f, 3.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),     // White
-        10.0f,
-        15.0f
-    );
-    lightManager.addPointLight(light1);
-
-    PointLight light2(
-        glm::vec3(-3.0f, 2.0f, -3.0f),
-        glm::vec3(0.2f, 0.5f, 1.0f),     // Blue
-        10.0f,
-        15.0f
-    );
-    lightManager.addPointLight(light2);
-
-    PointLight light3(
-        glm::vec3(0.0f, 3.0f, 0.0f),
-        glm::vec3(1.0f, 0.3f, 0.1f),     // Orange
-        8.0f,
-        12.0f
-    );
-    lightManager.addPointLight(light3);
-
-    PointLight light4(
-        glm::vec3(-3.0f, 1.0f, 3.0f),
-        glm::vec3(0.1f, 1.0f, 0.3f),     // Green
-        8.0f,
-        12.0f
-    );
-    lightManager.addPointLight(light4);
-
-    PointLight light5(
-        glm::vec3(3.0f, 1.0f, -3.0f),
-        glm::vec3(1.0f, 0.1f, 0.8f),     // Purple
-        8.0f,
-        12.0f
-    );
-    lightManager.addPointLight(light5);
-
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
-    camera.position = glm::vec3(0.0f, 5.0f, 5.0f);
+    camera.position = glm::vec3(5.0f, 5.0f, 5.0f);
     camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
 
     // Setup cube
-    createCube();
+    // createCube();
 
-    // Setup cube positions
-    cubePositions = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(2.5f, 0.0f, 0.0f),
-        glm::vec3(-2.5f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 2.5f),
-        glm::vec3(0.0f, 0.0f, -2.5f),
-        glm::vec3(2.5f, 0.0f, 2.5f),
-        glm::vec3(-2.5f, 0.0f, 2.5f),
-        glm::vec3(2.5f, 0.0f, -2.5f),
-        glm::vec3(-2.5f, 0.0f, -2.5f),
-        glm::vec3(0.0f, 2.0f, 0.0f),
-    };
+    // Optional: Set up state change callback for debugging
+    // gameStateManager.setOnStateChange([](GameState oldState, GameState newState) {
+    //     std::cout << "[Engine] Game state changed!" << std::endl;
+    // });
+    //
+    // // Setup cube positions
+    // cubePositions = {
+    //     glm::vec3(0.0f, 0.0f, 0.0f),
+    //     glm::vec3(2.5f, 0.0f, 0.0f),
+    //     glm::vec3(-2.5f, 0.0f, 0.0f),
+    //     glm::vec3(0.0f, 0.0f, 2.5f),
+    //     glm::vec3(0.0f, 0.0f, -2.5f),
+    //     glm::vec3(2.5f, 0.0f, 2.5f),
+    //     glm::vec3(-2.5f, 0.0f, 2.5f),
+    //     glm::vec3(2.5f, 0.0f, -2.5f),
+    //     glm::vec3(-2.5f, 0.0f, -2.5f),
+    //     glm::vec3(0.0f, 2.0f, 0.0f),
+    // };
 
     std::cout << "Engine initialized successfully!" << std::endl;
-    std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
-    std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
+
+    // TODO: ABSOLUTELY REMEMBER TO REMOVE THIS
+    world.camera = &camera;
+   //world.basicShader = &basicShader;
+    world.BeginPlay();
 
     return true;
 }
@@ -184,6 +151,9 @@ void Engine::run() {
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // Update input state at the start of each frame
+        //InputManager::update();
+
         processInput();
         update(deltaTime);
         render();
@@ -194,44 +164,51 @@ void Engine::run() {
 }
 
 void Engine::processInput() {
-    // Escape Key to exit game for now
-    // TODO: remove later maybe
+    //if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
+        // std::cout << "[TEST] ESC pressed via InputManager!" << std::endl;
+        //
+        // if (gameStateManager.isPlaying() || gameStateManager.isPaused()) {
+        //     // In game, ESC toggles pause
+        //     gameStateManager.togglePause();
+        // } else {
+        //     // In menu or game over, ESC quits
+        //     glfwSetWindowShouldClose(window, true);
+        // }
+        //glfwSetWindowShouldClose(window, true);
+
+    //}
+
+    //switch (gameStateManager.getCurrentState()) {
+        // case GameState::MENU:
+        //     processMenuInput();
+        //     break;
+        //
+        // case GameState::PLAYING:
+        //     processGameplayInput();
+        //     break;
+        //
+        // case GameState::PAUSED:
+        //     processPauseInput();
+        //     break;
+        //
+        // case GameState::GAME_OVER:
+        //     processGameOverInput();
+        //     break;
+        //
+        // case GameState::ROUND_TRANSITION:
+        //     // No input during transition
+        //     break;
+        //
+        // case GameState::OPTIONS:
+        //     processOptionsInput();
+        //     break;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
-
-    // Example: Toggle first point light with L key
-    static bool lKeyPressed = false;
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && !lKeyPressed) {
-        if (lightManager.getPointLightCount() > 0) {
-            for (int i = 0; i < lightManager.getPointLightCount(); i++) {
-                auto& light = lightManager.getPointLight(i);
-                light.enabled = !light.enabled;
-            }
-        }
-        lKeyPressed = true;
-    }
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE) {
-        lKeyPressed = false;
-    }
-}
+};
 
 void Engine::update(float deltaTime) {
-    float time = glfwGetTime();
-    float radius = 10.0f;
-    float height = 3.0f;
-
-    camera.position.x = sin(time * 0.5f) * radius;
-    camera.position.z = cos(time * 0.5f) * radius;
-    camera.position.y = height;
-
-    camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
-
-    if (lightManager.getPointLightCount() > 1) {
-        auto& light = lightManager.getPointLight(1);
-        light.position.x = sin(time) * 3.0f;
-        light.position.z = cos(time) * 3.0f;
-    }
+    world.Update(deltaTime);
 }
 
 void Engine::render() {
@@ -243,7 +220,7 @@ void Engine::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // TODO: Render stuff here
-    renderCube();
+    renderEntities();
 
     // ==== LIGHTING PASS ====
     // Unbind GBuffer framebuffer and switch back to screen
@@ -258,7 +235,7 @@ void Engine::render() {
     lightingShader.setVec3("viewPos", camera.position);
 
     // Get all lights and pass to shader
-    lightManager.uploadToShader(lightingShader);
+    world.lightManager.uploadToShader(lightingShader);
 
     lightingShader.setInt("gPosition", 0);
     lightingShader.setInt("gNormal", 1);
@@ -298,7 +275,6 @@ void Engine::shutdown() {
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVBO);
 
-
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
@@ -307,80 +283,10 @@ void Engine::shutdown() {
 }
 
 void Engine::createCube() {
-    float vertices[] = {
-        // Positions          // Normals           // TexCoords
-        // Front face (Z+)
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-        // Back face (Z-)
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-
-        // Left face (X-)
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-        // Right face (X+)
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-        // Bottom face (Y-)
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-        // Top face (Y+)
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-    };
-
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &cubeVBO);
-
-    glBindVertexArray(cubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Position (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Normal (location = 1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // TexCoord (location = 2)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    glBindVertexArray(0);
 }
 
-void Engine::renderCube() {
+void Engine::renderEntities() {
     basicShader.use();
 
     glm::mat4 view = camera.getViewMatrix();
@@ -389,23 +295,42 @@ void Engine::renderCube() {
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
-    // Bind material (handles textures and uniforms)
     cubeMaterial.bind(basicShader);
 
-    glBindVertexArray(cubeVAO);
+    // Draw each entity
+    for (auto& entity : world.EntityManager.GetEntities())
+    {
+        if (entity->HasComponent<StaticMeshComponent>())
+        {
+            auto& staticMeshComponent = entity->GetComponent<StaticMeshComponent>();
 
-    float time = glfwGetTime();
+            // Getting the Model.
+            glm::mat4 model = staticMeshComponent.GetTransformMatrix();
 
-    for (size_t i = 0; i < cubePositions.size(); ++i) {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePositions[i]);
-        float angle = time * glm::radians(20.0f * (i + 1));
-        model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.8f));
+            basicShader.setMat4("model", model);
 
-        basicShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+            glBindVertexArray(staticMeshComponent.VAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
     }
+
+    // // Bind material (handles textures and uniforms)
+    // cubeMaterial.bind(basicShader);
+    //
+    // glBindVertexArray(cubeVAO);
+    //
+    // float time = glfwGetTime();
+    //
+    // for (size_t i = 0; i < cubePositions.size(); ++i) {
+    //     glm::mat4 model = glm::mat4(1.0f);
+    //     model = glm::translate(model, cubePositions[i]);
+    //     float angle = time * glm::radians(20.0f * (i + 1));
+    //     model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
+    //     model = glm::scale(model, glm::vec3(0.8f));
+    //
+    //     basicShader.setMat4("model", model);
+    //     glDrawArrays(GL_TRIANGLES, 0, 36);
+    // }
 
     glBindVertexArray(0);
 }
@@ -434,3 +359,96 @@ void Engine::renderQuad() {
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
+
+//TODO: Move this shit out of the Engine - put in a seperate class or add it in input mamager
+
+// void Engine::processMenuInput() {
+//     // SPACE or ENTER to start game
+//     if (InputManager::isKeyPressed(GLFW_KEY_SPACE) ||
+//         InputManager::isKeyPressed(GLFW_KEY_ENTER)) {
+//         std::cout << "[Engine] Starting game from menu!" << std::endl;
+//         gameStateManager.setState(GameState::PLAYING);
+//     }
+//
+//     // O for options
+//     if (InputManager::isKeyPressed(GLFW_KEY_O)) {
+//         std::cout << "[Engine] Opening options menu" << std::endl;
+//         gameStateManager.setState(GameState::OPTIONS);
+//     }
+//
+//     // Example: Toggle first point light with L key
+//     // static bool lKeyPressed = false;
+//     // if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && !lKeyPressed) {
+//     //     if (lightManager.getPointLightCount() > 0) {
+//     //         for (int i = 0; i < lightManager.getPointLightCount(); i++) {
+//     //             auto& light = lightManager.getPointLight(i);
+//     //             light.enabled = !light.enabled;
+//     //         }
+//     //     }
+//     //     lKeyPressed = true;
+//     // }
+//     // if (glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE) {
+//     //     lKeyPressed = false;
+//     // }
+// }
+//
+// void Engine::processGameplayInput() {
+//     // P to pause
+//     if (InputManager::isKeyPressed(GLFW_KEY_P)) {
+//         std::cout << "[Engine] Pausing game" << std::endl;
+//         gameStateManager.togglePause();
+//     }
+//
+//     // R to restart (commented out for now to not conflict with test)
+//     // if (InputManager::isKeyPressed(GLFW_KEY_R)) {
+//     //     std::cout << "[Engine] Restarting game" << std::endl;
+//     //     gameStateManager.restartGame();
+//     // }
+//
+//     // Debug keys
+//     if (InputManager::isKeyPressed(GLFW_KEY_G)) {
+//         std::cout << "[Debug] Game Over triggered" << std::endl;
+//         gameStateManager.setState(GameState::GAME_OVER);
+//     }
+//
+//     if (InputManager::isKeyPressed(GLFW_KEY_T)) {
+//         std::cout << "[Debug] Round Transition triggered" << std::endl;
+//         gameStateManager.setState(GameState::ROUND_TRANSITION);
+//     }
+// }
+//
+// void Engine::processPauseInput() {
+//     // P to resume (ESC also works via global input)
+//     if (InputManager::isKeyPressed(GLFW_KEY_P)) {
+//         std::cout << "[Engine] Resuming game" << std::endl;
+//         gameStateManager.resumeGame();
+//     }
+//
+//     // M to return to menu
+//     if (InputManager::isKeyPressed(GLFW_KEY_M)) {
+//         std::cout << "[Engine] Returning to menu from pause" << std::endl;
+//         gameStateManager.returnToMenu();
+//     }
+// }
+//
+// void Engine::processGameOverInput() {
+//     // R to restart (commented out to not conflict with test)
+//     // if (InputManager::isKeyPressed(GLFW_KEY_R)) {
+//     //     std::cout << "[Engine] Restarting from game over" << std::endl;
+//     //     gameStateManager.restartGame();
+//     // }
+//
+//     // M to return to menu
+//     if (InputManager::isKeyPressed(GLFW_KEY_M)) {
+//         std::cout << "[Engine] Returning to menu from game over" << std::endl;
+//         gameStateManager.returnToMenu();
+//     }
+// }
+//
+// void Engine::processOptionsInput() {
+//     // BACKSPACE to return to menu (ESC also works via global input)
+//     if (InputManager::isKeyPressed(GLFW_KEY_BACKSPACE)) {
+//         std::cout << "[Engine] Returning to menu from options" << std::endl;
+//         gameStateManager.returnToMenu();
+//     }
+// }

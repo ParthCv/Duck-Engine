@@ -16,6 +16,18 @@ add_executable(DuckEngine
         src/engine/renderer/Material.cpp
         src/engine/renderer/Cubemap.cpp
         src/engine/renderer/Skybox.cpp
+        src/engine/ecs/Entity.cpp
+        src/engine/ecs/Entity.h
+        src/engine/ecs/ComponentType.h
+        src/engine/ecs/Component.h
+        src/engine/ecs/World.cpp
+        src/engine/ecs/World.h
+        src/engine/system/EntityManager.cpp
+        src/engine/system/EntityManager.h
+        src/engine/game/DuckEntity.cpp
+        src/engine/game/DuckEntity.h
+        src/engine/input/InputManager.cpp
+        src/engine/game/GameStateManager.cpp
 )
 
 # Include directories for headers

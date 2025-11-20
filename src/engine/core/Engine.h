@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "../ecs/World.h"
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
 #include "../renderer/Material.h"
@@ -9,9 +10,14 @@
 #include "../renderer/light/LightManager.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
+#include "../input/InputManager.h"
+#include "../game/GameStateManager.h"
+
 
 class Engine {
 public:
+    World world;
+
     bool initialize(int width, int height);
     void run();
     void shutdown();
@@ -35,7 +41,15 @@ private:
     void update(float deltaTime);
     void render();
 
+    // State-specific input handlers
+    void processMenuInput();
+    void processGameplayInput();
+    void processPauseInput();
+    void processGameOverInput();
+    void processOptionsInput();
+
     Camera camera;
+    // GameStateManager gameStateManager;
 
     Shader basicShader;
     Shader lightingShader;
@@ -62,5 +76,6 @@ private:
 
     // temp too
     void createCube();
-    void renderCube();
+
+    void renderEntities();
 };
