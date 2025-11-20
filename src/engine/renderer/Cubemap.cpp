@@ -157,6 +157,114 @@ void Cubemap::generateIrradiance(const Cubemap &envMap, Shader &irradianceShader
     std::cout << "Generated irradiance map (" << faceSize << "x" << faceSize << ")" << std::endl;
 }
 
+void Cubemap::createEmptyWithMips(int faceSize, int numMips, GLenum format) {
+    size = faceSize;
+
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, id);
+
+    for (int mip = 0; mip < numMips; mip++) {
+        int mipSize = faceSize >> mip;
+        for (int i = 0; i < 6; i++) {
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                mip,
+                format,
+                mipSize,
+                mipSize,
+                0,
+                GL_RGB,
+                GL_FLOAT,
+                nullptr
+            );
+        }
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, numMips - 1);
+}
+
+void Cubemap::generatePrefilter(const Cubemap &envMap, Shader &prefilterShader, int faceSize, int numMips) {
+    createEmptyWithMips(faceSize, numMips);
+
+    setupCube();
+    std::cout << "Prefilter cubeVAO: " << cubeVAO << std::endl;
+
+    GLuint fbo, rbo;
+    glGenFramebuffers(1, &fbo);
+    glGenRenderbuffers(1, &rbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+
+    glm::mat4 views[] = {
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    prefilterShader.use();
+
+    GLint currentProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    std::cout << "Prefilter shader program: " << currentProgram << std::endl;
+
+    // Check uniform location
+    GLint roughnessLoc = glGetUniformLocation(currentProgram, "roughness");
+    std::cout << "Roughness uniform location: " << roughnessLoc << std::endl;
+
+    prefilterShader.setInt("environmentMap", 0);
+    prefilterShader.setMat4("projection", projection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envMap.id);
+
+    glDisable(GL_DEPTH_TEST);
+
+    for (int mip = 0; mip < numMips; mip++) {
+        int mipSize = faceSize >> mip;
+
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipSize, mipSize);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+        glViewport(0, 0, mipSize, mipSize);
+
+        float roughness = (float)mip / (float)(numMips - 1);
+        prefilterShader.setFloat("roughness", roughness);
+
+
+        for (int i = 0; i < 6; i++) {
+            prefilterShader.setMat4("view", views[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, id, mip);
+
+            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status != GL_FRAMEBUFFER_COMPLETE) {
+                std::cout << "FBO incomplete at mip " << mip << " face " << i << ": " << status << std::endl;
+            }
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderCube();
+        }
+    }
+
+    glEnable(GL_DEPTH_TEST);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteRenderbuffers(1, &rbo);
+
+    std::cout << "Generated prefilter map (" << faceSize << "x" << faceSize << ", " << numMips << " mips)" << std::endl;
+}
+
 void Cubemap::bind(unsigned int unit) const {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_CUBE_MAP, id);

@@ -14,6 +14,8 @@ public:
     void createEmpty(int faceSize, GLenum format = GL_RGB16F);
     void fromHDR(Texture &texture, Shader &shader, int faceSize = 512);
     void generateIrradiance(const Cubemap& envMap, Shader& irradianceShader, int faceSize = 32);
+    void createEmptyWithMips(int faceSize, int numMips, GLenum format = GL_RGB16F);
+    void generatePrefilter(const Cubemap& envMap, Shader& prefilterShader, int faceSize = 128, int numMips = 5);
 
     void bind(unsigned int textureSlot = 0) const;
     void unbind() const;

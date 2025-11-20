@@ -2,6 +2,8 @@
 #include <string>
 #include <glad/glad.h>
 
+#include "Shader.h"
+
 
 class Texture {
 public:
@@ -15,6 +17,7 @@ public:
 
     bool loadFromFile(const std::string& filePath, unsigned int textureSlot);
     bool loadHDR(const std::string& filePath, unsigned int textureSlot);
+    void generateBRDFLUT(Shader& brdfShader, int size = 512);
 
     void bind() const;
     void unbind() const;
