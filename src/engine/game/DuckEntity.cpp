@@ -9,8 +9,12 @@
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
-    auto& transform = AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1));
-    AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
+    auto& transform = AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+
+    float randX = rand() % 2;
+    float randZ = rand() % 2;
+
+    AddComponent<Velocity>(glm::vec3(1.0, 0.0f, 0.0f), 0.25f);
     AddComponent<StaticMeshComponent>(*this, transform);
 }
 
@@ -22,11 +26,15 @@ DuckEntity::~DuckEntity()
 void DuckEntity::Update(float deltaTime) {
     Entity::Update(deltaTime);
 
+    // TODO: Get Components
     auto& EntityTransform = this->GetComponent<Transform>();
+    auto& EntityVelocity = this->GetComponent<Velocity>();
     auto& EntityStaticMesh = this->GetComponent<StaticMeshComponent>();
 
-    EntityTransform.AddTransform(glm::vec3(0.25f, 0, 0) * deltaTime);
+    // TODO: Move Duck by Velocity.
+    EntityTransform.AddTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
 
+    // TODO: Manually move StaticMeshComponent in a Sin wave manner.
     accumulatedTime += deltaTime;
     float randY = std::sin(accumulatedTime);
     EntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
