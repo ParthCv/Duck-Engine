@@ -42,6 +42,11 @@ void DuckEntity::Update(float deltaTime) {
     accumulatedTime += deltaTime;
     float randY = std::sin(accumulatedTime);
     EntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
+
+    Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
+    auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
+    OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
+
 }
 
 void DuckEntity::BeginPlay() {

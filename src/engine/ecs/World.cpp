@@ -28,20 +28,20 @@ void World::Update(float deltaTime)
     float time = glfwGetTime();
     float radius = 10.0f;
     float height = 3.0f;
-    //
-    // camera->position.x = sin(time * 0.5f) * radius;
-    // camera->position.z = cos(time * 0.5f) * radius;
-    // camera->position.y = height;
+
+    camera->position.x = sin(time * 0.5f) * radius;
+    camera->position.z = cos(time * 0.5f) * radius;
+    camera->position.y = height;
 
     camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
-    //
-    // if (lightManager.getPointLightCount() > 1) {
-    //     auto& light = lightManager.getPointLight(1);
-    //     light.position.x = sin(time) * 3.0f;
-    //     light.position.z = cos(time) * 3.0f;
-    //
-    //     // Update game logic (ducks, score, etc.) - will add later
-    // }
+
+    if (lightManager.getPointLightCount() > 1) {
+        auto& light = lightManager.getPointLight(1);
+        light.position.x = sin(time) * 3.0f;
+        light.position.z = cos(time) * 3.0f;
+
+        // Update game logic (ducks, score, etc.) - will add later
+    }
 
     // TODO: Get the first entity
     // auto& FirstEntity = EntityManager.GetEntities()[0];
