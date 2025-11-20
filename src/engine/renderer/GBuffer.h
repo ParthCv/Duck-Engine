@@ -18,6 +18,7 @@ public:
     GLuint getAlbedoTexture() const { return gAlbedo; }
     GLuint getMetallicRoughnessTexture() const { return gMetallicRoughness; }
     GLuint getDepthTexture() const { return depthBuffer; }
+    GLuint getFramebuffer() const { return fbo; }
 
 private:
     GLuint fbo;
