@@ -48,6 +48,12 @@ private:
     Cubemap irradianceMap;
     Shader irradianceShader;
 
+    Shader prefilterShader;
+    Cubemap prefilterMap;
+
+    Shader brdfLUTShader;
+    Texture brdfLUT;
+
     // temp
     GLuint cubeVAO = 0, cubeVBO = 0;
 

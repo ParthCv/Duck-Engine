@@ -62,16 +62,26 @@ bool Engine::initialize(int width, int height) {
         return false;
     }
 
+    if (!prefilterShader.loadFromFiles("../assets/shaders/prefilter.vert", "../assets/shaders/prefilter.frag")) {
+        std::cerr << "Failed to load prefilter shader" << std::endl;
+        return false;
+    }
+
+    if (!brdfLUTShader.loadFromFiles("../assets/shaders/brdf_lut.vert", "../assets/shaders/brdf_lut.frag")) {
+        std::cerr << "Failed to load BRDF shader" << std::endl;
+        return false;
+    }
+
     hdrTexture.loadHDR("../assets/textures/hdri/dark_sky.hdr", 0);
 
     cubeMaterial.loadAlbedoMap("../assets/textures/pbr/albedo.png");
     cubeMaterial.loadNormalMap("../assets/textures/pbr/normal.png");
-    cubeMaterial.loadMetallicMap("../assets/textures/pbr/metallic.png");
-    cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
+    //cubeMaterial.loadMetallicMap("../assets/textures/pbr/metallic.png");
+    //cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
-    cubeMaterial.setMetallic(0.0f);      // Non-metallic
-    cubeMaterial.setRoughness(0.5f);     // Mid-rough
+    cubeMaterial.setMetallic(1.0f);      // Non-metallic
+    cubeMaterial.setRoughness(0.1f);     // Mid-rough
     cubeMaterial.setAO(1.0f);            // Full ambient occlusion
 
     envCubemap.fromHDR(hdrTexture, equirectShader);
@@ -79,6 +89,14 @@ bool Engine::initialize(int width, int height) {
     skybox.initialize("../assets/shaders/skybox.vert", "../assets/shaders/skybox.frag");
 
     irradianceMap.generateIrradiance(envCubemap, irradianceShader, 64);
+    glViewport(0, 0, screenWidth, screenHeight);
+
+    prefilterMap.generatePrefilter(envCubemap, prefilterShader, 128, 5);
+    std::cout << "Prefilter map ID: " << prefilterMap.id << std::endl;
+    glViewport(0, 0, screenWidth, screenHeight);
+
+    brdfLUT.generateBRDFLUT(brdfLUTShader, 512);
+    std::cout << "BRDF LUT ID: " << brdfLUT.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
     DirectionalLight sunLight(
@@ -250,6 +268,13 @@ void Engine::render() {
 
     lightingShader.setInt("irradianceMap", 4);
     irradianceMap.bind(4);
+
+    lightingShader.setInt("prefilterMap", 5);
+    prefilterMap.bind(5);
+
+    lightingShader.setInt("brdfLUT", 6);
+    brdfLUT.textureUnit = 6;
+    brdfLUT.bind();
 
     // Render final quad
     renderQuad();
