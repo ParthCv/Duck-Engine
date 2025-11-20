@@ -76,8 +76,8 @@ bool Engine::initialize(int width, int height) {
 
     cubeMaterial.loadAlbedoMap("../assets/textures/pbr/albedo.png");
     cubeMaterial.loadNormalMap("../assets/textures/pbr/normal.png");
-    //cubeMaterial.loadMetallicMap("../assets/textures/pbr/metallic.png");
-    //cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
+    cubeMaterial.loadMetallicMap("../assets/textures/pbr/metallic.png");
+    cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
     cubeMaterial.setMetallic(1.0f);      // Non-metallic
