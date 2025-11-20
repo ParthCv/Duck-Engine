@@ -5,6 +5,7 @@
 #include "../ecs/Entity.h"
 #include "EntityManager.h"
 
+#include "../ecs/Component.h"
 #include "../game/DuckEntity.h"
 
 EntityManager::EntityManager()
@@ -55,7 +56,11 @@ void EntityManager::Update(float deltaTime)
 {
     // TODO: Do all the updating below.
     for (auto& entity : Entities) {
+        // TODO Update the Entity itself.
         entity->Update(deltaTime);
+
+        // TODO: Update ticking components
+        entity->GetComponent<StaticMeshComponent>().Update(deltaTime);
     }
 
     // TODO: Cleanup at the end.

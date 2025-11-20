@@ -14,6 +14,13 @@ struct Velocity
 {
     glm::vec3 Direction{};
     float Speed{};
+
+    Velocity(glm::vec3 InDirection, float InSpeed) :
+        Direction(InDirection),
+        Speed(InSpeed)
+    {
+
+    }
 };
 
 struct Transform {
@@ -102,6 +109,8 @@ struct StaticMeshComponent
     GLuint VAO;
     GLuint VBO;
 
+    bool bTicks = true;
+
     // Material* Material;
     // ..
 
@@ -115,11 +124,11 @@ struct StaticMeshComponent
     glm::mat4 GetTransformMatrix()
     {
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, StaticMeshTransform.position);
-        model = glm::rotate(model, StaticMeshTransform.rotation.x, glm::vec3(1,0,0));
-        model = glm::rotate(model, StaticMeshTransform.rotation.y, glm::vec3(0,1,0));
-        model = glm::rotate(model, StaticMeshTransform.rotation.z, glm::vec3(0,0,1));
-        model = glm::scale(model, StaticMeshTransform.scale);
+        model = glm::translate(model, StaticMeshTransform.position + OwningEntity->GetComponent<Transform>().position);
+        model = glm::rotate(model, StaticMeshTransform.rotation.x + OwningEntity->GetComponent<Transform>().rotation.x, glm::vec3(1,0,0));
+        model = glm::rotate(model, StaticMeshTransform.rotation.y + OwningEntity->GetComponent<Transform>().rotation.y, glm::vec3(0,1,0));
+        model = glm::rotate(model, StaticMeshTransform.rotation.z + OwningEntity->GetComponent<Transform>().rotation.z, glm::vec3(0,0,1));
+        model = glm::scale(model, StaticMeshTransform.scale + OwningEntity->GetComponent<Transform>().scale);
 
         return model;
     }
@@ -131,8 +140,16 @@ struct StaticMeshComponent
 
     void SetPosition(glm::vec3 InPosition)
     {
-        auto& OwningEntityTransform = OwningEntity->GetComponent<Transform>();
-        StaticMeshTransform.position = OwningEntityTransform.position + InPosition;
+        StaticMeshTransform.position = InPosition;
+    }
+
+    void Update(float deltaTime)
+    {
+        if (!bTicks) {
+            return;
+        }
+
+        // TODO: Implement all Update logic below.
     }
 };
 
