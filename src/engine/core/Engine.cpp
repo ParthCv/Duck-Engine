@@ -201,7 +201,6 @@ void Engine::update(float deltaTime) {
     camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
 
     if (lightManager.getPointLightCount() > 1) {
-        float time = glfwGetTime();
         auto& light = lightManager.getPointLight(1);
         light.position.x = sin(time) * 3.0f;
         light.position.z = cos(time) * 3.0f;

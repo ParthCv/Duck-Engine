@@ -95,6 +95,66 @@ void Cubemap::fromHDR(Texture &texture, Shader &shader, int faceSize) {
     // Cleanup
     glDeleteFramebuffers(1, &fbo);
     glDeleteRenderbuffers(1, &rbo);
+
+    std::cout << "Generated cubemap (" << faceSize << "x" << faceSize << ")" << std::endl;
+}
+
+void Cubemap::generateIrradiance(const Cubemap &envMap, Shader &irradianceShader, int faceSize) {
+    createEmpty(faceSize);
+
+    if (cubeVAO==0) {
+        setupCube();
+    }
+
+    GLuint fbo, rbo;
+    glGenFramebuffers(1, &fbo);
+    glGenRenderbuffers(1, &rbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, faceSize, faceSize);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+
+    glm::mat4 views[] = {
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    irradianceShader.use();
+    irradianceShader.setInt("equirectangularMap", 0);
+    irradianceShader.setMat4("projection", projection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, envMap.id);
+
+    glViewport(0, 0, faceSize, faceSize);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    for (int i = 0; i < 6; i++) {
+        irradianceShader.setMat4("view", views[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, id, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderCube();
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Framebuffer not complete: " << status << std::endl;
+    }
+
+    // Cleanup
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteRenderbuffers(1, &rbo);
+
+    std::cout << "Generated irradiance map (" << faceSize << "x" << faceSize << ")" << std::endl;
 }
 
 void Cubemap::bind(unsigned int unit) const {
