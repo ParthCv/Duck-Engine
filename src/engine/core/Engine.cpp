@@ -36,12 +36,16 @@ bool Engine::initialize(int width, int height) {
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
 
-    // Temp code for now
     gBuffer.initialize(screenWidth, screenHeight);
     setupQuad();
 
     // Load shaders
-    if (!basicShader.loadFromFiles("../assets/shaders/basic.vert", "../assets/shaders/basic.frag")) {
+    if (!equirectShader.loadFromFiles("../assets/shaders/equirect_to_cubemap.vert", "../assets/shaders/equirect_to_cubemap.frag")) {
+        std::cerr << "Failed to load basic shaders" << std::endl;
+        return false;
+    }
+
+    if (!basicShader.loadFromFiles("../assets/shaders/geometry.vert", "../assets/shaders/geometry.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
@@ -50,6 +54,9 @@ bool Engine::initialize(int width, int height) {
         std::cerr << "Failed to load light shaders" << std::endl;
         return false;
     }
+
+    hdrTexture.loadHDR("../assets/textures/hdri/dark_sky.hdr", 0);
+    std::cout << "HDR texture ID: " << hdrTexture.id << ", size: " << hdrTexture.width << "x" << hdrTexture.height << std::endl;
 
     cubeMaterial.loadAlbedoMap("../assets/textures/pbr/albedo.png");
     cubeMaterial.loadNormalMap("../assets/textures/pbr/normal.png");
@@ -61,6 +68,10 @@ bool Engine::initialize(int width, int height) {
     cubeMaterial.setRoughness(0.5f);     // Mid-rough
     cubeMaterial.setAO(1.0f);            // Full ambient occlusion
 
+    envCubemap.fromHDR(hdrTexture, equirectShader);
+    glViewport(0, 0, screenWidth, screenHeight); // RESET THE VIEWPORT!!
+    skybox.initialize("../assets/shaders/skybox.vert", "../assets/shaders/skybox.frag");
+
     DirectionalLight sunLight(
         glm::vec3(-0.5f, -1.0f, -0.3f),
         glm::vec3(1.0f, 0.95f, 0.9f),
@@ -68,29 +79,68 @@ bool Engine::initialize(int width, int height) {
     );
     lightManager.addDirectionalLight(sunLight);
 
+    // Add point lights
     PointLight light1(
-        glm::vec3(2.0f, 2.0f, 2.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f),
-        15.0f,
-        5.0f
+        glm::vec3(3.0f, 2.0f, 3.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),     // White
+        10.0f,
+        15.0f
     );
     lightManager.addPointLight(light1);
 
     PointLight light2(
-        glm::vec3(-2.0f, 1.0f, 1.0f),
-        glm::vec3(0.2f, 0.5f, 0.6f),
-        80.0f,
-        3.0f
+        glm::vec3(-3.0f, 2.0f, -3.0f),
+        glm::vec3(0.2f, 0.5f, 1.0f),     // Blue
+        10.0f,
+        15.0f
     );
     lightManager.addPointLight(light2);
 
+    PointLight light3(
+        glm::vec3(0.0f, 3.0f, 0.0f),
+        glm::vec3(1.0f, 0.3f, 0.1f),     // Orange
+        8.0f,
+        12.0f
+    );
+    lightManager.addPointLight(light3);
+
+    PointLight light4(
+        glm::vec3(-3.0f, 1.0f, 3.0f),
+        glm::vec3(0.1f, 1.0f, 0.3f),     // Green
+        8.0f,
+        12.0f
+    );
+    lightManager.addPointLight(light4);
+
+    PointLight light5(
+        glm::vec3(3.0f, 1.0f, -3.0f),
+        glm::vec3(1.0f, 0.1f, 0.8f),     // Purple
+        8.0f,
+        12.0f
+    );
+    lightManager.addPointLight(light5);
+
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
-    camera.position = glm::vec3(0.0f, 0.0f, 3.0f);
-
+    camera.position = glm::vec3(0.0f, 5.0f, 5.0f);
+    camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
 
     // Setup cube
     createCube();
+
+    // Setup cube positions
+    cubePositions = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.5f, 0.0f, 0.0f),
+        glm::vec3(-2.5f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 2.5f),
+        glm::vec3(0.0f, 0.0f, -2.5f),
+        glm::vec3(2.5f, 0.0f, 2.5f),
+        glm::vec3(-2.5f, 0.0f, 2.5f),
+        glm::vec3(2.5f, 0.0f, -2.5f),
+        glm::vec3(-2.5f, 0.0f, -2.5f),
+        glm::vec3(0.0f, 2.0f, 0.0f),
+    };
 
     std::cout << "Engine initialized successfully!" << std::endl;
     std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
@@ -127,8 +177,10 @@ void Engine::processInput() {
     static bool lKeyPressed = false;
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && !lKeyPressed) {
         if (lightManager.getPointLightCount() > 0) {
-            auto& light = lightManager.getPointLight(0);
-            light.enabled = !light.enabled;
+            for (int i = 0; i < lightManager.getPointLightCount(); i++) {
+                auto& light = lightManager.getPointLight(i);
+                light.enabled = !light.enabled;
+            }
         }
         lKeyPressed = true;
     }
@@ -138,6 +190,22 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
+    float time = glfwGetTime();
+    float radius = 10.0f;
+    float height = 5.0f;
+
+    camera.position.x = sin(time * 0.5f) * radius;
+    camera.position.z = cos(time * 0.5f) * radius;
+    camera.position.y = height;
+
+    camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
+
+    if (lightManager.getPointLightCount() > 1) {
+        float time = glfwGetTime();
+        auto& light = lightManager.getPointLight(1);
+        light.position.x = sin(time) * 3.0f;
+        light.position.z = cos(time) * 3.0f;
+    }
 }
 
 void Engine::render() {
@@ -145,7 +213,7 @@ void Engine::render() {
     gBuffer.bindForWriting();
 
     // Clear with color
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // TODO: Render stuff here
@@ -157,7 +225,7 @@ void Engine::render() {
     glViewport(0, 0, screenWidth, screenHeight);
 
     // DISPLAY PASS
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
 
     lightingShader.use();
@@ -174,7 +242,19 @@ void Engine::render() {
 
     // Render final quad
     renderQuad();
+
     glEnable(GL_DEPTH_TEST);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFramebuffer());  // GBuffer's framebuffer ID
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);  // Default framebuffer
+    glBlitFramebuffer(
+        0, 0, screenWidth, screenHeight,
+        0, 0, screenWidth, screenHeight,
+        GL_DEPTH_BUFFER_BIT, GL_NEAREST
+    );
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glEnable(GL_DEPTH_TEST);
+    skybox.render(camera, envCubemap);
 }
 
 void Engine::shutdown() {
@@ -265,25 +345,32 @@ void Engine::createCube() {
 }
 
 void Engine::renderCube() {
-    // Use shader
     basicShader.use();
-
-    // Set matrices
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
 
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = camera.getProjectionMatrix();
 
-    basicShader.setMat4("model", model);
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
+    // Bind material (handles textures and uniforms)
     cubeMaterial.bind(basicShader);
 
-    // Draw cube
     glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    float time = glfwGetTime();
+
+    for (size_t i = 0; i < cubePositions.size(); ++i) {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePositions[i]);
+        float angle = time * glm::radians(20.0f * (i + 1));
+        model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.8f));
+
+        basicShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
     glBindVertexArray(0);
 }
 

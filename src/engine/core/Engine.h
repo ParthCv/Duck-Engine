@@ -7,6 +7,8 @@
 #include "../renderer/Material.h"
 #include "../renderer/GBuffer.h"
 #include "../renderer/light/LightManager.h"
+#include "../renderer/Cubemap.h"
+#include "../renderer/Skybox.h"
 
 class Engine {
 public:
@@ -35,12 +37,21 @@ private:
 
     Camera camera;
 
-    // Temp variable
     Shader basicShader;
     Shader lightingShader;
 
+    Texture hdrTexture;
+    Shader equirectShader;
+    Cubemap envCubemap;
+    Skybox skybox;
+
+    // temp
     GLuint cubeVAO = 0, cubeVBO = 0;
 
+    // Multiple cube positions
+    std::vector<glm::vec3> cubePositions;
+
+    // temp too
     void createCube();
     void renderCube();
 };
