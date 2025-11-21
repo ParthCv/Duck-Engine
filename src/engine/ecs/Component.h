@@ -58,6 +58,14 @@ struct Transform {
         rotation += InRotation;
     }
 
+    /*
+     * Rotation using radians, about a specific axis.
+     */
+    void Rotate(float amount, glm::vec3 axis)
+    {
+        rotation += axis * glm::radians(amount);
+    }
+
     glm::mat4 Rotate(glm::mat4 ModelMatrix, float InAngle, glm::vec3 InAxis) {
         return glm::rotate(ModelMatrix, InAngle, InAxis);
     }
