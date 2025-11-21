@@ -39,13 +39,13 @@ void DuckEntity::update(float deltaTime) {
     EntityTransform.AddTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
 
     // TODO: Manually move StaticMeshComponent in a Sin wave manner.
-    accumulatedTime += deltaTime;
-    float randY = std::sin(accumulatedTime);
-    EntityStaticMesh.setPosition(glm::vec3(0,randY,0));
+    // accumulatedTime += deltaTime;
+    // float randY = std::sin(accumulatedTime);
+    // EntityStaticMesh.setPosition(glm::vec3(0,randY,0));
 
-    Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
-    auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
-    OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
+    // Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
+    // auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
+    // OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
 
 }
 
@@ -55,4 +55,9 @@ void DuckEntity::beginPlay() {
     // TODO: Implement specific beginPlay logic for only DuckEntity here.
     auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
     world->CreateCube(EntityStaticMesh.VAO, EntityStaticMesh.VBO);
+
+    // TODO: Rotating using radians, about a specified axis.
+    Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
+    auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
+    OwningEntityTransform->Rotate(45.0f, glm::vec3(0,1,0));
 }
