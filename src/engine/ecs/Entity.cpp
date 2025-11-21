@@ -9,18 +9,18 @@ Entity::Entity(World& InWorld) : world(nullptr)
     world = &InWorld;
 }
 
-void Entity::Update(float deltaTime) {
+void Entity::update(float deltaTime) {
 }
 
-void Entity::BeginPlay() {
+void Entity::beginPlay() {
 }
 
-bool Entity::GetIsActive() const
+bool Entity::getIsActive() const
 {
     return bIsActive;
 }
 
-void Entity::Destroy()
+void Entity::destroy()
 {
     bIsActive = false;
 }

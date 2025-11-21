@@ -31,13 +31,10 @@ bool Engine::initialize(int width, int height) {
     glfwMakeContextCurrent(window);
 
     // Initialize GLAD
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return false;
     }
-
-    // // Initialize InputManager (After window creation)
-    // InputManager::initialize(window);
 
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
@@ -111,34 +108,10 @@ bool Engine::initialize(int width, int height) {
     camera.position = glm::vec3(5.0f, 5.0f, 5.0f);
     camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
 
-    // Setup cube
-    // createCube();
-
-    // Optional: Set up state change callback for debugging
-    // gameStateManager.setOnStateChange([](GameState oldState, GameState newState) {
-    //     std::cout << "[Engine] Game state changed!" << std::endl;
-    // });
-    //
-    // // Setup cube positions
-    // cubePositions = {
-    //     glm::vec3(0.0f, 0.0f, 0.0f),
-    //     glm::vec3(2.5f, 0.0f, 0.0f),
-    //     glm::vec3(-2.5f, 0.0f, 0.0f),
-    //     glm::vec3(0.0f, 0.0f, 2.5f),
-    //     glm::vec3(0.0f, 0.0f, -2.5f),
-    //     glm::vec3(2.5f, 0.0f, 2.5f),
-    //     glm::vec3(-2.5f, 0.0f, 2.5f),
-    //     glm::vec3(2.5f, 0.0f, -2.5f),
-    //     glm::vec3(-2.5f, 0.0f, -2.5f),
-    //     glm::vec3(0.0f, 2.0f, 0.0f),
-    // };
-
     std::cout << "Engine initialized successfully!" << std::endl;
 
-    // TODO: ABSOLUTELY REMEMBER TO REMOVE THIS
     world.camera = &camera;
-   //world.basicShader = &basicShader;
-    world.BeginPlay();
+    world.beginPlay();
 
     return true;
 }
@@ -151,9 +124,6 @@ void Engine::run() {
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // Update input state at the start of each frame
-        //InputManager::update();
-
         processInput();
         update(deltaTime);
         render();
@@ -164,51 +134,13 @@ void Engine::run() {
 }
 
 void Engine::processInput() {
-    //if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
-        // std::cout << "[TEST] ESC pressed via InputManager!" << std::endl;
-        //
-        // if (gameStateManager.isPlaying() || gameStateManager.isPaused()) {
-        //     // In game, ESC toggles pause
-        //     gameStateManager.togglePause();
-        // } else {
-        //     // In menu or game over, ESC quits
-        //     glfwSetWindowShouldClose(window, true);
-        // }
-        //glfwSetWindowShouldClose(window, true);
-
-    //}
-
-    //switch (gameStateManager.getCurrentState()) {
-        // case GameState::MENU:
-        //     processMenuInput();
-        //     break;
-        //
-        // case GameState::PLAYING:
-        //     processGameplayInput();
-        //     break;
-        //
-        // case GameState::PAUSED:
-        //     processPauseInput();
-        //     break;
-        //
-        // case GameState::GAME_OVER:
-        //     processGameOverInput();
-        //     break;
-        //
-        // case GameState::ROUND_TRANSITION:
-        //     // No input during transition
-        //     break;
-        //
-        // case GameState::OPTIONS:
-        //     processOptionsInput();
-        //     break;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
 };
 
 void Engine::update(float deltaTime) {
-    world.Update(deltaTime);
+    world.update(deltaTime);
 }
 
 void Engine::render() {
@@ -219,7 +151,6 @@ void Engine::render() {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // TODO: Render stuff here
     renderEntities();
 
     // ==== LIGHTING PASS ====
@@ -271,19 +202,11 @@ void Engine::render() {
 }
 
 void Engine::shutdown() {
-    // Temp
-    glDeleteVertexArrays(1, &cubeVAO);
-    glDeleteBuffers(1, &cubeVBO);
-
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
     glfwDestroyWindow(window);
     glfwTerminate();
-}
-
-void Engine::createCube() {
-
 }
 
 void Engine::renderEntities() {
@@ -295,17 +218,19 @@ void Engine::renderEntities() {
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
+    // TODO: Bind the correct material from the entities static mesh component
     cubeMaterial.bind(basicShader);
 
+    // TODO: store a list of renderable entities to iterate instead
     // Draw each entity
     for (auto& entity : world.EntityManager.GetEntities())
     {
-        if (entity->HasComponent<StaticMeshComponent>())
+        if (entity->hasComponent<StaticMeshComponent>())
         {
-            auto& staticMeshComponent = entity->GetComponent<StaticMeshComponent>();
+            auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
 
             // Getting the Model.
-            glm::mat4 model = staticMeshComponent.GetTransformMatrix();
+            glm::mat4 model = staticMeshComponent.getTransformMatrix();
 
             basicShader.setMat4("model", model);
 
@@ -313,24 +238,6 @@ void Engine::renderEntities() {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
     }
-
-    // // Bind material (handles textures and uniforms)
-    // cubeMaterial.bind(basicShader);
-    //
-    // glBindVertexArray(cubeVAO);
-    //
-    // float time = glfwGetTime();
-    //
-    // for (size_t i = 0; i < cubePositions.size(); ++i) {
-    //     glm::mat4 model = glm::mat4(1.0f);
-    //     model = glm::translate(model, cubePositions[i]);
-    //     float angle = time * glm::radians(20.0f * (i + 1));
-    //     model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
-    //     model = glm::scale(model, glm::vec3(0.8f));
-    //
-    //     basicShader.setMat4("model", model);
-    //     glDrawArrays(GL_TRIANGLES, 0, 36);
-    // }
 
     glBindVertexArray(0);
 }
@@ -350,105 +257,12 @@ void Engine::setupQuad() {
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void *>(2 * sizeof(float)));
 }
 
-void Engine::renderQuad() {
+void Engine::renderQuad() const {
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
-
-//TODO: Move this shit out of the Engine - put in a seperate class or add it in input mamager
-
-// void Engine::processMenuInput() {
-//     // SPACE or ENTER to start game
-//     if (InputManager::isKeyPressed(GLFW_KEY_SPACE) ||
-//         InputManager::isKeyPressed(GLFW_KEY_ENTER)) {
-//         std::cout << "[Engine] Starting game from menu!" << std::endl;
-//         gameStateManager.setState(GameState::PLAYING);
-//     }
-//
-//     // O for options
-//     if (InputManager::isKeyPressed(GLFW_KEY_O)) {
-//         std::cout << "[Engine] Opening options menu" << std::endl;
-//         gameStateManager.setState(GameState::OPTIONS);
-//     }
-//
-//     // Example: Toggle first point light with L key
-//     // static bool lKeyPressed = false;
-//     // if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS && !lKeyPressed) {
-//     //     if (lightManager.getPointLightCount() > 0) {
-//     //         for (int i = 0; i < lightManager.getPointLightCount(); i++) {
-//     //             auto& light = lightManager.getPointLight(i);
-//     //             light.enabled = !light.enabled;
-//     //         }
-//     //     }
-//     //     lKeyPressed = true;
-//     // }
-//     // if (glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE) {
-//     //     lKeyPressed = false;
-//     // }
-// }
-//
-// void Engine::processGameplayInput() {
-//     // P to pause
-//     if (InputManager::isKeyPressed(GLFW_KEY_P)) {
-//         std::cout << "[Engine] Pausing game" << std::endl;
-//         gameStateManager.togglePause();
-//     }
-//
-//     // R to restart (commented out for now to not conflict with test)
-//     // if (InputManager::isKeyPressed(GLFW_KEY_R)) {
-//     //     std::cout << "[Engine] Restarting game" << std::endl;
-//     //     gameStateManager.restartGame();
-//     // }
-//
-//     // Debug keys
-//     if (InputManager::isKeyPressed(GLFW_KEY_G)) {
-//         std::cout << "[Debug] Game Over triggered" << std::endl;
-//         gameStateManager.setState(GameState::GAME_OVER);
-//     }
-//
-//     if (InputManager::isKeyPressed(GLFW_KEY_T)) {
-//         std::cout << "[Debug] Round Transition triggered" << std::endl;
-//         gameStateManager.setState(GameState::ROUND_TRANSITION);
-//     }
-// }
-//
-// void Engine::processPauseInput() {
-//     // P to resume (ESC also works via global input)
-//     if (InputManager::isKeyPressed(GLFW_KEY_P)) {
-//         std::cout << "[Engine] Resuming game" << std::endl;
-//         gameStateManager.resumeGame();
-//     }
-//
-//     // M to return to menu
-//     if (InputManager::isKeyPressed(GLFW_KEY_M)) {
-//         std::cout << "[Engine] Returning to menu from pause" << std::endl;
-//         gameStateManager.returnToMenu();
-//     }
-// }
-//
-// void Engine::processGameOverInput() {
-//     // R to restart (commented out to not conflict with test)
-//     // if (InputManager::isKeyPressed(GLFW_KEY_R)) {
-//     //     std::cout << "[Engine] Restarting from game over" << std::endl;
-//     //     gameStateManager.restartGame();
-//     // }
-//
-//     // M to return to menu
-//     if (InputManager::isKeyPressed(GLFW_KEY_M)) {
-//         std::cout << "[Engine] Returning to menu from game over" << std::endl;
-//         gameStateManager.returnToMenu();
-//     }
-// }
-//
-// void Engine::processOptionsInput() {
-//     // BACKSPACE to return to menu (ESC also works via global input)
-//     if (InputManager::isKeyPressed(GLFW_KEY_BACKSPACE)) {
-//         std::cout << "[Engine] Returning to menu from options" << std::endl;
-//         gameStateManager.returnToMenu();
-//     }
-// }

@@ -11,10 +11,10 @@ EntityManager::EntityManager()
 
 void EntityManager::BeginPlay()
 {
-    // TODO: Call BeginPlay on all entities
+    // TODO: Call beginPlay on all entities
     for (auto& entity : Entities)
     {
-        entity->BeginPlay();
+        entity->beginPlay();
     }
 }
 
@@ -58,11 +58,11 @@ void EntityManager::Update(float deltaTime)
 {
     // TODO: Do all the updating below.
     for (auto& entity : Entities) {
-        // TODO Update the Entity itself.
-        entity->Update(deltaTime);
+        // TODO update the Entity itself.
+        entity->update(deltaTime);
 
-        // TODO: Update ticking components
-        entity->GetComponent<StaticMeshComponent>().Update(deltaTime);
+        // TODO: update ticking components
+        entity->getComponent<StaticMeshComponent>().update(deltaTime);
     }
 
     // TODO: Cleanup at the end.

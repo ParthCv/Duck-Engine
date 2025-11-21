@@ -15,9 +15,9 @@ public:
 
     ~DuckEntity() override;
 
-    void Update(float deltaTime) override;
+    void update(float deltaTime) override;
 
-    void BeginPlay() override;
+    void beginPlay() override;
 };
 
 

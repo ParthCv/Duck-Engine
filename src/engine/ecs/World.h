@@ -16,18 +16,16 @@ public:
 
     World();
 
-    void Update(float deltaTime);
+    void update(float deltaTime);
 
-    void Render();
-
-    void BeginPlay();
+    void beginPlay();
 
     void addLightsToWorld();
 
     /*
      * Garbage collecting deactivated entities.
      */
-    void CleanUp();
+    void cleanUp();
 
     // TODO: Temporary testing function
     void CreateCube(GLuint& InVAO, GLuint& InVBO);

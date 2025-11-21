@@ -7,11 +7,8 @@
 #include "../renderer/Shader.h"
 #include "../renderer/Material.h"
 #include "../renderer/GBuffer.h"
-#include "../renderer/light/LightManager.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
-#include "../input/InputManager.h"
-#include "../game/GameStateManager.h"
 
 
 class Engine {
@@ -22,15 +19,14 @@ public:
     void run();
     void shutdown();
 
-    GBuffer gBuffer;
-    LightManager lightManager;
+    GBuffer gBuffer;;
     // Temp
     Material cubeMaterial;
-    Shader displayShader;
+
     // Temp for GBuffer
     GLuint quadVAO, quadVBO;
     void setupQuad();
-    void renderQuad();
+    void renderQuad() const;
 
 private:
     GLFWwindow* window = nullptr;
@@ -41,15 +37,7 @@ private:
     void update(float deltaTime);
     void render();
 
-    // State-specific input handlers
-    void processMenuInput();
-    void processGameplayInput();
-    void processPauseInput();
-    void processGameOverInput();
-    void processOptionsInput();
-
     Camera camera;
-    // GameStateManager gameStateManager;
 
     Shader basicShader;
     Shader lightingShader;
@@ -67,15 +55,6 @@ private:
 
     Shader brdfLUTShader;
     Texture brdfLUT;
-
-    // temp
-    GLuint cubeVAO = 0, cubeVBO = 0;
-
-    // Multiple cube positions
-    std::vector<glm::vec3> cubePositions;
-
-    // temp too
-    void createCube();
 
     void renderEntities();
 };

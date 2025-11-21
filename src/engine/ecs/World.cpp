@@ -10,20 +10,21 @@ World::World()
 {
     // Entity& FirstEntity = EntityManager.CreateEntity(*this);
 
-    // TODO: Create first entity and test if we can move it per Update.
+    // TODO: Create first entity and test if we can move it per update.
     // Entity& FirstEntity = CreateEntity(*this);
 
     // auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1));
     // FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
     // FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
 
+    // TEMP LOADINg DUCKS RN
     for (size_t i = 0; i < duckPos.size(); ++i) {
         DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
     }
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
 }
 
-void World::Update(float deltaTime)
+void World::update(float deltaTime)
 {
     float time = glfwGetTime();
     float radius = 10.0f;
@@ -40,7 +41,7 @@ void World::Update(float deltaTime)
         light.position.x = sin(time) * 3.0f;
         light.position.z = cos(time) * 3.0f;
 
-        // Update game logic (ducks, score, etc.) - will add later
+        // update game logic (ducks, score, etc.) - will add later
     }
 
     // TODO: Get the first entity
@@ -48,7 +49,7 @@ void World::Update(float deltaTime)
     // auto& FirstEntityTransform = FirstEntity->GetComponent<Transform>();
     // auto& FirstEntityStaticMesh = FirstEntity->GetComponent<StaticMeshComponent>();
 
-    // TODO: Manually transforming the First Entity every Update.
+    // TODO: Manually transforming the First Entity every update.
     // FirstEntityTransform.position.x += 1.0f * deltaTime;
     // std::cout << "Entity One Transform.X: " << FirstEntityTransform.position.x << std::endl;
 
@@ -69,13 +70,13 @@ void World::Update(float deltaTime)
 
     // TODO: Rotate entity transform
     // FirstEntityTransform.Rotate(glm::vec3(0,10,0) * deltaTime);
-    // glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.GetTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
+    // glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.getTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
 
     // srand(time(0));
     // int randX = rand() % 2;
     // int randY = rand() % 2;
     // int randZ = rand() % 2;
-    // FirstEntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
+    // FirstEntityStaticMesh.setPosition(glm::vec3(0,randY,0));
 
 
     // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
@@ -87,20 +88,16 @@ void World::Update(float deltaTime)
     EntityManager.Update(deltaTime);
 }
 
-void World::Render()
-{
-}
-
-void World::BeginPlay()
+void World::beginPlay()
 {
     addLightsToWorld();
     std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
-    // TODO: Call all system BeginPlay below.
+    // TODO: Call all system beginPlay below.
     EntityManager.BeginPlay();
 
-    // TODO: Implement all other BeginPlay logic below.
+    // TODO: Implement all other beginPlay logic below.
     // auto& FirstEntity = EntityManager.GetEntities()[0];
     // if (FirstEntity->HasComponent<StaticMeshComponent>())
     // {
@@ -162,7 +159,7 @@ void World::addLightsToWorld() {
     lightManager.addPointLight(light5);
 }
 
-void World::CleanUp()
+void World::cleanUp()
 {
 }
 

@@ -1,11 +1,9 @@
-#ifndef DUCKENGINE_COMPONENT_H
-#define DUCKENGINE_COMPONENT_H
+#pragma once
 #include "glad/glad.h"
 #include "glm/fwd.hpp"
 #include "glm/mat4x4.hpp"
 #include "glm/vec3.hpp"
 #include "glm/ext/matrix_transform.hpp"
-
 #include "../ecs/Entity.h"
 
 struct Velocity
@@ -22,7 +20,7 @@ struct Velocity
 };
 
 struct Transform {
-
+    // TODO: fix rotation input so that we dont hv to use really small values
     Transform()
     {
         position = glm::vec3(0.0f);
@@ -76,21 +74,17 @@ struct StaticMesh
     GLuint VAO;
     GLuint VBO;
 };
-//
-// struct Material
-// {
-//
-// };
 
 struct StaticMeshComponent
 {
+    // TODO: think about storing the material of each entity
     StaticMeshComponent(Entity& InEntity) :
         OwningEntity(&InEntity),
         StaticMeshTransform(Transform{}),
         VAO(0),
         VBO(0)
     {
-        StaticMeshTransform = InEntity.GetComponent<Transform>();
+        StaticMeshTransform = InEntity.getComponent<Transform>();
     }
 
     StaticMeshComponent(Entity& InEntity, Transform InTransform) :
@@ -114,41 +108,39 @@ struct StaticMeshComponent
 
     glm::mat4 ModelMatrix{};
 
-    void InitTransform()
+    void initTransform()
     {
-        ModelMatrix = GetTransformMatrix();
+        ModelMatrix = getTransformMatrix();
     }
 
-    glm::mat4 GetTransformMatrix()
+    glm::mat4 getTransformMatrix()
     {
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, StaticMeshTransform.position + OwningEntity->GetComponent<Transform>().position);
-        model = glm::rotate(model, StaticMeshTransform.rotation.x + OwningEntity->GetComponent<Transform>().rotation.x, glm::vec3(1,0,0));
-        model = glm::rotate(model, StaticMeshTransform.rotation.y + OwningEntity->GetComponent<Transform>().rotation.y, glm::vec3(0,1,0));
-        model = glm::rotate(model, StaticMeshTransform.rotation.z + OwningEntity->GetComponent<Transform>().rotation.z, glm::vec3(0,0,1));
-        model = glm::scale(model, StaticMeshTransform.scale + OwningEntity->GetComponent<Transform>().scale);
+        model = glm::translate(model, StaticMeshTransform.position + OwningEntity->getComponent<Transform>().position);
+        model = glm::rotate(model, StaticMeshTransform.rotation.x + OwningEntity->getComponent<Transform>().rotation.x, glm::vec3(1,0,0));
+        model = glm::rotate(model, StaticMeshTransform.rotation.y + OwningEntity->getComponent<Transform>().rotation.y, glm::vec3(0,1,0));
+        model = glm::rotate(model, StaticMeshTransform.rotation.z + OwningEntity->getComponent<Transform>().rotation.z, glm::vec3(0,0,1));
+        model = glm::scale(model, StaticMeshTransform.scale + OwningEntity->getComponent<Transform>().scale);
 
         return model;
     }
 
-    void SetTransformMatrix(glm::mat4 InTransform)
+    void getTransformMatrix(glm::mat4 InTransform)
     {
         ModelMatrix = InTransform;
     }
 
-    void SetPosition(glm::vec3 InPosition)
+    void setPosition(glm::vec3 InPosition)
     {
         StaticMeshTransform.position = InPosition;
     }
 
-    void Update(float deltaTime)
+    void update(float deltaTime)
     {
         if (!bTicks) {
             return;
         }
 
-        // TODO: Implement all Update logic below.
+        // TODO: Implement all update logic below.
     }
 };
-
-#endif //DUCKENGINE_COMPONENT_H
