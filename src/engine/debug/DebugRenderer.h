@@ -3,7 +3,6 @@
 //
 #pragma once
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "../renderer/Shader.h"
 
 class DebugRenderer {
@@ -16,8 +15,6 @@ public:
     // Delete copy constructor and assignment operator
     DebugRenderer(const DebugRenderer&) = delete;
     DebugRenderer& operator=(const DebugRenderer&) = delete;
-
-    // void flush(); // Call once per frame to render everything
 
     void init(); // Call once at startup
     void drawBox(Shader basicShader, const glm::vec3& position, const glm::vec3& size, const glm::vec3& color = glm::vec3(0, 1, 0));

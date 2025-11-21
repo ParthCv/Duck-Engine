@@ -4,16 +4,17 @@
 
 #ifndef DUCKENGINE_WORLD_H
 #define DUCKENGINE_WORLD_H
-#include <memory>
-#include <vector>
 
-#include "Entity.h"
 #include "../system/EntityManager.h"
+#include "../system/DebugRenderSystem.h"
+#include "../system/CollisionSystem.h"
+
 #include "glad/glad.h"
-#include "../core/TestGame.h"
+
 
 class Shader;
 class Camera;
+class CollisionSystem;
 
 class World
 {
@@ -22,6 +23,8 @@ public:
     Camera* camera;
     Shader* basicShader;
     EntityManager EntityManager;
+    CollisionSystem* collisionSystem = nullptr;
+    DebugRenderSystem debugRenderSystem;
 
     World();
 
@@ -31,6 +34,8 @@ public:
 
     void BeginPlay();
 
+    void TestRandomRaycasting(float deltaTime);
+
     /*
      * Garbage collecting deactivated entities.
      */
@@ -38,8 +43,8 @@ public:
 
     // TODO: Temporary testing function
     void CreateCube(GLuint& InVAO, GLuint& InVBO);
+    void CreateLine(GLuint& InVAO, GLuint& InVBO);
 
-    TestGame* game = nullptr;
 };
 
 

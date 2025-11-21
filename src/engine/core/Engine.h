@@ -5,7 +5,6 @@
 #include "../ecs/World.h"
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
-#include "TestGame.h"
 
 class Engine {
 public:
@@ -29,8 +28,4 @@ private:
     // Temp variable
     Shader basicShader;
 
-    GLuint cubeVAO = 0, cubeVBO = 0;
-
-    void createCube();
-    void renderCube();
 };

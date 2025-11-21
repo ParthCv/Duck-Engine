@@ -4,73 +4,44 @@
 
 #include "World.h"
 #include <iostream>
+#include <random>
+#include <ctime>
+
 #include "Component.h"
 #include "../renderer/Camera.h"
 #include "../renderer/Shader.h"
 #include "GLFW/glfw3.h"
 #include "../debug/DebugRenderer.h"
-#include "../core/TestGame.h"
+#include "../system/CollisionSystem.h"
+#include "../system/DebugRenderSystem.h"
 
 World::World()
 {
-    Entity& FirstEntity = EntityManager.CreateEntity(*this);
-
-    // TODO: Create first entity and test if we can move it per Update.
-    // Entity& FirstEntity = CreateEntity(*this);
-
-    auto& transform = FirstEntity.AddComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1, 1, 1));
-    FirstEntity.AddComponent<Velocity>(glm::vec3(0.0f, 0.0f, 0.0f));
-    FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity, transform);
+    collisionSystem = new CollisionSystem();
 }
 
 void World::Update(float deltaTime)
 {
+    // FIXED: No more EntityManager.GetEntities()[0]!
+    // Find any entity that has both a StaticMeshComponent and a BoxCollider (this is our target cube)
+    auto cubeEntities = EntityManager.GetEntitiesWith<StaticMeshComponent, BoxCollider>();
 
-    // TODO: Get the first entity
-    auto& FirstEntity = EntityManager.GetEntities()[0];
-    auto& FirstEntityTransform = FirstEntity->GetComponent<Transform>();
-    auto& FirstEntityStaticMesh = FirstEntity->GetComponent<StaticMeshComponent>();
+    if (!cubeEntities.empty())
+    {
+        // Just take the first one that matches — safe and scalable
+        auto* cubeEntity = cubeEntities[0];
+        auto& transform = cubeEntity->GetComponent<Transform>();
+        auto& staticMesh = cubeEntity->GetComponent<StaticMeshComponent>();
 
-    // TODO: Manually transforming the First Entity every Update.
-    // FirstEntityTransform.position.x += 1.0f * deltaTime;
-    // std::cout << "Entity One Transform.X: " << FirstEntityTransform.position.x << std::endl;
+        // Move the entity (affects both visuals and collider)
+        transform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
 
-    // TODO: Adding to the Entities' Transform
-    FirstEntityTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
-
-    // TODO: Rotate the StaticMesh
-    // Rotating the Owning Entity, not the StaticMeshComponent
-    Entity& OwningEntity = *FirstEntityStaticMesh.OwningEntity;
-    auto* OwningEntityTransform = &OwningEntity.GetComponent<Transform>();
-    // OwningEntityTransform->Rotate(glm::vec3(0.005, 0 ,0));
-
-    // TODO: Rotating the StaticMeshComponent, not the OwningEntity
-    FirstEntityStaticMesh.StaticMeshTransform.Rotate(glm::vec3(0, 10,0) * deltaTime);
-
-    // TODO: Moving the StaticMeshComponent, not the OwningEntity
-    // FirstEntityStaticMesh.StaticMeshTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
-
-    // TODO: Rotate entity transform
-    // FirstEntityTransform.Rotate(glm::vec3(0,10,0) * deltaTime);
-    // glm::mat4 model = FirstEntityTransform.Rotate(FirstEntityStaticMesh.GetTransformMatrix(),180 * deltaTime,glm::vec3(0,1,0));
-
-    // srand(time(0));
-    int randX = rand() % 2;
-    int randY = rand() % 2;
-    int randZ = rand() % 2;
-    FirstEntityStaticMesh.SetPosition(glm::vec3(0,randY,0));
-
-    if (game) {
-        game->update(deltaTime);
+        // Rotate the mesh component and transform
+        staticMesh.StaticMeshTransform.Rotate(glm::vec3(0, 10, 0) * deltaTime);
+        staticMesh.StaticMeshTransform.AddTransform(glm::vec3(1.0f, 0, 0) * deltaTime);
     }
 
-
-    // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
-
-
-    // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position + glm::vec3(0, randY, 0) * deltaTime);
-    // FirstEntityStaticMesh.Transform->SetTransform(FirstEntityTransform.position);
-
+    TestRandomRaycasting(deltaTime);
     EntityManager.Update();
 }
 
@@ -79,8 +50,6 @@ void World::Render()
     // Clear with color
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // TODO: Render stuff here
 
     // Use shader
     basicShader->use();
@@ -91,61 +60,110 @@ void World::Render()
     basicShader->setMat4("view", view);
     basicShader->setMat4("projection", projection);
 
-    // Draw each entity
-    for (auto& entity : EntityManager.GetEntities())
+    // FIXED: No more [0] — properly iterate over all entities with StaticMeshComponent
+    auto renderableEntities = EntityManager.GetEntitiesWith<StaticMeshComponent>();
+
+    for (auto* entity : renderableEntities)
     {
-        if (entity->HasComponent<StaticMeshComponent>())
-        {
-            auto& FirstEntityStaticMeshComponent = entity->GetComponent<StaticMeshComponent>();
+        if (!entity->GetIsActive()) continue;
 
-            // Getting the Model.
-            glm::mat4 model = FirstEntityStaticMeshComponent.GetTransformMatrix();
+        auto& staticMeshComp = entity->GetComponent<StaticMeshComponent>();
 
-            basicShader->setMat4("model", model);
+        // Use the component's transform matrix (which includes local rotation)
+        glm::mat4 model = staticMeshComp.GetTransformMatrix();
 
-            glBindVertexArray(FirstEntityStaticMeshComponent.VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        basicShader->setMat4("model", model);
+
+        glBindVertexArray(staticMeshComp.VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-       // Draw Debug collision cube wireframe
-       DebugRenderer::getInstance().drawBox(
-           *basicShader,
-           glm::vec3(0.0f, 0.0f, 0.0f),
-           glm::vec3(1.0f, 1.0f, 1.0f),
-           glm::vec3(0.0f, 1.0f, 0.0f)
-       );
-
-       DebugRenderer::getInstance().drawLine(
-        *basicShader,
-        game->getRayStart(),
-        game->getRayEnd(),
-        game->getRayHit()
-    );
-
+    debugRenderSystem.Render(EntityManager, *basicShader);
     glBindVertexArray(0);
 }
 
 void World::BeginPlay()
 {
-    // TODO: Call all system BeginPlay below.
-    EntityManager.BeginPlay();
+    Entity& FirstEntity = EntityManager.CreateEntity(*this);
 
-    // TODO: Implement all other BeginPlay logic below.
-    auto& FirstEntity = EntityManager.GetEntities()[0];
-    if (FirstEntity->HasComponent<StaticMeshComponent>())
+    // Add required components
+    FirstEntity.AddComponent<Transform>(
+     glm::vec3(0.0f, 0.0f, 0.0f),  // position
+     glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
+     glm::vec3(1.0f, 1.0f, 1.0f)   // scale
+ );
+    auto& meshComp = FirstEntity.AddComponent<StaticMeshComponent>(FirstEntity);
+    FirstEntity.AddComponent<BoxCollider>(); // This is critical for TestGame to hit!
+    FirstEntity.AddComponent<DebugDrawable>();
+
+    // FIXED: Safe query instead of assuming [0]
+    auto entities = EntityManager.GetEntitiesWith<StaticMeshComponent>();
+    if (!entities.empty())
     {
-        auto& FirstEntityStaticMeshComponent = FirstEntity->GetComponent<StaticMeshComponent>();
-
-        // FirstEntityStaticMeshComponent.Transform->SetTransform(glm::vec3(0,2,0));
-
-        CreateCube(FirstEntityStaticMeshComponent.VAO, FirstEntityStaticMeshComponent.VBO);
+        auto* entity = entities[0];
+        auto& meshComp = entity->GetComponent<StaticMeshComponent>();
+        CreateCube(meshComp.VAO, meshComp.VBO);
     }
-    game = new TestGame();
+
+    // Create a debug ray entity
+    Entity& rayEntity = EntityManager.CreateEntity(*this);
+    rayEntity.AddComponent<Transform>(
+     glm::vec3(0.0f, -1.0f, 1.0f),
+     glm::vec3(0.0f, 0.0f, 0.0f),
+     glm::vec3(0.0f, 0.0f, 0.0f)
+ );
+    auto& raySource = rayEntity.AddComponent<RaycastSource>();
+
+    // Enable drawing
+    raySource.drawRay = true;
+    raySource.maxDistance = 100.0f;
+
+    // Sets up debug renderer
+    DebugRenderer::getInstance().init();
 }
 
 void World::CleanUp()
 {
+    DebugRenderer::getInstance().cleanup();
+}
+
+void World::TestRandomRaycasting(float deltaTime)
+{
+    static float timeSinceLastRay = 0.0f;
+    const float rayInterval = 1.0f; // 1 second
+
+    timeSinceLastRay += deltaTime;
+
+    // Only run once per second
+    if (timeSinceLastRay >= rayInterval)
+    {
+        timeSinceLastRay = 0.0f; // Reset timer
+
+        auto raySourceEntities = EntityManager.GetEntitiesWith<RaycastSource>();
+        if (raySourceEntities.empty()) return;
+
+        auto* rayEntity = raySourceEntities[0];
+        auto& raySource = rayEntity->GetComponent<RaycastSource>();
+
+        static std::mt19937 generator(static_cast<unsigned int>(time(0)));
+        static std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
+
+        glm::vec3 randomDirection = glm::vec3(
+            distribution(generator),
+            distribution(generator),
+            distribution(generator)
+        );
+
+        if (glm::length(randomDirection) > 0.0f) {
+            raySource.direction = glm::normalize(randomDirection);
+        } else {
+            raySource.direction = glm::vec3(0.0f, 0.0f, 1.0f);
+        }
+        collisionSystem->RaycastFromEntity(EntityManager, *rayEntity);
+
+        // Debug output
+        std::cout << "Ray Fired! Hit: " << (raySource.lastHit ? "YES" : "NO") << std::endl;
+    }
 }
 
 void World::CreateCube(GLuint& InVAO, GLuint& InVBO)
@@ -153,42 +171,42 @@ void World::CreateCube(GLuint& InVAO, GLuint& InVBO)
     // Cube vertices with colors
     float vertices[] = {
         // Positions          // Colors
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, // Front face (red)
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
          0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
          0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f, // Back face (green)
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
          0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
          0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, // Left face (blue)
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // Right face (yellow)
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
          0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // Bottom face (magenta)
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, // Top face (cyan)
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
          0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
          0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
          0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
@@ -196,20 +214,34 @@ void World::CreateCube(GLuint& InVAO, GLuint& InVBO)
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f
     };
 
-    // Generate VAO and VBO
     glGenVertexArrays(1, &InVAO);
     glGenBuffers(1, &InVBO);
 
-    // Bind and upload data
     glBindVertexArray(InVAO);
     glBindBuffer(GL_ARRAY_BUFFER, InVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+}
+
+void World::CreateLine(GLuint& InVAO, GLuint& InVBO) {
+    glGenVertexArrays(1, &InVAO);
+    glGenBuffers(1, &InVBO);
+
+    glBindVertexArray(InVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, InVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, nullptr, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 

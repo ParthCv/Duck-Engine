@@ -10,6 +10,8 @@
 #include "glm/vec3.hpp"
 #include "glm/ext/matrix_transform.hpp"
 
+class Entity;
+
 struct Velocity
 {
     glm::vec3 Direction{};
@@ -66,6 +68,35 @@ struct Transform {
 
 };
 
+// Collision Components
+struct BoxCollider {
+    glm::vec3 center{0.0f};
+    glm::vec3 size{1.0f};
+    bool isTrigger = false;
+
+    glm::vec3 GetMin(const Transform& transform) const {
+        return transform.position + center - size;
+    }
+
+    glm::vec3 GetMax(const Transform& transform) const {
+        return transform.position + center + size;
+    }
+};
+
+struct DebugDrawable {
+    bool drawCollider = true;
+    glm::vec3 colliderColor{1.0f, 0.0f, 0.0f}; // Red
+};
+
+struct RaycastSource {
+    glm::vec3 direction{0.0f, 0.0f, -1.0f};
+    float maxDistance = 100.0f;
+    bool drawRay = true;
+
+    bool lastHit = false;
+    glm::vec3 lastHitPoint{};
+};
+
 struct StaticMesh
 {
     GLuint VAO;
@@ -79,22 +110,9 @@ struct Material
 
 struct StaticMeshComponent
 {
-    StaticMeshComponent(Entity& InEntity) :
-        OwningEntity(&InEntity),
-        StaticMeshTransform(Transform{}),
-        VAO(0),
-        VBO(0)
-    {
-        StaticMeshTransform = InEntity.GetComponent<Transform>();
-    }
-
-    StaticMeshComponent(Entity& InEntity, Transform InTransform) :
-        OwningEntity(&InEntity),
-        StaticMeshTransform(InTransform),
-        VAO(0),
-        VBO(0)
-    {
-    }
+    // DECLARE constructors only - implementations moved to .cpp
+    StaticMeshComponent(Entity& InEntity);
+    StaticMeshComponent(Entity& InEntity, Transform InTransform);
 
     Entity* OwningEntity;
     Transform StaticMeshTransform;
@@ -129,10 +147,10 @@ struct StaticMeshComponent
         ModelMatrix = InTransform;
     }
 
-    void SetPosition(glm::vec3 InPosition)
-    {
-        auto& OwningEntityTransform = OwningEntity->GetComponent<Transform>();
-        StaticMeshTransform.position = OwningEntityTransform.position + InPosition;
+    void SetPosition(glm::vec3 InPosition);
+
+    glm::vec3 getPosition() {
+        return StaticMeshTransform.position;
     }
 };
 

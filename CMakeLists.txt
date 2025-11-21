@@ -21,8 +21,11 @@ add_executable(DuckEngine
         src/engine/debug/DebugRenderer.cpp
         src/engine/physics/RaycastUtils.h
         src/engine/physics/RaycastUtils.cpp
-        src/engine/core/TestGame.cpp
-        src/engine/core/TestGame.h
+        src/engine/system/CollisionSystem.h
+        src/engine/system/CollisionSystem.cpp
+        src/engine/system/DebugRenderSystem.h
+        src/engine/system/DebugRenderSystem.cpp
+        src/engine/ecs/Component.cpp
 )
 
 # Include directories for headers

@@ -1,8 +1,9 @@
 #include "Engine.h"
 #include <iostream>
 
-#include "../debug/DebugRenderer.h"
-#include "./TestGame.h"
+
+
+World* GWorld = nullptr;
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -49,19 +50,11 @@ bool Engine::initialize(int width, int height) {
     camera.updateAspectRatio(screenWidth, screenHeight);
     camera.position = glm::vec3(0.0f, 0.0f, 3.0f);
 
-    // Setup cube
-    // createCube();
-
-    // Sets up debug renderer
-    DebugRenderer::getInstance().init();
-
     std::cout << "Engine initialized successfully!" << std::endl;
     // TODO: ABSOLUTELY REMEMBER TO REMOVE THIS
     World.camera = &camera;
     World.basicShader = &basicShader;
     World.BeginPlay();
-
-    std::cout << "Random raycasts will fire every 2 seconds..." << std::endl;
 
     return true;
 }
@@ -96,121 +89,11 @@ void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
-    // Clear with color
- //    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
- //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- //
- //
- //    // Use shader
- //    basicShader.use();
- //
- //    // Set matrices
- //    glm::mat4 model = glm::mat4(1.0f);
- //    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); // Rotate
- //
- //    glm::mat4 view = camera.getViewMatrix();
- //    glm::mat4 projection = camera.getProjectionMatrix();
- //
- //    basicShader.setMat4("model", model);
- //    basicShader.setMat4("view", view);
- //    basicShader.setMat4("projection", projection);
- //
- //    // Draw cube
- //    glBindVertexArray(cubeVAO);
- //    glDrawArrays(GL_TRIANGLES, 0, 36);
- //    glBindVertexArray(0);
- //
- //    // Draw Debug collision cube wireframe
- //    DebugRenderer::getInstance().drawBox(
- //        basicShader,
- //        glm::vec3(0.0f, 0.0f, 0.0f),
- //        glm::vec3(1.0f, 1.0f, 1.0f),
- //        glm::vec3(0.0f, 1.0f, 0.0f)
- //    );
- //
- //    DebugRenderer::getInstance().drawLine(
- //     basicShader,
- //     game->getRayStart(),
- //     game->getRayEnd()
- // );
-    // add above to world render
     World.Render();
 }
 
 void Engine::shutdown() {
-    glDeleteVertexArrays(1, &cubeVAO);
-    glDeleteBuffers(1, &cubeVBO);
-
-
-    DebugRenderer::getInstance().cleanup();
 
     glfwDestroyWindow(window);
     glfwTerminate();
-}
-
-void Engine::createCube() {
-    // Cube vertices with colors
-    float vertices[] = {
-        // Positions          // Colors
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, // Front face (red)
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f, // Back face (green)
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, // Left face (blue)
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // Right face (yellow)
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // Bottom face (magenta)
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, // Top face (cyan)
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f
-    };
-
-    // Generate VAO and VBO
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &cubeVBO);
-
-    // Bind and upload data
-    glBindVertexArray(cubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
 }

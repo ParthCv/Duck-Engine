@@ -79,6 +79,7 @@ public:
     void deactivateComponent() {
         ComponentBitSet[GetComponentTypeID<T>()] = false;
     }
+
 };
 
 #endif //DUCKENGINE_ENTITY_H
