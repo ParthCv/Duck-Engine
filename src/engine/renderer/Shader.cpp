@@ -104,3 +104,9 @@ void Shader::setInt(const char* name, int value) const {
     GLint location = glGetUniformLocation(programID, name);
     glUniform1i(location, value);
 }
+
+void Shader::setBool(const char* name, bool value) const {
+    GLint location = glGetUniformLocation(programID, name);
+    glUniform1i(location, value);
+}
+

@@ -1,4 +1,4 @@
-#include "Engine/Core/Engine.h"
+#include "engine/core/Engine.h"
 #include <iostream>
 
 #define WIDTH 1920
