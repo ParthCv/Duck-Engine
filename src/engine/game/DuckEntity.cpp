@@ -9,20 +9,20 @@
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
-    auto& transform = addComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+    auto& transform = addComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1,1,1));
 
     float randX = rand() % 2;
     float randZ = rand() % 2;
 
     addComponent<Velocity>(glm::vec3(1.0, 0.0f, 0.0f), 0.25f);
-    addComponent<StaticMeshComponent>(*this, transform);
+    addComponent<StaticMeshComponent>(*this);
 }
 
 DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) {
-    auto& transform = addComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+    auto& transform = addComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1,1,1));
 
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
-    addComponent<StaticMeshComponent>(*this, transform);
+    addComponent<StaticMeshComponent>(*this);
 }
 
 DuckEntity::~DuckEntity() {}
@@ -36,7 +36,7 @@ void DuckEntity::update(float deltaTime) {
     auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
 
     // TODO: Move Duck by Velocity.
-    EntityTransform.AddTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
+    EntityTransform.AddLocalTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
 
     // TODO: Manually move StaticMeshComponent in a Sin wave manner.
     // accumulatedTime += deltaTime;
@@ -56,8 +56,23 @@ void DuckEntity::beginPlay() {
     auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
     world->CreateCube(EntityStaticMesh.VAO, EntityStaticMesh.VBO);
 
-    // TODO: Rotating using radians, about a specified axis.
-    Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
-    auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
-    OwningEntityTransform->Rotate(45.0f, glm::vec3(0,1,0));
+    // TODO: Set the flight path
+    setRandomFlightPath();
+}
+
+void DuckEntity::setRandomFlightPath() {
+
+    auto& EntityTransform = this->getComponent<Transform>();
+    auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
+    auto& EntityVelocity = this->getComponent<Velocity>();
+
+    // TODO: Rotate to face 45 degrees up into the air
+    EntityTransform.LocalRotate(-45.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+    // TODO: Rotate around Y-Axis randomly
+    float randomAngle = rand() % 360;
+    EntityTransform.WorldRotate(randomAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // TODO: Set Entity Velocity
+    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
 }
