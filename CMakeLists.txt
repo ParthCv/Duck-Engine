@@ -31,7 +31,7 @@ add_executable(DuckEngine
         src/engine/system/CollisionSystem.cpp
         src/engine/system/DebugRenderSystem.h
         src/engine/system/DebugRenderSystem.cpp
-        src/engine/ecs/Component.cpp
+        src/engine/game/DuckEntity.cpp
 )
 
 # Include directories for headers

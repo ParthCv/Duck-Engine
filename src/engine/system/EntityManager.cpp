@@ -1,4 +1,3 @@
-
 #include "../ecs/Entity.h"
 #include "EntityManager.h"
 
@@ -61,8 +60,10 @@ void EntityManager::Update(float deltaTime)
         // TODO update the Entity itself.
         entity->update(deltaTime);
 
-        // TODO: update ticking components
-        entity->getComponent<StaticMeshComponent>().update(deltaTime);
+        // --- FIX: Check if component exists before updating ---
+        if (entity->hasComponent<StaticMeshComponent>()) {
+            entity->getComponent<StaticMeshComponent>().update(deltaTime);
+        }
     }
 
     // TODO: Cleanup at the end.

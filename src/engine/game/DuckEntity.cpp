@@ -9,13 +9,24 @@
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
+    // Initialize Transform
     auto& transform = addComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
-    float randX = rand() % 2;
-    float randZ = rand() % 2;
-
+    // Initialize Velocity
     addComponent<Velocity>(glm::vec3(1.0, 0.0f, 0.0f), 0.25f);
+
+    // Initialize Mesh
     addComponent<StaticMeshComponent>(*this, transform);
+
+    // Initialize Collider
+    auto& collider = addComponent<BoxCollider>();
+    collider.size = glm::vec3(1.1f);
+    collider.center = glm::vec3(0.0f);
+
+    // Initialize Debug
+    auto& debug = addComponent<DebugDrawable>();
+    debug.drawCollider = true;
+    debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f); // Red
 }
 
 DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) {
@@ -23,6 +34,14 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
 
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
     addComponent<StaticMeshComponent>(*this, transform);
+
+    auto& collider = addComponent<BoxCollider>();
+    collider.size = glm::vec3(1.1f);
+    collider.center = glm::vec3(0.0f);
+
+    auto& debug = addComponent<DebugDrawable>();
+    debug.drawCollider = true;
+    debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f);
 }
 
 DuckEntity::~DuckEntity() {}
@@ -30,29 +49,30 @@ DuckEntity::~DuckEntity() {}
 void DuckEntity::update(float deltaTime) {
     Entity::update(deltaTime);
 
-    // TODO: Get Components
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
-    auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
 
-    // TODO: Move Duck by Velocity.
-    EntityTransform.AddTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
+    // 1. Move Duck Forward (Linear Movement)
+    EntityTransform.position += EntityVelocity.Direction * EntityVelocity.Speed * deltaTime;
 
-    // TODO: Manually move StaticMeshComponent in a Sin wave manner.
+    // 2. Bob Duck Up/Down (Sine Wave)
+    // FIX: Apply this to EntityTransform.position, NOT the StaticMeshComponent
     accumulatedTime += deltaTime;
-    float randY = std::sin(accumulatedTime);
-    EntityStaticMesh.setPosition(glm::vec3(0,randY,0));
+    float sineOffset = std::sin(accumulatedTime) * 0.5f; // Multiplied by 0.5 to damp the bobbing height
 
-    Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
-    auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
-    OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
+    // We apply the sine wave to the Y axis.
+    EntityTransform.position.y = sineOffset;
 
+    // 3. Rotate the Duck
+    EntityTransform.Rotate(glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime);
 }
 
 void DuckEntity::beginPlay() {
     Entity::beginPlay();
 
-    // TODO: Implement specific beginPlay logic for only DuckEntity here.
     auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
+    // Ensure the visual mesh is centered on the entity, can remove this later
+    EntityStaticMesh.setPosition(glm::vec3(0.0f));
+
     world->CreateCube(EntityStaticMesh.VAO, EntityStaticMesh.VBO);
 }

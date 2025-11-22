@@ -19,10 +19,10 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
     auto entities = entityManager.GetEntitiesWith<Transform, BoxCollider>();
 
     for (auto* entity : entities) {
-        if (!entity->GetIsActive()) continue;
+        if (!entity->getIsActive()) continue;
 
-        auto& transform = entity->GetComponent<Transform>();
-        auto& collider = entity->GetComponent<BoxCollider>();
+        auto& transform = entity->getComponent<Transform>();
+        auto& collider = entity->getComponent<BoxCollider>();
 
         glm::vec3 aabbMin = collider.GetMin(transform);
         glm::vec3 aabbMax = collider.GetMax(transform);
@@ -46,13 +46,13 @@ CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(
     EntityManager& entityManager,
     Entity& entity)
 {
-    if (!entity.HasComponent<Transform>() ||
-        !entity.HasComponent<RaycastSource>()) {
+    if (!entity.hasComponent<Transform>() ||
+        !entity.hasComponent<RaycastSource>()) {
         return {};
     }
 
-    auto& transform = entity.GetComponent<Transform>();
-    auto& raycastSource = entity.GetComponent<RaycastSource>();
+    auto& transform = entity.getComponent<Transform>();
+    auto& raycastSource = entity.getComponent<RaycastSource>();
 
     auto result = Raycast(
         entityManager,
@@ -78,10 +78,10 @@ std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
     auto entities = entityManager.GetEntitiesWith<Transform, BoxCollider>();
 
     for (auto* entity : entities) {
-        if (!entity->GetIsActive()) continue;
+        if (!entity->getIsActive()) continue;
 
-        auto& transform = entity->GetComponent<Transform>();
-        auto& collider = entity->GetComponent<BoxCollider>();
+        auto& transform = entity->getComponent<Transform>();
+        auto& collider = entity->getComponent<BoxCollider>();
 
         glm::vec3 aabbMin = collider.GetMin(transform);
         glm::vec3 aabbMax = collider.GetMax(transform);

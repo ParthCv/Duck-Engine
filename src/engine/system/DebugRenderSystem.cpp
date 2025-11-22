@@ -15,7 +15,6 @@ void DebugRenderSystem::Init() {
 }
 
 void DebugRenderSystem::Render(EntityManager& entityManager, Shader& debugShader) {
-    std::cout << "Calling Debug Render" << std::endl;
     DrawColliders(entityManager, debugShader);
     DrawRaycasts(entityManager, debugShader);
 }
@@ -24,11 +23,11 @@ void DebugRenderSystem::DrawColliders(EntityManager& entityManager, Shader& debu
     auto entities = entityManager.GetEntitiesWith<Transform, BoxCollider, DebugDrawable>();
 
     for (auto* entity : entities) {
-        if (!entity->GetIsActive()) continue;
+        if (!entity->getIsActive()) continue;
 
-        auto& transform = entity->GetComponent<Transform>();
-        auto& collider = entity->GetComponent<BoxCollider>();
-        auto& drawable = entity->GetComponent<DebugDrawable>();
+        auto& transform = entity->getComponent<Transform>();
+        auto& collider = entity->getComponent<BoxCollider>();
+        auto& drawable = entity->getComponent<DebugDrawable>();
 
         if (!drawable.drawCollider) continue;
         DebugRenderer::getInstance().drawBox(
@@ -45,10 +44,10 @@ void DebugRenderSystem::DrawRaycasts(EntityManager& entityManager, Shader& debug
     auto entities = entityManager.GetEntitiesWith<Transform, RaycastSource>();
 
     for (auto* entity : entities) {
-        if (!entity->GetIsActive()) continue;
+        if (!entity->getIsActive()) continue;
 
-        auto& transform = entity->GetComponent<Transform>();
-        auto& raycastSource = entity->GetComponent<RaycastSource>();
+        auto& transform = entity->getComponent<Transform>();
+        auto& raycastSource = entity->getComponent<RaycastSource>();
 
         if (!raycastSource.drawRay) continue;
 

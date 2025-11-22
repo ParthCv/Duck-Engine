@@ -2,10 +2,12 @@
 #include <iostream>
 #include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
+#include "../system/DebugRenderSystem.h" //
 
 struct StaticMeshComponent;
 
 World* GWorld = nullptr;
+DebugRenderSystem debugSystem; // Global instance since we cannot modify Engine.h
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -105,6 +107,9 @@ bool Engine::initialize(int width, int height) {
     std::cout << "BRDF LUT ID: " << brdfLUT.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
+    // Initialize Debug Renderer
+    debugSystem.Init(); //
+
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
     camera.position = glm::vec3(5.0f, 5.0f, 5.0f);
@@ -201,12 +206,19 @@ void Engine::render() {
 
     glEnable(GL_DEPTH_TEST);
     skybox.render(camera, envCubemap);
+
+    // ==== DEBUG RENDER PASS ====
+    basicShader.use();
+    basicShader.setMat4("view", camera.getViewMatrix());
+    basicShader.setMat4("projection", camera.getProjectionMatrix());
+    debugSystem.Render(world.EntityManager, basicShader); //
 }
 
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
+    debugSystem.Cleanup(); //
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -227,6 +239,7 @@ void Engine::renderEntities() {
     // Draw each entity
     for (auto& entity : world.EntityManager.GetEntities())
     {
+        if (entity == nullptr) continue;
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
