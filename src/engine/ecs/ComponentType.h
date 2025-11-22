@@ -1,24 +1,17 @@
-//
-// Created by super on 2025-11-03.
-//
-
-#ifndef DUCKENGINE_COMPONENTTYPE_H
-#define DUCKENGINE_COMPONENTTYPE_H
+#pragma once
 #include <cstddef>
 
 using ComponentTypeID = std::size_t;
 
-inline ComponentTypeID GetComponentTypeID()
+inline ComponentTypeID getComponentTypeID()
 {
     static ComponentTypeID id = 0;
     return id++;
 }
 
 template <typename T>
-ComponentTypeID GetComponentTypeID()
+ComponentTypeID getComponentTypeID()
 {
-    static ComponentTypeID TypeID = GetComponentTypeID();
+    static ComponentTypeID TypeID = getComponentTypeID();
     return TypeID;
 }
-
-#endif //DUCKENGINE_COMPONENTTYPE_H

@@ -1,9 +1,4 @@
-//
-// Created by super on 2025-11-03.
-//
-
-#ifndef DUCKENGINE_ENTITY_H
-#define DUCKENGINE_ENTITY_H
+#pragma once
 #include <array>
 #include <bitset>
 #include <cstddef>
@@ -33,53 +28,55 @@ using ComponentArray = std::array<void*, MAX_COMPONENTS>;
 
 class Entity
 {
-private:
-    ComponentArray ComponentArray{};
-    ComponentBitSet ComponentBitSet{};
+ComponentArray ComponentArray{};
+ComponentBitSet ComponentBitSet{};
 
 public:
+    virtual ~Entity();
+
     World* world;
     bool bIsActive = true;
 
     Entity(World& InWorld);
 
-    bool GetIsActive() const;
+    virtual void update(float deltaTime);
+
+    virtual void beginPlay();
+
+    bool getIsActive() const;
 
     /*
      * Marks this Entity for destruction.
      */
-    void Destroy();
+    void destroy();
 
     template<typename T>
-    bool HasComponent()
+    bool hasComponent()
     {
-        return ComponentArray[GetComponentTypeID<T>()];
+        return ComponentArray[getComponentTypeID<T>()];
     }
 
     template<typename T, typename... nArgs>
-    T& AddComponent(nArgs&&... args)
+    T& addComponent(nArgs&&... args)
     {
         // Implements Perfect Fowarding; everything is not treated as a l-value. More efficient with moves and temporaries.
         T* component(new T(std::forward<nArgs>(args)...));
 
         // Add the new component to the Array
-        ComponentArray[GetComponentTypeID<T>()] = component;
-        ComponentBitSet[GetComponentTypeID<T>()] = true;
+        ComponentArray[getComponentTypeID<T>()] = component;
+        ComponentBitSet[getComponentTypeID<T>()] = true;
 
         return *component;
     }
 
     template<typename T>
-    T& GetComponent() {
-        auto ptr(ComponentArray[GetComponentTypeID<T>()]);
+    T& getComponent() {
+        auto ptr(ComponentArray[getComponentTypeID<T>()]);
         return *static_cast<T*>(ptr);
     }
 
     template<typename T>
     void deactivateComponent() {
-        ComponentBitSet[GetComponentTypeID<T>()] = false;
+        ComponentBitSet[getComponentTypeID<T>()] = false;
     }
-
 };
-
-#endif //DUCKENGINE_ENTITY_H

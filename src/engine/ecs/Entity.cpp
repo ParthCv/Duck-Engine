@@ -1,22 +1,26 @@
-//
-// Created by super on 2025-11-03.
-//
-
 #include "Entity.h"
-
 #include "World.h"
+
+Entity::~Entity() {
+}
 
 Entity::Entity(World& InWorld) : world(nullptr)
 {
     world = &InWorld;
 }
 
-bool Entity::GetIsActive() const
+void Entity::update(float deltaTime) {
+}
+
+void Entity::beginPlay() {
+}
+
+bool Entity::getIsActive() const
 {
     return bIsActive;
 }
 
-void Entity::Destroy()
+void Entity::destroy()
 {
     bIsActive = false;
 }

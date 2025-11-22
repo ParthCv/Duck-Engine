@@ -1,9 +1,9 @@
-//
-// Created by super on 2025-11-17.
-//
 
 #include "../ecs/Entity.h"
 #include "EntityManager.h"
+
+#include "../ecs/Component.h"
+#include "../game/DuckEntity.h"
 
 EntityManager::EntityManager()
 {
@@ -11,6 +11,11 @@ EntityManager::EntityManager()
 
 void EntityManager::BeginPlay()
 {
+    // TODO: Call beginPlay on all entities
+    for (auto& entity : Entities)
+    {
+        entity->beginPlay();
+    }
 }
 
 std::vector<std::unique_ptr<Entity>>& EntityManager::GetEntities()
@@ -22,6 +27,17 @@ Entity& EntityManager::CreateEntity(World& InWorld)
 {
     Entities.emplace_back(std::make_unique<Entity>(InWorld));
     return *Entities.back();
+}
+
+DuckEntity& EntityManager::CreateDuckEntity(World &InWorld)
+{
+    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld));
+    return dynamic_cast<DuckEntity&>(*Entities.back());
+}
+
+DuckEntity & EntityManager::CreateDuckEntity(World &InWorld, glm::vec3 &InPosition) {
+    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld, InPosition));
+    return dynamic_cast<DuckEntity&>(*Entities.back());
 }
 
 Entity& EntityManager::CreateDeferredEntity(World& InWorld)
@@ -38,10 +54,16 @@ void EntityManager::SynchronizeEntities()
     }
 }
 
-void EntityManager::Update()
+void EntityManager::Update(float deltaTime)
 {
     // TODO: Do all the updating below.
-    // ....
+    for (auto& entity : Entities) {
+        // TODO update the Entity itself.
+        entity->update(deltaTime);
+
+        // TODO: update ticking components
+        entity->getComponent<StaticMeshComponent>().update(deltaTime);
+    }
 
     // TODO: Cleanup at the end.
     CleanupInactiveEntities();
