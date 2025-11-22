@@ -18,6 +18,8 @@ public:
     void update(float deltaTime) override;
 
     void beginPlay() override;
+
+    void setRandomFlightPath();
 };
 
 
