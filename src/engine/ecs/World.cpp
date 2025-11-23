@@ -22,7 +22,7 @@ World::World()
         DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
     }
 
-    // Temp floor entity to test shadows (its a duck btw)
+    // Temp floor entity to test shadows
     DuckEntity& FloorDuck = EntityManager.CreateDuckEntity(*this, duckPos[duckPos.size()]);
     if (FloorDuck.hasComponent<Transform>()) {
         FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -3.0f, 0.0f));

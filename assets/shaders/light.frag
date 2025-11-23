@@ -101,12 +101,16 @@ vec3 calculateLighting(vec3 L, vec3 radiance, vec3 N, vec3 V, vec3 F0, vec3 albe
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
-float shadowCalculation(vec4 fragPosLightSpace) {
+float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5; // Transform to 0-1 range
     float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
-    float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+
+    // Bias to resolve shadow acne
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     return shadow;
 }
 
@@ -134,7 +138,7 @@ void main() {
         vec3 L = normalize(-dirLights[i].direction);
         vec3 radiance = dirLights[i].color;
 
-        float shadow = shadowCalculation(FragPosLightSpace);
+        float shadow = shadowCalculation(FragPosLightSpace, Normal, L);
 
         accumLight += (1.0 - shadow) * calculateLighting(L, radiance, Normal, View, F0, Albedo, Metallic, Roughness);
     }
