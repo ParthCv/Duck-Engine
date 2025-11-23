@@ -1,7 +1,3 @@
-//
-// Created by Nathan on 2025-11-05.
-//
-
 #include "DebugRenderer.h"
 
 #include "glm/ext/matrix_transform.hpp"

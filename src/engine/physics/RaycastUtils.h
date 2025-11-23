@@ -1,12 +1,3 @@
-//
-// Created by Jeff on 2025-11-18.
-//
-
-#ifndef DUCKENGINE_RAYCASTUTILS_H
-#define DUCKENGINE_RAYCASTUTILS_H
-
-#pragma once
-#include <glm/glm.hpp>
 #pragma once
 #include <glm/glm.hpp>
 #include <functional>
@@ -43,4 +34,3 @@ namespace Physics {
         OnMissCallback onMiss = nullptr
     );
 }
-#endif //DUCKENGINE_RAYCASTUTILS_H

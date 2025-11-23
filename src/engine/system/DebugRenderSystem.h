@@ -4,7 +4,7 @@
 #ifndef DUCKENGINE_DEBUGRENDERSYSTEM_H
 #define DUCKENGINE_DEBUGRENDERSYSTEM_H
 
-#include "../debug/DebugRenderer.h"
+#include "../renderer/Shader.h"
 
 class EntityManager;
 class Shader;
@@ -12,12 +12,11 @@ class Shader;
 class DebugRenderSystem {
 
 public:
-
-    void Init();
+    static void Init();
     void Render(EntityManager& entityManager, Shader& debugShader);
-    void DrawColliders(EntityManager& entityManager, Shader& debugShader);
-    void DrawRaycasts(EntityManager& entityManager, Shader& debugShader);
-    void Cleanup();
+    static void DrawColliders(EntityManager& entityManager, Shader& debugShader);
+    static void DrawRaycasts(EntityManager& entityManager, Shader& debugShader);
+    static void Cleanup();
 };
 
 #endif

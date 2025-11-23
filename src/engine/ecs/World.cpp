@@ -26,16 +26,14 @@ void World::update(float deltaTime)
 {
     float time = glfwGetTime();
 
-    if (camera) {
-        float radius = 10.0f;
-        float height = 3.0f;
+    float radius = 10.0f;
+    float height = 3.0f;
 
-        camera->position.x = sin(time * 0.5f) * radius;
-        camera->position.z = cos(time * 0.5f) * radius;
-        camera->position.y = height;
+    camera->position.x = sin(time * 0.5f) * radius;
+    camera->position.z = cos(time * 0.5f) * radius;
+    camera->position.y = height;
 
-        camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
-    }
+    camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
 
     if (lightManager.getPointLightCount() > 1) {
         auto& light = lightManager.getPointLight(1);
@@ -43,7 +41,7 @@ void World::update(float deltaTime)
         light.position.z = cos(time) * 3.0f;
     }
 
-    TestRandomRaycasting(deltaTime);
+    testRandomRaycasting(deltaTime);
     EntityManager.Update(deltaTime);
 }
 
@@ -58,10 +56,9 @@ void World::beginPlay()
     // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
 
-    glm::vec3 camPos = glm::vec3(0.0f, 5.0f, 10.0f);
-    if (camera) {
-        camPos = camera->position;
-    }
+    // glm::vec3 camPos = glm::vec3(0.0f, 5.0f, 10.0f);
+
+    glm::vec3 camPos = camera->position;
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
@@ -125,7 +122,7 @@ void World::cleanUp()
 {
 }
 
-void World::TestRandomRaycasting(float deltaTime)
+void World::testRandomRaycasting(float deltaTime)
 {
     static float timeUntilNextFire = 0.5f;
     timeUntilNextFire -= deltaTime;
@@ -148,7 +145,7 @@ void World::TestRandomRaycasting(float deltaTime)
     }
 
     if (timeUntilNextFire <= 0.0f) {
-        timeUntilNextFire = 0.1f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 0.4f));
+        timeUntilNextFire = 0.1f + static_cast<float>(rand()) / (RAND_MAX / 0.4f);
 
         auto targets = EntityManager.GetEntitiesWith<BoxCollider, Transform>();
 
@@ -182,7 +179,6 @@ void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
          0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
         // Back face (Z-)
         -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
          0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
@@ -190,7 +186,6 @@ void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
          0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-
         // Left face (X-)
         -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
         -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
@@ -198,19 +193,6 @@ void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
         -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
         -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
         // Right face (X+)
          0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
          0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
@@ -218,7 +200,6 @@ void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
          0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
          0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
          0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
         // Bottom face (Y-)
         -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
@@ -226,19 +207,6 @@ void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
          0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
         -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
         // Top face (Y+)
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
          0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,

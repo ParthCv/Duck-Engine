@@ -28,7 +28,7 @@ public:
 
     void addLightsToWorld();
 
-    void TestRandomRaycasting(float deltaTime);
+    void testRandomRaycasting(float deltaTime);
 
     /*
      * Garbage collecting deactivated entities.
@@ -36,8 +36,8 @@ public:
     void cleanUp();
 
     // TODO: Temporary testing function
-    void CreateCube(GLuint& InVAO, GLuint& InVBO);
-    void CreateLine(GLuint& InVAO, GLuint& InVBO);
+    static void CreateCube(GLuint& inVAO, GLuint& inVBO);
+    void CreateLine(GLuint& inVAO, GLuint& inVBO);
 
 private:
     std::vector<glm::vec3> duckPos = {

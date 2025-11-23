@@ -1,7 +1,3 @@
-//
-// Created by Jeff on 2025-11-18.
-//
-
 #include "RaycastUtils.h"
 #include <algorithm>
 #include <cfloat>

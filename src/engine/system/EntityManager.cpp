@@ -4,9 +4,7 @@
 #include "../ecs/Component.h"
 #include "../game/DuckEntity.h"
 
-EntityManager::EntityManager()
-{
-}
+EntityManager::EntityManager() = default;
 
 void EntityManager::BeginPlay()
 {

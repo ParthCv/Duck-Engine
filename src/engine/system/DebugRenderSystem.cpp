@@ -1,14 +1,9 @@
-//
-// Created by Jeff on 2025-11-18.
-//
-
 #include "DebugRenderSystem.h"
-
-#include <iostream>
 
 #include "EntityManager.h"
 #include "../ecs/Entity.h"
 #include "../ecs/Component.h"
+#include "../debug/DebugRenderer.h"
 
 void DebugRenderSystem::Init() {
     DebugRenderer::getInstance().init();

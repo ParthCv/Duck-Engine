@@ -1,6 +1,3 @@
-//
-// Created by Nathan on 2025-11-05.
-//
 #pragma once
 #include <glad/glad.h>
 #include "../renderer/Shader.h"

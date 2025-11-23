@@ -3,10 +3,8 @@
 #include <vector>
 
 #include "glm/vec3.hpp"
-
-class World;
-class Entity;
-class DuckEntity;
+#include "../game/DuckEntity.h"
+#include "../ecs/Entity.h"
 
 class EntityManager {
 
@@ -39,8 +37,6 @@ private:
 
     std::vector<std::unique_ptr<Entity>> DeferredEntities;
 };
-
-#include "../ecs/Entity.h"
 
 template<typename... Components>
 std::vector<Entity*> EntityManager::GetEntitiesWith() {

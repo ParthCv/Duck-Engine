@@ -2,11 +2,10 @@
 #include <iostream>
 #include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
-#include "../system/DebugRenderSystem.h" //
+#include "../system/DebugRenderSystem.h"
 
 struct StaticMeshComponent;
 
-World* GWorld = nullptr;
 DebugRenderSystem debugSystem; // Global instance since we cannot modify Engine.h
 
 bool Engine::initialize(int width, int height) {
@@ -77,6 +76,11 @@ bool Engine::initialize(int width, int height) {
 
     if (!brdfLUTShader.loadFromFiles("../assets/shaders/brdf_lut.vert", "../assets/shaders/brdf_lut.frag")) {
         std::cerr << "Failed to load BRDF shader" << std::endl;
+        return false;
+    }
+
+    if (!physicsDebugShader.loadFromFiles("../assets/shaders/physics_debug.vert", "../assets/shaders/physics_debug.frag")) {
+        std::cerr << "Failed to load debug shader" << std::endl;
         return false;
     }
 
@@ -208,10 +212,10 @@ void Engine::render() {
     skybox.render(camera, envCubemap);
 
     // ==== DEBUG RENDER PASS ====
-    basicShader.use();
-    basicShader.setMat4("view", camera.getViewMatrix());
-    basicShader.setMat4("projection", camera.getProjectionMatrix());
-    debugSystem.Render(world.EntityManager, basicShader); //
+    physicsDebugShader.use();
+    physicsDebugShader.setMat4("view", camera.getViewMatrix());
+    physicsDebugShader.setMat4("projection", camera.getProjectionMatrix());
+    debugSystem.Render(world.EntityManager, physicsDebugShader); //
 }
 
 void Engine::shutdown() {
