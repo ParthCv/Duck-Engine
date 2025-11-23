@@ -5,6 +5,8 @@
 #include "glm/vec3.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "../ecs/Entity.h"
+#include "glm/detail/type_quat.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 struct Velocity
 {
@@ -16,6 +18,11 @@ struct Velocity
         Speed(InSpeed)
     {
 
+    }
+
+    void setVelocity(glm::vec3 InDirection, float InSpeed) {
+        Direction = InDirection;
+        Speed = InSpeed;
     }
 };
 
@@ -36,7 +43,7 @@ struct Transform {
     }
 
     glm::vec3 position = glm::vec3(0,0,0);
-    glm::vec3 rotation = glm::vec3(0,0,0);
+    glm::quat rotation = glm::quat();
     glm::vec3 scale{1.0f};
     glm::vec3 oldPosition{};
 
@@ -48,24 +55,56 @@ struct Transform {
         position += InTransform;
     }
 
+    void AddLocalTransform(glm::vec3 InTransform) {
+        position += glm::vec3(getTransformMatrix() * glm::vec4(InTransform, 0.0f));
+    }
+
     void SetRotation(glm::vec3 InRotation)
     {
         rotation = InRotation;
     }
 
-    void Rotate(glm::vec3 InRotation)
-    {
-        rotation += InRotation;
-    }
+    /*
+     * Rotation using radians, about a specific axis.
+     */
+    // void Rotate(float amount, glm::vec3 axis)
+    // {
+    //     // rotation += axis * glm::radians(amount);
+    //     rotation *= glm::quat(glm::radians(axis * amount));
+    // }
 
     glm::mat4 Rotate(glm::mat4 ModelMatrix, float InAngle, glm::vec3 InAxis) {
         return glm::rotate(ModelMatrix, InAngle, InAxis);
     }
 
-    Transform operator+(const Transform& InTransform)
-    {
-        return Transform(position + InTransform.position, rotation + InTransform.rotation, scale + InTransform.scale);
+    void LocalRotate(float angle, glm::vec3 axis) {
+        glm::vec3 worldAxis = rotation * glm::normalize(axis);
+        glm::quat delta = glm::angleAxis(glm::radians(angle), worldAxis);
+        rotation = rotation * delta;
     }
+
+    void WorldRotate(float angle, glm::vec3 axis) {
+        glm::quat delta = glm::angleAxis(glm::radians(angle), axis);
+        rotation = delta * rotation;
+    }
+
+    glm::mat4 getTransformMatrix()
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, position);
+        // model = glm::rotate(model, rotation.x, glm::vec3(1,0,0));
+        // model = glm::rotate(model, rotation.y, glm::vec3(0,1,0));
+        // model = glm::rotate(model, rotation.z, glm::vec3(0,0,1));
+        model *= glm::mat4_cast(rotation);
+        model = glm::scale(model, scale);
+
+        return model;
+    }
+
+    // Transform operator+(const Transform& InTransform)
+    // {
+    //     return Transform(position + InTransform.position, rotation + InTransform.rotation, scale + InTransform.scale);
+    // }
 
 };
 
@@ -113,16 +152,16 @@ struct StaticMeshComponent
         VAO(0),
         VBO(0)
     {
-        StaticMeshTransform = InEntity.getComponent<Transform>();
+        // StaticMeshTransform = InEntity.getComponent<Transform>();
     }
 
-    StaticMeshComponent(Entity& InEntity, Transform InTransform) :
-        OwningEntity(&InEntity),
-        StaticMeshTransform(InTransform),
-        VAO(0),
-        VBO(0)
-    {
-    }
+    // StaticMeshComponent(Entity& InEntity, Transform InTransform) :
+    //     OwningEntity(&InEntity),
+    //     StaticMeshTransform(InTransform),
+    //     VAO(0),
+    //     VBO(0)
+    // {
+    // }
 
     Entity* OwningEntity;
     Transform StaticMeshTransform;
@@ -144,14 +183,8 @@ struct StaticMeshComponent
 
     glm::mat4 getTransformMatrix()
     {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, StaticMeshTransform.position + OwningEntity->getComponent<Transform>().position);
-        model = glm::rotate(model, StaticMeshTransform.rotation.x + OwningEntity->getComponent<Transform>().rotation.x, glm::vec3(1,0,0));
-        model = glm::rotate(model, StaticMeshTransform.rotation.y + OwningEntity->getComponent<Transform>().rotation.y, glm::vec3(0,1,0));
-        model = glm::rotate(model, StaticMeshTransform.rotation.z + OwningEntity->getComponent<Transform>().rotation.z, glm::vec3(0,0,1));
-        model = glm::scale(model, StaticMeshTransform.scale + OwningEntity->getComponent<Transform>().scale);
-
-        return model;
+        Transform& parent = OwningEntity->getComponent<Transform>();
+        return parent.getTransformMatrix() * StaticMeshTransform.getTransformMatrix();
     }
 
     void getTransformMatrix(glm::mat4 InTransform)
