@@ -74,5 +74,5 @@ void DuckEntity::setRandomFlightPath() {
     EntityTransform.WorldRotate(randomAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // TODO: Set Entity Velocity
-    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
+    // EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
 }

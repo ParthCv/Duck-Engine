@@ -45,6 +45,8 @@ bool Engine::initialize(int width, int height) {
     gBuffer.initialize(screenWidth, screenHeight);
     setupQuad();
 
+    shadowMap.initialize();
+
     // Load shaders
     if (!equirectShader.loadFromFiles("../assets/shaders/equirect_to_cubemap.vert", "../assets/shaders/equirect_to_cubemap.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
@@ -144,6 +146,11 @@ void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
+    // Shadow Pass
+    shadowMap.render(world);
+    // shadowMap.renderDepthMapToScreen();
+    // return;
+
     // ==== GEOMETRY PASS ====
     gBuffer.bindForWriting();
 
@@ -183,6 +190,11 @@ void Engine::render() {
     lightingShader.setInt("brdfLUT", 6);
     brdfLUT.textureUnit = 6;
     brdfLUT.bind();
+
+    glActiveTexture(GL_TEXTURE0 + 7);
+    glBindTexture(GL_TEXTURE_2D, shadowMap.getDepthMap());
+    lightingShader.setInt("shadowMap", 7);
+    lightingShader.setMat4("lightSpaceMatrix", shadowMap.getLightSpaceMatrix());
 
     // Render final quad
     renderQuad();

@@ -40,6 +40,9 @@ uniform int numPointLights;
 
 const float PI = 3.14159265359;
 
+uniform sampler2D shadowMap;
+uniform mat4 lightSpaceMatrix;
+
 // PBR Functions
 float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
@@ -98,9 +101,19 @@ vec3 calculateLighting(vec3 L, vec3 radiance, vec3 N, vec3 V, vec3 F0, vec3 albe
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
+float shadowCalculation(vec4 fragPosLightSpace) {
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5; // Transform to 0-1 range
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+    return shadow;
+}
+
 void main() {
     // Sample G-Buffer
     vec3 FragPos = texture(gPosition, TexCoords).rgb;
+    vec4 FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     vec3 Normal = normalize(texture(gNormal, TexCoords).rgb);
     vec3 Albedo = texture(gAlbedo, TexCoords).rgb;
     vec2 MetallicRoughness = texture(gMetallicRoughness, TexCoords).rg;
@@ -121,7 +134,9 @@ void main() {
         vec3 L = normalize(-dirLights[i].direction);
         vec3 radiance = dirLights[i].color;
 
-        accumLight += calculateLighting(L, radiance, Normal, View, F0, Albedo, Metallic, Roughness);
+        float shadow = shadowCalculation(FragPosLightSpace);
+
+        accumLight += (1.0 - shadow) * calculateLighting(L, radiance, Normal, View, F0, Albedo, Metallic, Roughness);
     }
 
     // Point lights

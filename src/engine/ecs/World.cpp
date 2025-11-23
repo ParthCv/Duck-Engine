@@ -21,6 +21,17 @@ World::World()
     for (size_t i = 0; i < duckPos.size(); ++i) {
         DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
     }
+
+    // Temp floor entity to test shadows (its a duck btw)
+    DuckEntity& FloorDuck = EntityManager.CreateDuckEntity(*this, duckPos[duckPos.size()]);
+    if (FloorDuck.hasComponent<Transform>()) {
+        FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -3.0f, 0.0f));
+        FloorDuck.getComponent<Transform>().SetRotation(glm::vec3(glm::radians(45.0f),
+                                                        glm::radians(0.0f),
+                                                        glm::radians(0.0f)));
+        FloorDuck.getComponent<Transform>().scale = glm::vec3(100.0f, 1.0f, 100.0f);
+    }
+
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
 }
 
