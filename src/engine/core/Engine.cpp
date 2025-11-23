@@ -2,8 +2,11 @@
 #include <iostream>
 #include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
+#include "../system/DebugRenderSystem.h"
 
 struct StaticMeshComponent;
+
+DebugRenderSystem debugSystem; // Global instance since we cannot modify Engine.h
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -76,6 +79,11 @@ bool Engine::initialize(int width, int height) {
         return false;
     }
 
+    if (!physicsDebugShader.loadFromFiles("../assets/shaders/physics_debug.vert", "../assets/shaders/physics_debug.frag")) {
+        std::cerr << "Failed to load debug shader" << std::endl;
+        return false;
+    }
+
     hdrTexture.loadHDR("../assets/textures/hdri/dark_sky.hdr", 0);
 
     cubeMaterial.loadAlbedoMap("../assets/textures/pbr/albedo.png");
@@ -102,6 +110,9 @@ bool Engine::initialize(int width, int height) {
     brdfLUT.generateBRDFLUT(brdfLUTShader, 512);
     std::cout << "BRDF LUT ID: " << brdfLUT.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
+
+    // Initialize Debug Renderer
+    debugSystem.init(); //
 
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
@@ -137,6 +148,15 @@ void Engine::processInput() {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+    static bool cKeyPressed = false;
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && !cKeyPressed) {
+        bPhysicsDebug = !bPhysicsDebug;
+        cKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE) {
+        cKeyPressed = false;
+    }
+
 };
 
 void Engine::update(float deltaTime) {
@@ -199,12 +219,21 @@ void Engine::render() {
 
     glEnable(GL_DEPTH_TEST);
     skybox.render(camera, envCubemap);
+
+    // ==== DEBUG RENDER PASS ====
+    if (bPhysicsDebug) {
+        physicsDebugShader.use();
+        physicsDebugShader.setMat4("view", camera.getViewMatrix());
+        physicsDebugShader.setMat4("projection", camera.getProjectionMatrix());
+        debugSystem.render(world.EntityManager, physicsDebugShader);
+    }
 }
 
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
+    debugSystem.cleanup(); //
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -225,6 +254,7 @@ void Engine::renderEntities() {
     // Draw each entity
     for (auto& entity : world.EntityManager.GetEntities())
     {
+        if (entity == nullptr) continue;
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();

@@ -56,5 +56,8 @@ private:
     Shader brdfLUTShader;
     Texture brdfLUT;
 
+    Shader physicsDebugShader;
+    bool bPhysicsDebug = false;
+
     void renderEntities();
 };

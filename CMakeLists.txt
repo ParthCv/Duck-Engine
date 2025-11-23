@@ -24,10 +24,14 @@ add_executable(DuckEngine
         src/engine/ecs/World.h
         src/engine/system/EntityManager.cpp
         src/engine/system/EntityManager.h
+        src/engine/debug/DebugRenderer.cpp
+        src/engine/physics/RaycastUtils.h
+        src/engine/physics/RaycastUtils.cpp
+        src/engine/system/CollisionSystem.h
+        src/engine/system/CollisionSystem.cpp
+        src/engine/system/DebugRenderSystem.h
+        src/engine/system/DebugRenderSystem.cpp
         src/engine/game/DuckEntity.cpp
-        src/engine/game/DuckEntity.h
-        src/engine/input/InputManager.cpp
-        src/engine/game/GameStateManager.cpp
 )
 
 # Include directories for headers
