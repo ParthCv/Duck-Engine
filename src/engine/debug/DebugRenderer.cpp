@@ -88,7 +88,7 @@ void DebugRenderer::initLineGeometry() {
     glBindVertexArray(0);
 }
 
-void DebugRenderer::drawBox(Shader basicShader, const glm::vec3& position, const glm::vec3& size, const glm::vec3& color) {
+void DebugRenderer::drawBox(Shader debugShader, const glm::vec3& position, const glm::vec3& size, const glm::vec3& color) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glm::mat4 model = glm::mat4(1.0f);
@@ -97,7 +97,7 @@ void DebugRenderer::drawBox(Shader basicShader, const glm::vec3& position, const
 
     // We use the engine's default basic shader for now
     // TODO: Write wireframe debug shader
-    basicShader.setMat4("model", model);
+    debugShader.setMat4("model", model);
 
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -106,7 +106,7 @@ void DebugRenderer::drawBox(Shader basicShader, const glm::vec3& position, const
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void DebugRenderer::drawLine(Shader basicShader, const glm::vec3& start, const glm::vec3& end, const bool hit) {
+void DebugRenderer::drawLine(Shader debugShader, const glm::vec3& start, const glm::vec3& end, const bool hit) {
     // Update line vertices
 
     glm::vec3 lineColor = hit ? glm::vec3(0.0f, 1.0f, 0.0f)  // Green
@@ -124,11 +124,11 @@ void DebugRenderer::drawLine(Shader basicShader, const glm::vec3& start, const g
     // Draw Line
     glLineWidth(3.0f);
 
-    glm::mat4 lineModel = glm::mat4(1.0f);
+    auto lineModel = glm::mat4(1.0f);
 
     // We use the engine's default basic shader for now
     // TODO: Write wireframe debug shader
-    basicShader.setMat4("model", lineModel);
+    debugShader.setMat4("model", lineModel);
 
     glBindVertexArray(lineVAO);
     glDrawArrays(GL_LINES, 0, 2);  // Draw 2 vertices as a line

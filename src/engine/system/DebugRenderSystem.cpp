@@ -5,16 +5,16 @@
 #include "../ecs/Component.h"
 #include "../debug/DebugRenderer.h"
 
-void DebugRenderSystem::Init() {
+void DebugRenderSystem::init() {
     DebugRenderer::getInstance().init();
 }
 
-void DebugRenderSystem::Render(EntityManager& entityManager, Shader& debugShader) {
-    DrawColliders(entityManager, debugShader);
-    DrawRaycasts(entityManager, debugShader);
+void DebugRenderSystem::render(EntityManager& entityManager, Shader& debugShader) {
+    drawColliders(entityManager, debugShader);
+    drawRaycasts(entityManager, debugShader);
 }
 
-void DebugRenderSystem::DrawColliders(EntityManager& entityManager, Shader& debugShader) {
+void DebugRenderSystem::drawColliders(EntityManager& entityManager, Shader& debugShader) {
     auto entities = entityManager.GetEntitiesWith<Transform, BoxCollider, DebugDrawable>();
 
     for (auto* entity : entities) {
@@ -35,7 +35,7 @@ void DebugRenderSystem::DrawColliders(EntityManager& entityManager, Shader& debu
     }
 }
 
-void DebugRenderSystem::DrawRaycasts(EntityManager& entityManager, Shader& debugShader) {
+void DebugRenderSystem::drawRaycasts(EntityManager& entityManager, Shader& debugShader) {
     auto entities = entityManager.GetEntitiesWith<Transform, RaycastSource>();
 
     for (auto* entity : entities) {
@@ -54,6 +54,6 @@ void DebugRenderSystem::DrawRaycasts(EntityManager& entityManager, Shader& debug
     }
 }
 
-void DebugRenderSystem::Cleanup() {
+void DebugRenderSystem::cleanup() {
     DebugRenderer::getInstance().cleanup();
 }

@@ -136,13 +136,11 @@ void World::testRandomRaycasting(float deltaTime)
     if (!rayEntity->hasComponent<Transform>()) return;
     auto& transform = rayEntity->getComponent<Transform>();
 
-    if (camera) {
-        glm::vec3 cameraForward = glm::normalize(camera->target - camera->position);
-        glm::vec3 cameraRight = glm::normalize(glm::cross(cameraForward, glm::vec3(0, 1, 0)));
-        glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, cameraForward));
+    glm::vec3 cameraForward = glm::normalize(camera->target - camera->position);
+    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraForward, glm::vec3(0, 1, 0)));
+    glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, cameraForward));
 
-        transform.position = camera->position + (cameraForward * 1.0f) + (cameraUp * 1.0f);
-    }
+    transform.position = camera->position + (cameraForward * 1.0f) + (cameraUp * 1.0f);
 
     if (timeUntilNextFire <= 0.0f) {
         timeUntilNextFire = 0.1f + static_cast<float>(rand()) / (RAND_MAX / 0.4f);

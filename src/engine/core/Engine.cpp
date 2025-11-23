@@ -112,7 +112,7 @@ bool Engine::initialize(int width, int height) {
     glViewport(0, 0, screenWidth, screenHeight);
 
     // Initialize Debug Renderer
-    debugSystem.Init(); //
+    debugSystem.init(); //
 
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
@@ -148,6 +148,15 @@ void Engine::processInput() {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+    static bool cKeyPressed = false;
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && !cKeyPressed) {
+        bPhysicsDebug = !bPhysicsDebug;
+        cKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE) {
+        cKeyPressed = false;
+    }
+
 };
 
 void Engine::update(float deltaTime) {
@@ -212,17 +221,19 @@ void Engine::render() {
     skybox.render(camera, envCubemap);
 
     // ==== DEBUG RENDER PASS ====
-    physicsDebugShader.use();
-    physicsDebugShader.setMat4("view", camera.getViewMatrix());
-    physicsDebugShader.setMat4("projection", camera.getProjectionMatrix());
-    debugSystem.Render(world.EntityManager, physicsDebugShader); //
+    if (bPhysicsDebug) {
+        physicsDebugShader.use();
+        physicsDebugShader.setMat4("view", camera.getViewMatrix());
+        physicsDebugShader.setMat4("projection", camera.getProjectionMatrix());
+        debugSystem.render(world.EntityManager, physicsDebugShader);
+    }
 }
 
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
-    debugSystem.Cleanup(); //
+    debugSystem.cleanup(); //
     glfwDestroyWindow(window);
     glfwTerminate();
 }
