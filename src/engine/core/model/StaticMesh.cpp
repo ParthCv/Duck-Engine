@@ -6,6 +6,16 @@ void StaticMesh::setupMesh(const std::vector<Vertex>& vertices, const std::vecto
 
     indexCount = static_cast<GLsizei>(indices.size());
 
+    // AABB calculation for mesh center and size
+    minBounds = glm::vec3(FLT_MAX);
+    maxBounds = glm::vec3(-FLT_MAX);
+    for (const auto& v : vertices) {
+        minBounds = glm::min(minBounds, v.position);
+        maxBounds = glm::max(maxBounds, v.position);
+    }
+    size = maxBounds - minBounds;
+    center = (maxBounds + minBounds) / 2.0f;
+
     // Generate buffers
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &EBO);

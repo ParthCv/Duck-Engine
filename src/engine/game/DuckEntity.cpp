@@ -70,10 +70,14 @@ void DuckEntity::update(float deltaTime) {
 void DuckEntity::beginPlay() {
     Entity::beginPlay();
 
-    auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
-    EntityStaticMesh.loadMesh("../assets/models/duck.obj");
-    // Ensure the visual mesh is centered on the entity, can remove this later
-    EntityStaticMesh.setPosition(glm::vec3(0.0f));
+    auto& staticMeshComponent = getComponent<StaticMeshComponent>();
+    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+
+    // TODO: These lines must come after mesh is loaded but crash occurs if mesh is loaded in constructor
+    auto& collider = getComponent<BoxCollider>();
+    collider.size = staticMeshComponent.Mesh->getSize() * getComponent<Transform>().scale;
+    collider.center = staticMeshComponent.Mesh->getCenter();
+    collider.center.y += collider.size.y / 2.0f;
 
     // TODO: Set the flight path
     // setRandomFlightPath();
