@@ -103,6 +103,11 @@ vec3 calculateLighting(vec3 L, vec3 radiance, vec3 N, vec3 V, vec3 F0, vec3 albe
 
 float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+    if (projCoords.z > 1.0) {
+        return 0.0;
+    }
+
     projCoords = projCoords * 0.5 + 0.5; // Transform to 0-1 range
     float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;

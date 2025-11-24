@@ -27,6 +27,8 @@ bool ShadowMap::initialize() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
@@ -71,7 +73,9 @@ void ShadowMap::render(World& world) {
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
 
+    // glCullFace(GL_FRONT); // Cull backfaces to offset peter-panning
     renderScene(world);
+    // glCullFace(GL_BACK);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -96,6 +100,7 @@ void ShadowMap::renderScene(World& world) {
     }
 }
 
+// Debug method to draw shadow map to window
 void ShadowMap::renderDepthMapToScreen() {
     // Bind default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
