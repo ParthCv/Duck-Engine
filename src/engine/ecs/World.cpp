@@ -18,14 +18,14 @@ World::World()
     }
 
     // Temp floor entity to test shadows
-    DuckEntity& FloorDuck = EntityManager.CreateDuckEntity(*this, duckPos[duckPos.size()]);
-    if (FloorDuck.hasComponent<Transform>()) {
-        FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -2.0f, 0.0f));
-        FloorDuck.getComponent<Transform>().SetRotation(glm::vec3(glm::radians(45.0f),
-                                                        glm::radians(0.0f),
-                                                        glm::radians(0.0f)));
-        FloorDuck.getComponent<Transform>().scale = glm::vec3(100.0f, 1.0f, 100.0f);
-    }
+    // DuckEntity& FloorDuck = EntityManager.CreateDuckEntity(*this, duckPos[duckPos.size()]);
+    // if (FloorDuck.hasComponent<Transform>()) {
+    //     FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -2.0f, 0.0f));
+    //     FloorDuck.getComponent<Transform>().SetRotation(glm::vec3(glm::radians(45.0f),
+    //                                                     glm::radians(0.0f),
+    //                                                     glm::radians(0.0f)));
+    //     FloorDuck.getComponent<Transform>().scale = glm::vec3(100.0f, 1.0f, 100.0f);
+    // }
 
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
     collisionSystem = new CollisionSystem();
