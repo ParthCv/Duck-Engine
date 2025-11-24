@@ -45,7 +45,7 @@ bool Engine::initialize(int width, int height) {
     gBuffer.initialize(screenWidth, screenHeight);
     setupQuad();
 
-    shadowMap.initialize();
+    shadowMap.initialize(world.lightManager);
 
     // Load shaders
     if (!equirectShader.loadFromFiles("../assets/shaders/equirect_to_cubemap.vert", "../assets/shaders/equirect_to_cubemap.frag")) {
@@ -146,10 +146,11 @@ void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
-    // Shadow Pass
+    //  ==== SHADOW PASS ====
+    // TODO: REMOVE - If final game does not have dynamic directional light
+    shadowMap.updateLightSpaceTransform(world.lightManager);  // Synchronize with LightManager
+
     shadowMap.render(world);
-    // shadowMap.renderDepthMapToScreen();
-    // return;
 
     // ==== GEOMETRY PASS ====
     gBuffer.bindForWriting();

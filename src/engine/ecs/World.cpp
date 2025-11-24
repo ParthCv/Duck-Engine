@@ -25,7 +25,7 @@ World::World()
     // Temp floor entity to test shadows
     DuckEntity& FloorDuck = EntityManager.CreateDuckEntity(*this, duckPos[duckPos.size()]);
     if (FloorDuck.hasComponent<Transform>()) {
-        FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -1.0f, 0.0f));
+        FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -2.0f, 0.0f));
         FloorDuck.getComponent<Transform>().SetRotation(glm::vec3(glm::radians(45.0f),
                                                         glm::radians(0.0f),
                                                         glm::radians(0.0f)));
@@ -33,6 +33,11 @@ World::World()
     }
 
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
+
+    // Set up lights
+    addLightsToWorld();
+    std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
+    std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 }
 
 void World::update(float deltaTime)
@@ -46,6 +51,16 @@ void World::update(float deltaTime)
     camera->position.y = height;
 
     camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
+
+    // TODO: REMOVE - Test functionality for moving directional light
+    if (lightManager.getDirectionalLightCount() > 0) {
+        auto& dirLight = lightManager.getDirectionalLight(0);
+
+        // Rotate around Y axis
+        float angle = deltaTime * 0.2f; // Rotation speed
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+        dirLight.direction = glm::vec3(rotation * glm::vec4(dirLight.direction, 0.0f));
+    }
 
     if (lightManager.getPointLightCount() > 1) {
         auto& light = lightManager.getPointLight(1);
@@ -101,9 +116,9 @@ void World::update(float deltaTime)
 
 void World::beginPlay()
 {
-    addLightsToWorld();
-    std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
-    std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
+    // addLightsToWorld();
+    // std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
+    // std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
     // TODO: Call all system beginPlay below.
     EntityManager.BeginPlay();

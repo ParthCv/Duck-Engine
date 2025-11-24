@@ -8,15 +8,13 @@
 #include <ostream>
 #include "../src/engine/ecs/Component.h"
 
-
-
 struct StaticMeshComponent;
 class Entity;
 
 ShadowMap::ShadowMap() : depthMapFBO(0), shadowTexture(0) {
 }
 
-bool ShadowMap::initialize() {
+bool ShadowMap::initialize(LightManager& lightManager) {
     glGenFramebuffers(1, &depthMapFBO);
     glGenTextures(1, &depthMap);
     glBindTexture(GL_TEXTURE_2D, depthMap);
@@ -36,30 +34,34 @@ bool ShadowMap::initialize() {
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 
-    // Light Space Transform
     // Orthographic perspective
-    lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 0.1f, 20.0f);
-
-    // Above our scene looking down
-    // TODO: Line up with actualy directional light
-    lightView = glm::lookAt(
-       glm::vec3(-5.0f, 10.0f, -5.0f),  // Light position
-       glm::vec3(0.0f, 0.0f, 0.0f),      // Looking at world 0,0,0
-       glm::vec3(0.0f, 1.0f, 0.0f)       // Up vector
-   );
-    lightSpaceMatrix = lightProjection * lightView;
+    lightProjection = glm::ortho(-orthoBounds, orthoBounds, -orthoBounds, orthoBounds,
+                                    nearPlane, farPlane);
+    updateLightSpaceTransform(lightManager);
 
     // Load shaders
     if (!simpleDepthShader.loadFromFiles("../assets/shaders/simpleDepthShader.vert", "../assets/shaders/emptyShader.frag")) {
         std::cerr << "Failed to load simple depth shader" << std::endl;
         return false;
     }
-
     if (!debugShader.loadFromFiles("../assets/shaders/debugDepth.vert", "../assets/shaders/debugDepth.frag")) {
         std::cerr << "Failed to load simple debug depth shader" << std::endl;
         return false;
     }
     return true;
+}
+
+// Synchronizes with light manager (ex. moving Directional Light)
+void ShadowMap::updateLightSpaceTransform(LightManager& lightManager) {
+    // Directional light position is the opposite it's direction * scalar
+    glm::vec3 directionalLightPosition = glm::normalize(lightManager.getDirectionalLight(0).direction) * -directionLightPositionScalar;
+
+    lightView = glm::lookAt(
+       directionalLightPosition,
+       lookAtOrigin,
+       glm::vec3(0.0f, 1.0f, 0.0f)       // Up vector
+   );
+    lightSpaceMatrix = lightProjection * lightView;
 }
 
 void ShadowMap::render(World& world) {
@@ -81,8 +83,6 @@ void ShadowMap::render(World& world) {
 }
 
 void ShadowMap::renderScene(World& world) {
-    // TODO: We render every entity once. Once for shadow pas and once in engine.render
-    // See if we really have to to this
     for (auto& entity : world.EntityManager.GetEntities())
     {
         if (entity->hasComponent<StaticMeshComponent>())
