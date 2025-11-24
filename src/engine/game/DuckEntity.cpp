@@ -111,3 +111,11 @@ void DuckEntity::checkIfEscaped()
         this->destroy();
     }
 }
+
+void DuckEntity::KillDuck()
+{
+    this->destroy();
+
+    // TODO: Increment GameState points here.
+    // ...
+}

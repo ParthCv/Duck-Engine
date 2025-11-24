@@ -26,6 +26,8 @@ public:
     void setRandomFlightPath();
 
     void checkIfEscaped();
+
+    void KillDuck();
 };
 
 
