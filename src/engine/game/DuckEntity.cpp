@@ -21,6 +21,8 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) {
     auto& transform = addComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1,1,1));
 
+    spawnPosition = InPosition;
+
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
     addComponent<StaticMeshComponent>(*this);
 }
@@ -47,6 +49,7 @@ void DuckEntity::update(float deltaTime) {
     // auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
     // OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
 
+    checkIfEscaped();
 }
 
 void DuckEntity::beginPlay() {
@@ -75,4 +78,13 @@ void DuckEntity::setRandomFlightPath() {
 
     // TODO: Set Entity Velocity
     EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
+}
+
+void DuckEntity::checkIfEscaped()
+{
+    auto& EntityTransform = this->getComponent<Transform>();
+    if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
+    {
+        this->destroy();
+    }
 }

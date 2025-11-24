@@ -9,6 +9,10 @@ class DuckEntity : public Entity
 public:
     float accumulatedTime = 0;
 
+    glm::vec3 spawnPosition{};
+
+    float escapeDistance = 10;
+
     DuckEntity(World& InWorld);
 
     DuckEntity(World& InWorld, glm::vec3& InPosition);
@@ -20,6 +24,8 @@ public:
     void beginPlay() override;
 
     void setRandomFlightPath();
+
+    void checkIfEscaped();
 };
 
 
