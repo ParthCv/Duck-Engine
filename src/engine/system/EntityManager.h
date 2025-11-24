@@ -3,10 +3,11 @@
 #include <vector>
 
 #include "glm/vec3.hpp"
+#include "../game/DuckEntity.h"
 #include "../ecs/Entity.h"
-#include "../src/engine/game/DuckEntity.h"
 
 class EntityManager {
+
 public:
     EntityManager();
 
@@ -28,10 +29,27 @@ public:
 
     void CleanupInactiveEntities();
 
+    template<typename... Components>
+    std::vector<Entity*> GetEntitiesWith();
+
 private:
     std::vector<std::unique_ptr<Entity>> Entities;
 
     std::vector<std::unique_ptr<Entity>> DeferredEntities;
-
-    //TODO: store all the renderable entites to pass to the engine to render
 };
+
+template<typename... Components>
+std::vector<Entity*> EntityManager::GetEntitiesWith() {
+    std::vector<Entity*> result;
+
+    for (auto& entity : Entities) {
+        if (!entity) continue;
+        if (!entity->getIsActive()) continue;
+
+        if ((entity->template hasComponent<Components>() && ...)) {
+            result.push_back(entity.get());
+        }
+    }
+
+    return result;
+}

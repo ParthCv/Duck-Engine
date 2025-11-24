@@ -11,18 +11,36 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
     auto& transform = addComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(10,10,10));
 
-    float randX = rand() % 2;
-    float randZ = rand() % 2;
-
+    // Initialize Velocity
     addComponent<Velocity>(glm::vec3(1.0, 0.0f, 0.0f), 0.25f);
+
+    // Initialize Collider
+    auto& collider = addComponent<BoxCollider>();
+    collider.size = glm::vec3(1.1f);
+    collider.center = glm::vec3(0.0f);
+
+    // Initialize Debug
+    auto& debug = addComponent<DebugDrawable>();
+    debug.drawCollider = true;
+    debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f); // Red
     addComponent<StaticMeshComponent>(*this);
+
 }
 
 DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) {
     auto& transform = addComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(10,10,10));
 
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
-    addComponent<StaticMeshComponent>(*this);
+    addComponent<StaticMeshComponent>(*this );
+
+    auto& collider = addComponent<BoxCollider>();
+    collider.size = glm::vec3(1.1f);
+    collider.center = glm::vec3(0.0f);
+
+    auto& debug = addComponent<DebugDrawable>();
+    debug.drawCollider = true;
+    debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f);
+
 }
 
 DuckEntity::~DuckEntity() {}
@@ -52,9 +70,10 @@ void DuckEntity::update(float deltaTime) {
 void DuckEntity::beginPlay() {
     Entity::beginPlay();
 
-    // TODO: Implement specific beginPlay logic for only DuckEntity here.
     auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
     EntityStaticMesh.loadMesh("../assets/models/duck.obj");
+    // Ensure the visual mesh is centered on the entity, can remove this later
+    EntityStaticMesh.setPosition(glm::vec3(0.0f));
 
     // TODO: Set the flight path
     // setRandomFlightPath();

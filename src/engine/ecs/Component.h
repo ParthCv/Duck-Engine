@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "glad/glad.h"
 #include "glm/fwd.hpp"
 #include "glm/mat4x4.hpp"
@@ -107,6 +108,35 @@ struct Transform {
     //     return Transform(position + InTransform.position, rotation + InTransform.rotation, scale + InTransform.scale);
     // }
 
+};
+
+// Collision Components
+struct BoxCollider {
+    glm::vec3 center{0.0f};
+    glm::vec3 size{1.0f};
+    bool isTrigger = false;
+
+    glm::vec3 GetMin(const Transform& transform) const {
+        return transform.position + center - size;
+    }
+
+    glm::vec3 GetMax(const Transform& transform) const {
+        return transform.position + center + size;
+    }
+};
+
+struct DebugDrawable {
+    bool drawCollider = true;
+    glm::vec3 colliderColor{1.0f, 0.0f, 0.0f}; // Red
+};
+
+struct RaycastSource {
+    glm::vec3 direction{0.0f, 0.0f, -1.0f};
+    float maxDistance = 100.0f;
+    bool drawRay = true;
+
+    bool lastHit = false;
+    glm::vec3 lastHitPoint{};
 };
 
 struct StaticMeshComponent

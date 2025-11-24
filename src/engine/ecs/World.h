@@ -3,6 +3,10 @@
 #include "../src/engine/renderer/light/LightManager.h"
 #include "../src/engine/renderer/Shader.h"
 #include "../src/engine/renderer/Camera.h"
+#include "../system/EntityManager.h"
+#include "../system/DebugRenderSystem.h"
+#include "../system/CollisionSystem.h"
+
 #include "glad/glad.h"
 
 class World
@@ -13,6 +17,8 @@ public:
     Shader* basicShader;
     EntityManager EntityManager;
     LightManager lightManager;
+    CollisionSystem* collisionSystem = nullptr;
+    DebugRenderSystem debugRenderSystem;
 
     World();
 
@@ -22,13 +28,16 @@ public:
 
     void addLightsToWorld();
 
+    void testRandomRaycasting(float deltaTime);
+
     /*
      * Garbage collecting deactivated entities.
      */
     void cleanUp();
 
     // TODO: Temporary testing function
-    void CreateCube(GLuint& InVAO, GLuint& InVBO);
+    static void CreateCube(GLuint& inVAO, GLuint& inVBO);
+    void CreateLine(GLuint& inVAO, GLuint& inVBO);
 
 private:
     std::vector<glm::vec3> duckPos = {
@@ -43,5 +52,6 @@ private:
         glm::vec3(-2.5f, 0.0f, -2.5f),
         glm::vec3(0.0f, 2.0f, 0.0f),
     };
+
 };
 
