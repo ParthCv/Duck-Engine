@@ -234,8 +234,8 @@ void Engine::renderEntities() {
 
             basicShader.setMat4("model", model);
 
-            glBindVertexArray(staticMeshComponent.VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            staticMeshComponent.Mesh->bind();
+            staticMeshComponent.Mesh->draw();
         }
     }
 

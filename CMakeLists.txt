@@ -28,6 +28,10 @@ add_executable(DuckEngine
         src/engine/game/DuckEntity.h
         src/engine/input/InputManager.cpp
         src/engine/game/GameStateManager.cpp
+        src/engine/core/model/ImportedModel.cpp
+        src/engine/core/model/ImportedModel.h
+        src/engine/core/model/StaticMesh.cpp
+        src/engine/core/model/StaticMesh.h
 )
 
 # Include directories for headers

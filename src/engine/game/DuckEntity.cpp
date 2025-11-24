@@ -9,7 +9,7 @@
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
-    auto& transform = addComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1,1,1));
+    auto& transform = addComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(10,10,10));
 
     float randX = rand() % 2;
     float randZ = rand() % 2;
@@ -19,7 +19,7 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 }
 
 DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) {
-    auto& transform = addComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1,1,1));
+    auto& transform = addComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(10,10,10));
 
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
     addComponent<StaticMeshComponent>(*this);
@@ -54,10 +54,10 @@ void DuckEntity::beginPlay() {
 
     // TODO: Implement specific beginPlay logic for only DuckEntity here.
     auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
-    world->CreateCube(EntityStaticMesh.VAO, EntityStaticMesh.VBO);
+    EntityStaticMesh.loadMesh("../assets/models/duck.obj");
 
     // TODO: Set the flight path
-    setRandomFlightPath();
+    // setRandomFlightPath();
 }
 
 void DuckEntity::setRandomFlightPath() {
