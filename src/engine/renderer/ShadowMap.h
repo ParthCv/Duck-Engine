@@ -40,22 +40,6 @@ public:
     void updateLightSpaceTransform(LightManager& lightManager);
 
 private:
-
-    GLuint depthMapFBO;
-    GLuint depthMap;
-    GLuint shadowTexture;
-    int resolutionWidth = 1920;
-    int resolutionHeight = 1080;
-
-
-
-    Shader simpleDepthShader;
-    Shader debugShader;
-
-    // Light Space Transforms
-    glm::mat4 lightProjection;
-    glm::mat4 lightView;
-    glm::mat4 lightSpaceMatrix;
     /*
      * If shadow clipping occurs:
      * - increase orthoBounds (rectangular area where shadows will be rendered, centered at lookAtOrigin)
@@ -66,4 +50,18 @@ private:
     float nearPlane = 0.1f, farPlane = 30.0f;
     glm::vec3 lookAtOrigin = glm::vec3(0.0f, 0.0f, 0.0f); // World origin
     float directionLightPositionScalar = 20.0f;   // High in the sky
+    
+    GLuint depthMapFBO;
+    GLuint depthMap;
+    GLuint shadowTexture;
+    int resolutionWidth = 1920;
+    int resolutionHeight = 1080;
+
+    Shader simpleDepthShader;
+    Shader debugShader;
+
+    // Light Space Transforms
+    glm::mat4 lightProjection;
+    glm::mat4 lightView;
+    glm::mat4 lightSpaceMatrix;
 };
