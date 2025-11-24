@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "glad/glad.h"
 #include "glm/fwd.hpp"
 #include "glm/mat4x4.hpp"
@@ -7,6 +8,7 @@
 #include "../ecs/Entity.h"
 #include "glm/detail/type_quat.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include "../core/model/StaticMesh.h"
 
 struct Velocity
 {
@@ -137,44 +139,27 @@ struct RaycastSource {
     glm::vec3 lastHitPoint{};
 };
 
-struct StaticMesh
-{
-    GLuint VAO;
-    GLuint VBO;
-};
-
 struct StaticMeshComponent
 {
     // TODO: think about storing the material of each entity
-    StaticMeshComponent(Entity& InEntity) :
-        OwningEntity(&InEntity),
-        StaticMeshTransform(Transform{}),
-        VAO(0),
-        VBO(0)
+    explicit StaticMeshComponent(Entity& InEntity)
+            : OwningEntity(&InEntity),
+            StaticMeshTransform(Transform{}),
+            Mesh(std::make_shared<StaticMesh>())
     {
-        // StaticMeshTransform = InEntity.getComponent<Transform>();
     }
-
-    // StaticMeshComponent(Entity& InEntity, Transform InTransform) :
-    //     OwningEntity(&InEntity),
-    //     StaticMeshTransform(InTransform),
-    //     VAO(0),
-    //     VBO(0)
-    // {
-    // }
 
     Entity* OwningEntity;
     Transform StaticMeshTransform;
-
-    GLuint VAO;
-    GLuint VBO;
-
+    glm::mat4 ModelMatrix{};
+    std::shared_ptr<StaticMesh> Mesh;
+    bool bIsVisible = true;
     bool bTicks = true;
 
-    // Material* Material;
-    // ..
-
-    glm::mat4 ModelMatrix{};
+    void loadMesh(const std::string& modelFilePath) {
+        ImportedModel model{modelFilePath};
+        Mesh->loadFromImportedModel(model);
+    }
 
     void initTransform()
     {
@@ -183,7 +168,7 @@ struct StaticMeshComponent
 
     glm::mat4 getTransformMatrix()
     {
-        Transform& parent = OwningEntity->getComponent<Transform>();
+        auto& parent = OwningEntity->getComponent<Transform>();
         return parent.getTransformMatrix() * StaticMeshTransform.getTransformMatrix();
     }
 
