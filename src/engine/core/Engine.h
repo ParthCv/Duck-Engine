@@ -60,5 +60,8 @@ private:
 
     Texture shadowMapTexture;
 
+    Shader physicsDebugShader;
+    bool bPhysicsDebug = false;
+
     void renderEntities();
 };
