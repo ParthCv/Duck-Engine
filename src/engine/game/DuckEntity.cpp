@@ -7,6 +7,7 @@
 #include "../ecs/Component.h"
 #include "GLFW/glfw3.h"
 #include <cstdlib>
+#include <iostream>
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -108,7 +109,7 @@ void DuckEntity::setRandomFlightPath() {
 void DuckEntity::checkIfEscaped()
 {
     auto& EntityTransform = this->getComponent<Transform>();
-    if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
+    if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance*10.0f)
     {
         this->destroy();
     }
@@ -117,7 +118,7 @@ void DuckEntity::checkIfEscaped()
 void DuckEntity::KillDuck()
 {
     this->destroy();
-
+    std::cout << "Duck Died" << std::endl;
     // TODO: Increment GameState points here.
     // ...
 }

@@ -162,7 +162,7 @@ void GameStateManager::updatePlaying(float deltaTime) {
         float sideMultiplier = spawnLeft ? -1.0f : 1.0f;
 
         float distForward = 15.0f;  // Distance in front of camera
-        float distSide = 35.0f;     // How far to the left/right (offscreen)
+        float distSide = 35.0f;     // How far to the left/right
         float randUp = 0.0f + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 6.0f;
 
         // Position = CameraPos + (Forward * depth) + (Right * side) + (Up * height)
@@ -200,7 +200,7 @@ void GameStateManager::updatePlaying(float deltaTime) {
         auto& transform = playerEntity->getComponent<Transform>();
         auto& raySource = playerEntity->getComponent<RaycastSource>();
 
-        // Offset weapon position using the SAME camera vectors we calculated above
+        // Offset weapon position
         transform.position = worldContext->camera->position
                            + (cameraFwd * 0.5f)
                            - (cameraUp * 0.2f);
@@ -224,10 +224,14 @@ void GameStateManager::updatePlaying(float deltaTime) {
 
                 // Print the hit entity
                 if (result.hit && result.hitEntity) {
-                    std::cout << "HIT! Entity Address: " << result.hitEntity << std::endl;
 
-                    // --- DESTROY DUCK ON HIT ---
-                    result.hitEntity->destroy();
+                        DuckEntity* hitDuck = dynamic_cast<DuckEntity*>(result.hitEntity);
+
+                        if (hitDuck) {
+                            hitDuck->KillDuck();
+                        } else {
+                            std::cout << "Hit something, but it wasn't a duck" << std::endl;
+                        }
 
                 } else {
                     std::cout << "MISS!" << std::endl;
