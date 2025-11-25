@@ -12,20 +12,8 @@
 
 World::World()
 {
-    // TEMP LOADINg DUCKS RN
-    for (size_t i = 0; i < duckPos.size(); ++i) {
-        DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
-    }
-
-    // Temp floor entity to test shadows
-    // DuckEntity& FloorDuck = EntityManager.CreateDuckEntity(*this, duckPos[duckPos.size()]);
-    // if (FloorDuck.hasComponent<Transform>()) {
-    //     FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -2.0f, 0.0f));
-    //     FloorDuck.getComponent<Transform>().SetRotation(glm::vec3(glm::radians(45.0f),
-    //                                                     glm::radians(0.0f),
-    //                                                     glm::radians(0.0f)));
-    //     FloorDuck.getComponent<Transform>().scale = glm::vec3(100.0f, 1.0f, 100.0f);
-    // }
+    // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists
+    // before meshes are loaded.
 
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
     collisionSystem = new CollisionSystem();
@@ -148,51 +136,6 @@ void World::addLightsToWorld() {
 void World::cleanUp()
 {
 }
-
-void World::testRandomRaycasting(float deltaTime)
-{
-    static float timeUntilNextFire = 0.5f;
-    timeUntilNextFire -= deltaTime;
-
-    auto raySourceEntities = EntityManager.GetEntitiesWith<RaycastSource>();
-    if (raySourceEntities.empty()) return;
-
-    auto* rayEntity = raySourceEntities[0];
-    auto& raySource = rayEntity->getComponent<RaycastSource>();
-
-    if (!rayEntity->hasComponent<Transform>()) return;
-    auto& transform = rayEntity->getComponent<Transform>();
-
-    glm::vec3 cameraForward = glm::normalize(camera->target - camera->position);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraForward, glm::vec3(0, 1, 0)));
-    glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, cameraForward));
-
-    transform.position = camera->position + (cameraForward * 1.0f) + (cameraUp * 1.0f);
-
-    if (timeUntilNextFire <= 0.0f) {
-        timeUntilNextFire = 0.1f + static_cast<float>(rand()) / (RAND_MAX / 0.4f);
-
-        auto targets = EntityManager.GetEntitiesWith<BoxCollider, Transform>();
-
-        if (!targets.empty()) {
-            int randomIndex = rand() % targets.size();
-            Entity* targetEntity = targets[randomIndex];
-
-            glm::vec3 targetPos = targetEntity->getComponent<Transform>().position;
-
-            float noiseAmount = 2.0f;
-            targetPos.x += ((float)rand() / RAND_MAX - 0.5f) * noiseAmount;
-            targetPos.y += ((float)rand() / RAND_MAX - 0.5f) * noiseAmount;
-            targetPos.z += ((float)rand() / RAND_MAX - 0.5f) * noiseAmount;
-            raySource.direction = glm::normalize(targetPos - transform.position);
-
-            if (collisionSystem) {
-                collisionSystem->RaycastFromEntity(EntityManager, *rayEntity);
-            }
-        }
-    }
-}
-
 
 void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
     float vertices[] = {

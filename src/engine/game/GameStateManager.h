@@ -5,6 +5,9 @@
 #pragma once
 #include <string>
 #include <functional>
+#include "../input/InputManager.h"
+
+class World;
 
 // Possible game states for Duck Hunt (TBD)
 enum class GameState {
@@ -41,6 +44,8 @@ public:
     void restartGame();
     void returnToMenu();
 
+    void setWorldContext(World* world) { worldContext = world; }
+
     // Get state as string (for debugging)
     std::string getStateString() const;
 
@@ -54,6 +59,8 @@ private:
 
     // Time tracking for state-specific logic
     float stateTimer; // duration in current state
+
+    World* worldContext = nullptr;
 
     // State-specific update methods
     void updateMenu(float deltaTime);
