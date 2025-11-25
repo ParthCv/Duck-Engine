@@ -54,8 +54,6 @@ void World::update(float deltaTime)
         light.position.x = sin(time) * 3.0f;
         light.position.z = cos(time) * 3.0f;
     }
-
-    testRandomRaycasting(deltaTime);
     EntityManager.Update(deltaTime);
 }
 
