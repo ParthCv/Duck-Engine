@@ -10,11 +10,44 @@ add_executable(DuckEngine
         dependencies/glad.c
         src/engine/core/Engine.cpp
         src/engine/renderer/Shader.cpp
+        src/engine/renderer/Texture.cpp
+        src/engine/renderer/GBuffer.cpp
+        src/engine/renderer/light/LightManager.cpp
+        src/engine/renderer/Material.cpp
+        src/engine/renderer/Cubemap.cpp
+        src/engine/renderer/Skybox.cpp
+        src/engine/ecs/Entity.cpp
+        src/engine/ecs/Entity.h
+        src/engine/ecs/ComponentType.h
+        src/engine/ecs/Component.h
+        src/engine/ecs/World.cpp
+        src/engine/ecs/World.h
+        src/engine/system/EntityManager.cpp
+        src/engine/system/EntityManager.h
+        src/engine/debug/DebugRenderer.cpp
+        src/engine/physics/RaycastUtils.h
+        src/engine/physics/RaycastUtils.cpp
+        src/engine/system/CollisionSystem.h
+        src/engine/system/CollisionSystem.cpp
+        src/engine/system/DebugRenderSystem.h
+        src/engine/system/DebugRenderSystem.cpp
+        src/engine/game/DuckEntity.cpp
+        src/engine/game/DuckEntity.h
+        src/engine/input/InputManager.cpp
+        src/engine/game/GameStateManager.cpp
+        src/engine/core/model/ImportedModel.cpp
+        src/engine/core/model/ImportedModel.h
+        src/engine/core/model/StaticMesh.cpp
+        src/engine/core/model/StaticMesh.h
+        src/engine/renderer/ShadowMap.cpp
+        src/engine/system/UIManager.cpp
+        src/engine/renderer/BitmapFont.cpp
 )
 
 # Include directories for headers
 target_include_directories(DuckEngine PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies
+        ${CMAKE_SOURCE_DIR}/dependencies/stb_image
 )
 
 # Import GLFW as a static library
