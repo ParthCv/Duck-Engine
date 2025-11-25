@@ -508,7 +508,7 @@ void UIManager::setupMenuUI(GameStateManager* stateManager) {
     // Title text
     UIText title;
     title.id = "menu_title";
-    title.text = "DUCK HUNT 3D";
+    title.text = "DUCK HUNT 3D \\";
     title.position = glm::vec2(0, 150);
     title.fontSize = 48.0f;
     title.anchor = UIAnchor::TOP_CENTER;
@@ -586,7 +586,7 @@ void UIManager::setupPlayingUI() {
     // Ammo text (BOTTOM-LEFT)
     UIText ammoText;
     ammoText.id = "ammo_text";
-    ammoText.text = "AMMO: 10";
+    ammoText.text = "AMMO: 10 \\";
     ammoText.position = glm::vec2(20, 20);  // 20px from bottom-left
     ammoText.fontSize = 24.0f;
     ammoText.anchor = UIAnchor::BOTTOM_LEFT;  // Changed from TOP_LEFT
