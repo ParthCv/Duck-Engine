@@ -19,20 +19,20 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
 
-    // // Initialize Mesh
-    // auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
-    // staticMeshComponent.loadMesh("../assets/models/duck.obj");
-    //
-    // // Configure Collider based on Mesh
-    // collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
-    // collider.center = staticMeshComponent.Mesh->getCenter();
-    // collider.center.y += collider.size.y / 2.0f;
-    //
-    // // Initialize Debug
-    // auto& debug = addComponent<DebugDrawable>();
-    // debug.drawCollider = true;
-    // debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f); // Red
-    // addComponent<StaticMeshComponent>(*this);
+    // Initialize Mesh
+    auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
+    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+
+    // Configure Collider based on Mesh
+    collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
+    collider.center = staticMeshComponent.Mesh->getCenter();
+    collider.center.y += collider.size.y / 2.0f;
+
+    // Initialize Debug
+    auto& debug = addComponent<DebugDrawable>();
+    debug.drawCollider = true;
+    debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f); // Red
+    addComponent<StaticMeshComponent>(*this);
 
 }
 
@@ -41,12 +41,12 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
 
     spawnPosition = InPosition;
 
-    addComponent<Velocity>(glm::vec3(1.0, 0.0f, 0.0f), 0.01f);
+    addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
     addComponent<StaticMeshComponent>(*this );
 
     // Initialize Mesh
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
-    // staticMeshComponent.loadMesh("../assets/models/duck.obj");
+    staticMeshComponent.loadMesh("../assets/models/duck.obj");
 
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
@@ -58,7 +58,6 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
     debug.drawCollider = true;
     debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    setRandomFlightPath();
 }
 
 DuckEntity::~DuckEntity() {}
@@ -89,17 +88,6 @@ void DuckEntity::update(float deltaTime) {
 void DuckEntity::beginPlay() {
     Entity::beginPlay();
     // Mesh loading moved to constructor
-    auto& staticMeshComponent = getComponent<StaticMeshComponent>();
-    staticMeshComponent.loadMesh("../assets/models/duck.obj");
-
-    // TODO: These lines must come after mesh is loaded but crash occurs if mesh is loaded in constructor
-    // auto& collider = getComponent<BoxCollider>();
-    // collider.size = staticMeshComponent.Mesh->getSize() * getComponent<Transform>().scale;
-    // collider.center = staticMeshComponent.Mesh->getCenter();
-    // collider.center.y += collider.size.y / 2.0f;
-
-    // TODO: Set the flight path
-    // setRandomFlightPath();
 }
 
 void DuckEntity::setRandomFlightPath() {
@@ -120,8 +108,7 @@ void DuckEntity::setRandomFlightPath() {
     EntityTransform.WorldRotate(rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // TODO: Set Entity Velocity
-    // EntityVelocity.setVelocity(glm::vec3(dirX, 0.0f, 1.0f), 1.0f);
-    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 0.1f);
+    EntityVelocity.setVelocity(glm::vec3(dirX, 0.0f, 1.0f), 1.0f);
 }
 
 void DuckEntity::checkIfEscaped()
