@@ -63,5 +63,10 @@ private:
     Shader physicsDebugShader;
     bool bPhysicsDebug = false;
 
+    GLuint floorVAO, floorVBO;
+
+    void createFloor();
+    void renderFloor();
+
     void renderEntities();
 };

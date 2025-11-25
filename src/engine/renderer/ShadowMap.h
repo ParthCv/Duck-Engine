@@ -1,13 +1,7 @@
-//
-// Created by Nathan on 2025-11-22.
-//
-
 #pragma once
-#include <memory>
 
 #include "glad/glad.h"
 #include "glm/fwd.hpp"
-#include "glm/ext/matrix_clip_space.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // for glm::value_ptr if you need it
@@ -46,7 +40,7 @@ private:
      * - move lookAtOrigin (Closer to release, consider moving to somewhere in front of camera)
      * - increase farPlane (depth, how far away from light position shadows will render from)
     */
-    float orthoBounds = 20.0f;
+    float orthoBounds = 30.0f;
     float nearPlane = 0.1f, farPlane = 30.0f;
     glm::vec3 lookAtOrigin = glm::vec3(0.0f, 0.0f, 0.0f); // World origin
     float directionLightPositionScalar = 20.0f;   // High in the sky

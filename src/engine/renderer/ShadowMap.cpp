@@ -1,7 +1,3 @@
-//
-// Created by Nathan on 2025-11-22.
-//
-
 #include "ShadowMap.h"
 
 #include <iostream>
@@ -40,11 +36,11 @@ bool ShadowMap::initialize(LightManager& lightManager) {
     updateLightSpaceTransform(lightManager);
 
     // Load shaders
-    if (!simpleDepthShader.loadFromFiles("../assets/shaders/simpleDepthShader.vert", "../assets/shaders/emptyShader.frag")) {
+    if (!simpleDepthShader.loadFromFiles("../assets/shaders/shadow_depth.vert", "../assets/shaders/shadow_depth.frag")) {
         std::cerr << "Failed to load simple depth shader" << std::endl;
         return false;
     }
-    if (!debugShader.loadFromFiles("../assets/shaders/debugDepth.vert", "../assets/shaders/debugDepth.frag")) {
+    if (!debugShader.loadFromFiles("../assets/shaders/debug_depth.vert", "../assets/shaders/debug_depth.frag")) {
         std::cerr << "Failed to load simple debug depth shader" << std::endl;
         return false;
     }
@@ -54,7 +50,12 @@ bool ShadowMap::initialize(LightManager& lightManager) {
 // Synchronizes with light manager (ex. moving Directional Light)
 void ShadowMap::updateLightSpaceTransform(LightManager& lightManager) {
     // Directional light position is the opposite it's direction * scalar
-    glm::vec3 directionalLightPosition = glm::normalize(lightManager.getDirectionalLight(0).direction) * -directionLightPositionScalar;
+    glm::vec3 directionalLightPosition;
+    if (lightManager.getDirectionalLightCount() > 1) {
+        directionalLightPosition = glm::normalize(lightManager.getDirectionalLight(0).direction) * -directionLightPositionScalar;
+    } else {
+        directionalLightPosition = glm::normalize(glm::vec3(-1.0f, 2.0f, -1.0f));
+    }
 
     lightView = glm::lookAt(
        directionalLightPosition,
@@ -152,6 +153,3 @@ void ShadowMap::renderQuad() {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
-
-
-
