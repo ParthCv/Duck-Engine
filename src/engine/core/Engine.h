@@ -9,6 +9,8 @@
 #include "../renderer/GBuffer.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
+#include "../system/UIManager.h"
+#include "../game/GameStateManager.h"
 
 
 class Engine {
@@ -27,6 +29,9 @@ public:
     GLuint quadVAO, quadVBO;
     void setupQuad();
     void renderQuad() const;
+
+    UIManager uiManager;
+    GameStateManager stateManager;
 
 private:
     GLFWwindow* window = nullptr;
@@ -60,4 +65,6 @@ private:
     bool bPhysicsDebug = false;
 
     void renderEntities();
+    void handleStateChange(GameState oldState, GameState newState);
+
 };

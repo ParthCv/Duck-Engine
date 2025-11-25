@@ -3,6 +3,7 @@
 #include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
 #include "../system/DebugRenderSystem.h"
+#include "../system/UIManager.h"
 
 struct StaticMeshComponent;
 
@@ -23,7 +24,7 @@ bool Engine::initialize(int width, int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Create window
+    // Create window FIRST
     window = glfwCreateWindow(screenWidth, screenHeight, "Duck Hunt 3D", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -38,6 +39,17 @@ bool Engine::initialize(int width, int height) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return false;
     }
+
+    InputManager::initialize(window);
+    uiManager.initialize(screenWidth, screenHeight);
+
+    // Setup state change callback to update UI
+    stateManager.setOnStateChange([this](GameState oldState, GameState newState) {
+        handleStateChange(oldState, newState);
+    });
+
+    // Setup initial UI (menu screen)
+    uiManager.setupMenuUI(&stateManager);
 
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
@@ -145,21 +157,42 @@ void Engine::run() {
 }
 
 void Engine::processInput() {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
+    // ESC key closes window
+    if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
+        if (stateManager.getCurrentState() == GameState::PLAYING) {
+            stateManager.togglePause();
+        } else {
+            glfwSetWindowShouldClose(window, true);
+        }
     }
+
+    // P key toggles pause
+    if (InputManager::isKeyPressed(GLFW_KEY_P)) {
+        stateManager.togglePause();
+    }
+
+    // Debug physics toggle
     static bool cKeyPressed = false;
-    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && !cKeyPressed) {
+    if (InputManager::isKeyDown(GLFW_KEY_C) && !cKeyPressed) {
         bPhysicsDebug = !bPhysicsDebug;
         cKeyPressed = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE) {
+    if (!InputManager::isKeyDown(GLFW_KEY_C)) {
         cKeyPressed = false;
     }
-
-};
+}
 
 void Engine::update(float deltaTime) {
+    // Update input first
+    InputManager::update();
+
+    // Update game state
+    stateManager.update(deltaTime);
+
+    // Update UI
+    uiManager.update(deltaTime);
+
+    // Update world
     world.update(deltaTime);
 }
 
@@ -227,13 +260,18 @@ void Engine::render() {
         physicsDebugShader.setMat4("projection", camera.getProjectionMatrix());
         debugSystem.render(world.EntityManager, physicsDebugShader);
     }
+
+    // Handle UI last
+    uiManager.render();
+
 }
 
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
-    debugSystem.cleanup(); //
+    uiManager.shutdown();
+    debugSystem.cleanup();
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -295,4 +333,48 @@ void Engine::setupQuad() {
 void Engine::renderQuad() const {
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void Engine::handleStateChange(GameState oldState, GameState newState) {
+    std::cout << "[Engine] State changed from " << stateManager.getStateString()
+              << " to new state" << std::endl;
+
+    // Clear previous UI
+    switch (oldState) {
+        case GameState::MENU:
+            uiManager.clearMenuUI();
+            break;
+        case GameState::PLAYING:
+            uiManager.clearPlayingUI();
+            break;
+        case GameState::PAUSED:
+            uiManager.clearPausedUI();
+            break;
+        case GameState::GAME_OVER:
+            uiManager.clearGameOverUI();
+            break;
+        case GameState::OPTIONS:
+            uiManager.clearAll();
+            break;
+    }
+
+    // Setup new UI
+    switch (newState) {
+        case GameState::MENU:
+            uiManager.setupMenuUI(&stateManager);
+            break;
+        case GameState::PLAYING:
+            uiManager.setupPlayingUI();
+            break;
+        case GameState::PAUSED:
+            // Keep playing UI visible, add pause overlay on top
+            uiManager.setupPausedUI(&stateManager);
+            break;
+        case GameState::GAME_OVER:
+            uiManager.setupGameOverUI(&stateManager);
+            break;
+        case GameState::OPTIONS:
+            uiManager.setupOptionsUI(&stateManager);
+            break;
+    }
 }

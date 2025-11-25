@@ -11,20 +11,12 @@ GameStateManager::GameStateManager()
 }
 
 void GameStateManager::setState(GameState newState) {
-    if (newState == currentState) {
-        return; // Already in this state
-    }
-
-    std::cout << "[GameStateManager] State transition: "
-              << getStateString() << " -> ";
+    if (newState == currentState) return;
 
     previousState = currentState;
     currentState = newState;
-    stateTimer = 0.0f; // Reset timer for new state
+    stateTimer = 0.0f;
 
-    std::cout << getStateString() << std::endl;
-
-    // Notify callback if registered
     notifyStateChange(previousState, currentState);
 }
 

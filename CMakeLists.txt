@@ -32,6 +32,9 @@ add_executable(DuckEngine
         src/engine/system/DebugRenderSystem.h
         src/engine/system/DebugRenderSystem.cpp
         src/engine/game/DuckEntity.cpp
+        src/engine/input/InputManager.cpp
+        src/engine/game/GameStateManager.cpp
+        src/engine/system/UIManager.cpp
 )
 
 # Include directories for headers
