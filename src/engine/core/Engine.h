@@ -9,6 +9,7 @@
 #include "../renderer/GBuffer.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
+#include "../renderer/ShadowMap.h"
 
 
 class Engine {
@@ -19,7 +20,8 @@ public:
     void run();
     void shutdown();
 
-    GBuffer gBuffer;;
+    GBuffer gBuffer;
+    ShadowMap shadowMap;
     // Temp
     Material cubeMaterial;
 
@@ -56,8 +58,15 @@ private:
     Shader brdfLUTShader;
     Texture brdfLUT;
 
+    Texture shadowMapTexture;
+
     Shader physicsDebugShader;
     bool bPhysicsDebug = false;
+
+    GLuint floorVAO, floorVBO;
+
+    void createFloor();
+    void renderFloor();
 
     void renderEntities();
 };
