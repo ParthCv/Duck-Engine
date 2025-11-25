@@ -61,9 +61,14 @@ CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(
         raycastSource.maxDistance
     );
 
+    // ECS Pattern: Update the component data with the result
     raycastSource.lastHit = result.hit;
+
     if (result.hit) {
         raycastSource.lastHitPoint = result.hitInfo.point;
+        raycastSource.hitEntity = result.hitEntity; // Store the Duck/Entity hit
+    } else {
+        raycastSource.hitEntity = nullptr; // Clear it on miss
     }
 
     return result;

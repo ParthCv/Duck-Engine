@@ -3,11 +3,15 @@
 #include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
 #include "../system/DebugRenderSystem.h"
-#include "../system/UIManager.h"
+
+#include "../game/GameStateManager.h"
+#include "../input/InputManager.h"
 
 struct StaticMeshComponent;
 
-DebugRenderSystem debugSystem; // Global instance since we cannot modify Engine.h
+// Global instances since we cannot modify Engine.h easily
+DebugRenderSystem debugSystem;
+GameStateManager stateManager;
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -139,6 +143,9 @@ bool Engine::initialize(int width, int height) {
 
     world.camera = &camera;
     world.beginPlay();
+
+    InputManager::initialize(window);
+    stateManager.setWorldContext(&world);
 
     return true;
 }
