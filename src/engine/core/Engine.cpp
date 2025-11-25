@@ -60,6 +60,8 @@ bool Engine::initialize(int width, int height) {
     gBuffer.initialize(screenWidth, screenHeight);
     setupQuad();
 
+    shadowMap.initialize(world.lightManager);
+
     // Load shaders
     if (!equirectShader.loadFromFiles("../assets/shaders/equirect_to_cubemap.vert", "../assets/shaders/equirect_to_cubemap.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
@@ -124,7 +126,9 @@ bool Engine::initialize(int width, int height) {
     glViewport(0, 0, screenWidth, screenHeight);
 
     // Initialize Debug Renderer
-    debugSystem.init(); //
+    debugSystem.init();
+
+    createFloor();
 
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
@@ -197,6 +201,12 @@ void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
+    //  ==== SHADOW PASS ====
+    // TODO: REMOVE - If final game does not have dynamic directional light
+    shadowMap.updateLightSpaceTransform(world.lightManager);  // Synchronize with LightManager
+
+    shadowMap.render(world);
+
     // ==== GEOMETRY PASS ====
     gBuffer.bindForWriting();
 
@@ -204,6 +214,7 @@ void Engine::render() {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    renderFloor();
     renderEntities();
 
     // ==== LIGHTING PASS ====
@@ -236,6 +247,11 @@ void Engine::render() {
     lightingShader.setInt("brdfLUT", 6);
     brdfLUT.textureUnit = 6;
     brdfLUT.bind();
+
+    glActiveTexture(GL_TEXTURE0 + 7);
+    glBindTexture(GL_TEXTURE_2D, shadowMap.getDepthMap());
+    lightingShader.setInt("shadowMap", 7);
+    lightingShader.setMat4("lightSpaceMatrix", shadowMap.getLightSpaceMatrix());
 
     // Render final quad
     renderQuad();
@@ -272,6 +288,10 @@ void Engine::shutdown() {
     cubeMaterial.unbind();
     uiManager.shutdown();
     debugSystem.cleanup();
+
+    glDeleteVertexArrays(1, &floorVAO);
+    glDeleteBuffers(1, &floorVBO);
+
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -302,8 +322,8 @@ void Engine::renderEntities() {
 
             basicShader.setMat4("model", model);
 
-            glBindVertexArray(staticMeshComponent.VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            staticMeshComponent.Mesh->bind();
+            staticMeshComponent.Mesh->draw();
         }
     }
 
@@ -387,4 +407,57 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
             uiManager.setupOptionsUI(&stateManager);
             break;
     }
+}
+
+
+void Engine::createFloor() {
+    float floorSize = 50.0f;  // Large but not truly infinite
+    float floorVertices[] = {
+        // Positions          // Normals           // TexCoords
+        -floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+         floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  10.0f, 0.0f,
+         floorSize, 1.5f,  floorSize,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f,
+         floorSize, 1.5f,  floorSize,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f,
+        -floorSize, 1.5f,  floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 10.0f,
+        -floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f
+    };
+
+    glGenVertexArrays(1, &floorVAO);
+    glGenBuffers(1, &floorVBO);
+
+    glBindVertexArray(floorVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
+
+    // Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    // TexCoord
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+}
+
+void Engine::renderFloor() {
+    basicShader.use();
+
+    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 projection = camera.getProjectionMatrix();
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));  // Lower the floor
+
+    basicShader.setMat4("model", model);
+    basicShader.setMat4("view", view);
+    basicShader.setMat4("projection", projection);
+
+    // Use same material or create a floor material
+    cubeMaterial.bind(basicShader);
+
+    glBindVertexArray(floorVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 }
