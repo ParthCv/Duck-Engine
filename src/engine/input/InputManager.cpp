@@ -83,6 +83,8 @@ void InputManager::update() {
     keys[GLFW_KEY_O] = (glfwGetKey(windowPtr, GLFW_KEY_O) == GLFW_PRESS);
     keys[GLFW_KEY_G] = (glfwGetKey(windowPtr, GLFW_KEY_G) == GLFW_PRESS);
     keys[GLFW_KEY_T] = (glfwGetKey(windowPtr, GLFW_KEY_T) == GLFW_PRESS);
+    keys[GLFW_KEY_C] = (glfwGetKey(windowPtr, GLFW_KEY_C) == GLFW_PRESS);
+
 
     // Number keys (for testing)
     keys[GLFW_KEY_1] = (glfwGetKey(windowPtr, GLFW_KEY_1) == GLFW_PRESS);
