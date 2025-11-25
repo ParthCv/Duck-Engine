@@ -339,6 +339,16 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
     std::cout << "[Engine] State changed from " << stateManager.getStateString()
               << " to new state" << std::endl;
 
+    if (newState == GameState::PLAYING) {
+        // Lock and hide the cursor for active 3D gameplay
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        std::cout << "[Engine] Cursor DISABLED for PLAYING" << std::endl;
+    } else {
+        // Show and unlock the cursor for UI interaction (Menu, Paused, Options, Game Over)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        std::cout << "[Engine] Cursor NORMAL for UI" << std::endl;
+    }
+
     // Clear previous UI
     switch (oldState) {
         case GameState::MENU:

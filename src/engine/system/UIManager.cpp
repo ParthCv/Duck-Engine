@@ -31,6 +31,13 @@ void UIManager::initialize(int width, int height) {
         return;
     }
 
+    // Set shader for font
+    font.setShader(&uiShader);
+
+    if (!font.load("../assets/fonts/font.png", 30, 30)) {
+        std::cerr << "[UIManager] Failed to load bitmap font" << std::endl;
+    }
+
     setupRenderingResources();
 
     std::cout << "[UIManager] Initialized successfully!" << std::endl;
@@ -181,7 +188,8 @@ void UIManager::renderButton(const UIButton& button) {
     // Render button text (centered)
     if (!button.text.empty()) {
         glm::vec2 textPos = position + button.size * 0.5f;
-        renderSimpleText(button.text, textPos, 24.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        float scale = 24.0f / 30.0f;  // Adjust as needed
+        font.renderTextCentered(button.text, textPos.x, textPos.y, scale, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), windowWidth, windowHeight);
     }
 
     // Debug: Draw border
@@ -194,7 +202,26 @@ void UIManager::renderText(const UIText& text) {
     if (text.text.empty()) return;
 
     glm::vec2 position = getAnchoredPosition(text);
-    renderSimpleText(text.text, position, text.fontSize, text.color);
+    float scale = text.fontSize / 30.0f;
+
+    bool useCenteredRender = (text.anchor == UIAnchor::TOP_CENTER ||
+                              text.anchor == UIAnchor::CENTER ||
+                              text.anchor == UIAnchor::BOTTOM_CENTER);
+
+    if (useCenteredRender) {
+
+        font.renderTextCentered(text.text, position.x, position.y, scale, text.color, windowWidth, windowHeight);
+    } else {
+        if (text.anchor == UIAnchor::TOP_RIGHT ||
+            text.anchor == UIAnchor::CENTER_RIGHT ||
+            text.anchor == UIAnchor::BOTTOM_RIGHT) {
+
+            glm::vec2 textSize = font.measureText(text.text, scale);
+            position.x -= textSize.x; // Move left by text width
+            }
+
+        font.renderText(text.text, position.x, position.y, scale, text.color, windowWidth, windowHeight);
+    }
 }
 
 void UIManager::renderPanel(const UIPanel& panel) {
@@ -237,7 +264,11 @@ void UIManager::renderCrosshair(const UICrosshair& crosshair) {
 
 void UIManager::renderQuad(glm::vec2 position, glm::vec2 size, glm::vec4 color) {
     uiShader.use();
-    uiShader.setInt("renderMode", 0);  // Solid color mode
+    uiShader.setInt("renderMode", 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     uiShader.setVec2("screenSize", glm::vec2(windowWidth, windowHeight));
     uiShader.setVec2("position", position);
     uiShader.setVec2("size", size);
@@ -282,23 +313,11 @@ void UIManager::renderLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, floa
 }
 
 void UIManager::renderSimpleText(const std::string& text, glm::vec2 position, float size, glm::vec4 color) {
-    // Simple placeholder text rendering using small quads
-    // TODO: Replace with proper text rendering (FreeType, bitmap fonts, or SDF)
+    // Calculate scale
+    float scale = size / 30.0f;
 
-    float charWidth = size * 0.6f;
-    float charSpacing = charWidth + 2.0f;
-
-    // Center the text if needed
-    float totalWidth = text.length() * charSpacing;
-    glm::vec2 startPos = position - glm::vec2(totalWidth * 0.5f, size * 0.5f);
-
-    for (size_t i = 0; i < text.length(); ++i) {
-        glm::vec2 charPos = startPos + glm::vec2(i * charSpacing, 0);
-
-        // Render a simple rectangle for each character
-        // This is a placeholder - you'll want real text rendering later
-        renderQuad(charPos, glm::vec2(charWidth, size), color * 0.8f);
-    }
+    // This is for button text - keep it centered
+    font.renderTextCentered(text, position.x, position.y, scale, color, windowWidth, windowHeight);
 }
 
 glm::vec2 UIManager::getAnchoredPosition(const UIElement& element) {
@@ -474,6 +493,8 @@ void UIManager::shutdown() {
         lineVBO = 0;
     }
 
+    font.cleanup();
+
     clearAll();
     std::cout << "[UIManager] Shutdown complete" << std::endl;
 }
@@ -488,8 +509,8 @@ void UIManager::setupMenuUI(GameStateManager* stateManager) {
     UIText title;
     title.id = "menu_title";
     title.text = "DUCK HUNT 3D";
-    title.position = glm::vec2(0, 100);
-    title.fontSize = 72.0f;
+    title.position = glm::vec2(0, 150);
+    title.fontSize = 48.0f;
     title.anchor = UIAnchor::TOP_CENTER;
     title.color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
     addText(title);
@@ -552,36 +573,32 @@ void UIManager::setupPlayingUI() {
     crosshair.anchor = UIAnchor::TOP_LEFT;
     activeCrosshairIndex = addCrosshair(crosshair);
 
-    std::cout << "[UIManager] Added crosshair at index: " << activeCrosshairIndex << std::endl;  // DEBUG
-    std::cout << "[UIManager] Total crosshairs: " << crosshairs.size() << std::endl;  // DEBUG
-
-
-    // Score text
+    // Score text (top-left)
     UIText scoreText;
     scoreText.id = "score_text";
     scoreText.text = "SCORE: 0";
     scoreText.position = glm::vec2(20, 20);
-    scoreText.fontSize = 32.0f;
+    scoreText.fontSize = 24.0f;  // Adjust size as needed
     scoreText.anchor = UIAnchor::TOP_LEFT;
     scoreText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     addText(scoreText);
 
-    // Ammo text
+    // Ammo text (BOTTOM-LEFT)
     UIText ammoText;
     ammoText.id = "ammo_text";
     ammoText.text = "AMMO: 10";
-    ammoText.position = glm::vec2(20, 60);
-    ammoText.fontSize = 32.0f;
-    ammoText.anchor = UIAnchor::TOP_LEFT;
+    ammoText.position = glm::vec2(20, 20);  // 20px from bottom-left
+    ammoText.fontSize = 24.0f;
+    ammoText.anchor = UIAnchor::BOTTOM_LEFT;  // Changed from TOP_LEFT
     ammoText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     addText(ammoText);
 
-    // Round text
+    // Round text (top-right)
     UIText roundText;
     roundText.id = "round_text";
     roundText.text = "ROUND: 1";
-    roundText.position = glm::vec2(20, 20);
-    roundText.fontSize = 32.0f;
+    roundText.position = glm::vec2(20, 20);  // 20px from top-right corner
+    roundText.fontSize = 24.0f;
     roundText.anchor = UIAnchor::TOP_RIGHT;
     roundText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     addText(roundText);
@@ -604,7 +621,7 @@ void UIManager::setupPausedUI(GameStateManager* stateManager) {
     pauseTitle.id = "pause_title";
     pauseTitle.text = "PAUSED";
     pauseTitle.position = glm::vec2(0, -100);
-    pauseTitle.fontSize = 64.0f;
+    pauseTitle.fontSize = 48.0f;
     pauseTitle.anchor = UIAnchor::CENTER;
     pauseTitle.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     addText(pauseTitle);
@@ -725,11 +742,6 @@ void UIManager::setupOptionsUI(GameStateManager* stateManager) {
 }
 
 void UIManager::updateCrosshairPosition() {
-    if (crosshairs.empty()) {
-        std::cout << "[UIManager] No crosshairs to update!" << std::endl;  // DEBUG
-        return;
-    }
-
     glm::vec2 mousePos = InputManager::getMousePosition();
 
     // Debug first time
@@ -747,24 +759,6 @@ void UIManager::updateCrosshairPosition() {
         }
     }
 }
-
-// void UIManager::updateCrosshairPosition() {
-//     if (crosshairs.empty()) return;
-//
-//     // Get mouse position
-//     glm::vec2 mousePos = InputManager::getMousePosition();
-//
-//     // Update all visible crosshairs to follow mouse
-//     for (auto& crosshair : crosshairs) {
-//         if (crosshair.visible) {
-//             // Set position directly to mouse position
-//             // Since we're using TOP_LEFT anchor in getAnchoredPosition,
-//             // we need to adjust for the crosshair being drawn from center
-//             crosshair.position = mousePos;
-//             crosshair.anchor = UIAnchor::TOP_LEFT; // Use direct positioning
-//         }
-//     }
-// }
 
 void UIManager::clearMenuUI() {
     removeElement("menu_title");
@@ -792,4 +786,16 @@ void UIManager::clearGameOverUI() {
     removeElement("gameover_score");
     removeElement("gameover_restart");
     removeElement("gameover_menu");
+}
+
+void UIManager::setCursorVisible(GLFWwindow* window, bool visible) {
+    if (window) {
+        if (visible) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            std::cout << "[UIManager] Cursor mode set to NORMAL" << std::endl;
+        } else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            std::cout << "[UIManager] Cursor mode set to DISABLED" << std::endl;
+        }
+    }
 }

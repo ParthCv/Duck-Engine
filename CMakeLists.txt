@@ -35,6 +35,7 @@ add_executable(DuckEngine
         src/engine/input/InputManager.cpp
         src/engine/game/GameStateManager.cpp
         src/engine/system/UIManager.cpp
+        src/engine/renderer/BitmapFont.cpp
 )
 
 # Include directories for headers

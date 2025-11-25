@@ -1,11 +1,13 @@
 #pragma once
 #include "../renderer/Shader.h"
+#include "../renderer/BitmapFont.h"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
 #include <functional>
 #include "../input/InputManager.h"
+
 
 // Forward declarations
 class GameStateManager;
@@ -171,6 +173,9 @@ public:
     void clearPausedUI();
     void clearGameOverUI();
 
+    // Helper to control GLFW cursor visibility
+    void setCursorVisible(GLFWwindow* window, bool visible);
+
     // Utility
     void setDebugMode(bool enabled) { debugMode = enabled; }
 
@@ -191,6 +196,8 @@ private:
     std::vector<UICrosshair> crosshairs;
 
     int activeCrosshairIndex;
+
+    BitmapFont font;
 
     // Debug mode
     bool debugMode;
