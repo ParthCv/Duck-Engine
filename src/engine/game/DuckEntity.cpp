@@ -59,7 +59,7 @@ void DuckEntity::update(float deltaTime) {
     EntityTransform.AddLocalTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
 
     // TODO: Manually move StaticMeshComponent in a Sin wave manner.
-    // accumulatedTime += deltaTime;
+    accumulatedTime += deltaTime;
     // float randY = std::sin(accumulatedTime);
     // EntityStaticMesh.setPosition(glm::vec3(0,randY,0));
 
@@ -67,7 +67,15 @@ void DuckEntity::update(float deltaTime) {
     // auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
     // OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
 
-    checkIfEscaped();
+    if (!isDead)
+        checkIfEscaped();
+    if (accumulatedTime > 10.0f) {
+        KillDuck();
+    }
+    if (EntityTransform.position.y < DeathPlaneYBound) {
+        this->destroy();
+    }
+
 }
 
 void DuckEntity::beginPlay() {
@@ -83,7 +91,7 @@ void DuckEntity::beginPlay() {
     collider.center.y += collider.size.y / 2.0f;
 
     // TODO: Set the flight path
-    // setRandomFlightPath();
+    setRandomFlightPath();
 }
 
 void DuckEntity::setRandomFlightPath() {
@@ -100,7 +108,7 @@ void DuckEntity::setRandomFlightPath() {
     EntityTransform.WorldRotate(randomAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // TODO: Set Entity Velocity
-    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
+    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 0.1f);
 }
 
 void DuckEntity::checkIfEscaped()
@@ -114,7 +122,14 @@ void DuckEntity::checkIfEscaped()
 
 void DuckEntity::KillDuck()
 {
-    this->destroy();
+    auto& EntityTransform = this->getComponent<Transform>();
+    auto& EntityVelocity = this->getComponent<Velocity>();
+    // EntityTransform.WorldRotate(0, glm::vec3(0.0f, EntityTransform.rotation.y, 0.0f));
+    // EntityTransform.LocalRotate(0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
+    EntityVelocity.setVelocity(glm::vec3(0.0f, -1.0f, 0.0f), 1.0f);
+    // this->destroy();
+    // EntityTransform.AddLocalTransform(glm::vec3(0.0f, 0.0f, 0.0f));
 
     // TODO: Increment GameState points here.
     // ...

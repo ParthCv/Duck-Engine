@@ -11,7 +11,10 @@ public:
 
     glm::vec3 spawnPosition{};
 
-    float escapeDistance = 10;
+    float escapeDistance = 20;
+
+    bool isDead = false;
+    float DeathPlaneYBound = -10.0f;
 
     DuckEntity(World& InWorld);
 
