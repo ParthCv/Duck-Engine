@@ -12,10 +12,9 @@
 
 World::World()
 {
-    // TEMP LOADINg DUCKS RN
-    for (size_t i = 0; i < duckPos.size(); ++i) {
-        DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
-    }
+    // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists 
+    // before meshes are loaded.
+    
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
     collisionSystem = new CollisionSystem();
 
@@ -24,24 +23,6 @@ World::World()
 
 void World::update(float deltaTime)
 {
-    float time = glfwGetTime();
-
-    float radius = 10.0f;
-    float height = 3.0f;
-
-    camera->position.x = sin(time * 0.5f) * radius;
-    camera->position.z = cos(time * 0.5f) * radius;
-    camera->position.y = height;
-
-    camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
-
-    if (lightManager.getPointLightCount() > 1) {
-        auto& light = lightManager.getPointLight(1);
-        light.position.x = sin(time) * 3.0f;
-        light.position.z = cos(time) * 3.0f;
-    }
-
-    testRandomRaycasting(deltaTime);
     EntityManager.Update(deltaTime);
 }
 
@@ -51,18 +32,20 @@ void World::beginPlay()
     std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
+    // --- MOVE INITIAL DUCK SPAWN HERE ---
+    // This ensures OpenGL context is ready for mesh loading in DuckEntity constructor
+    // for (size_t i = 0; i < duckPos.size(); ++i) {
+    //     DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
+    // }
+
     EntityManager.BeginPlay();
 
-    // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
-
-    // glm::vec3 camPos = glm::vec3(0.0f, 5.0f, 10.0f);
 
     glm::vec3 camPos = camera->position;
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
-    // Add raycast source component
     auto& raySource = PlayerEntity.addComponent<RaycastSource>();
     raySource.maxDistance = 100.0f;
     raySource.drawRay = true;
@@ -121,51 +104,6 @@ void World::addLightsToWorld() {
 void World::cleanUp()
 {
 }
-
-void World::testRandomRaycasting(float deltaTime)
-{
-    static float timeUntilNextFire = 0.5f;
-    timeUntilNextFire -= deltaTime;
-
-    auto raySourceEntities = EntityManager.GetEntitiesWith<RaycastSource>();
-    if (raySourceEntities.empty()) return;
-
-    auto* rayEntity = raySourceEntities[0];
-    auto& raySource = rayEntity->getComponent<RaycastSource>();
-
-    if (!rayEntity->hasComponent<Transform>()) return;
-    auto& transform = rayEntity->getComponent<Transform>();
-
-    glm::vec3 cameraForward = glm::normalize(camera->target - camera->position);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraForward, glm::vec3(0, 1, 0)));
-    glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, cameraForward));
-
-    transform.position = camera->position + (cameraForward * 1.0f) + (cameraUp * 1.0f);
-
-    if (timeUntilNextFire <= 0.0f) {
-        timeUntilNextFire = 0.1f + static_cast<float>(rand()) / (RAND_MAX / 0.4f);
-
-        auto targets = EntityManager.GetEntitiesWith<BoxCollider, Transform>();
-
-        if (!targets.empty()) {
-            int randomIndex = rand() % targets.size();
-            Entity* targetEntity = targets[randomIndex];
-
-            glm::vec3 targetPos = targetEntity->getComponent<Transform>().position;
-
-            float noiseAmount = 2.0f;
-            targetPos.x += ((float)rand() / RAND_MAX - 0.5f) * noiseAmount;
-            targetPos.y += ((float)rand() / RAND_MAX - 0.5f) * noiseAmount;
-            targetPos.z += ((float)rand() / RAND_MAX - 0.5f) * noiseAmount;
-            raySource.direction = glm::normalize(targetPos - transform.position);
-
-            if (collisionSystem) {
-                collisionSystem->RaycastFromEntity(EntityManager, *rayEntity);
-            }
-        }
-    }
-}
-
 
 void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
     float vertices[] = {

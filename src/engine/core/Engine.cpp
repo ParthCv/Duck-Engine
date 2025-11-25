@@ -4,9 +4,15 @@
 #include "../src/engine/ecs/Component.h"
 #include "../system/DebugRenderSystem.h"
 
+// INCLUDE NEW MANAGERS
+#include "../game/GameStateManager.h"
+#include "../input/InputManager.h"
+
 struct StaticMeshComponent;
 
-DebugRenderSystem debugSystem; // Global instance since we cannot modify Engine.h
+// Global instances since we cannot modify Engine.h easily
+DebugRenderSystem debugSystem;
+GameStateManager gameStateManager;
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -42,7 +48,6 @@ bool Engine::initialize(int width, int height) {
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
-
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     gBuffer.initialize(screenWidth, screenHeight);
@@ -53,32 +58,26 @@ bool Engine::initialize(int width, int height) {
         std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
-
     if (!basicShader.loadFromFiles("../assets/shaders/geometry.vert", "../assets/shaders/geometry.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
-
     if (!lightingShader.loadFromFiles("../assets/shaders/light.vert", "../assets/shaders/light.frag")) {
         std::cerr << "Failed to load light shaders" << std::endl;
         return false;
     }
-
     if (!irradianceShader.loadFromFiles("../assets/shaders/irradiance_cubemap.vert", "../assets/shaders/irradiance_cubemap.frag")) {
         std::cerr << "Failed to load irradiance shader" << std::endl;
         return false;
     }
-
     if (!prefilterShader.loadFromFiles("../assets/shaders/prefilter.vert", "../assets/shaders/prefilter.frag")) {
         std::cerr << "Failed to load prefilter shader" << std::endl;
         return false;
     }
-
     if (!brdfLUTShader.loadFromFiles("../assets/shaders/brdf_lut.vert", "../assets/shaders/brdf_lut.frag")) {
         std::cerr << "Failed to load BRDF shader" << std::endl;
         return false;
     }
-
     if (!physicsDebugShader.loadFromFiles("../assets/shaders/physics_debug.vert", "../assets/shaders/physics_debug.frag")) {
         std::cerr << "Failed to load debug shader" << std::endl;
         return false;
@@ -92,27 +91,25 @@ bool Engine::initialize(int width, int height) {
     cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
-    cubeMaterial.setMetallic(1.0f);      // Non-metallic
-    cubeMaterial.setRoughness(0.1f);     // Mid-rough
-    cubeMaterial.setAO(1.0f);            // Full ambient occlusion
+    cubeMaterial.setMetallic(1.0f);
+    cubeMaterial.setRoughness(0.1f);
+    cubeMaterial.setAO(1.0f);
 
     envCubemap.fromHDR(hdrTexture, equirectShader);
-    glViewport(0, 0, screenWidth, screenHeight); // RESET THE VIEWPORT!!
+    glViewport(0, 0, screenWidth, screenHeight);
     skybox.initialize("../assets/shaders/skybox.vert", "../assets/shaders/skybox.frag");
 
     irradianceMap.generateIrradiance(envCubemap, irradianceShader, 64);
     glViewport(0, 0, screenWidth, screenHeight);
 
     prefilterMap.generatePrefilter(envCubemap, prefilterShader, 128, 5);
-    std::cout << "Prefilter map ID: " << prefilterMap.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
     brdfLUT.generateBRDFLUT(brdfLUTShader, 512);
-    std::cout << "BRDF LUT ID: " << brdfLUT.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
     // Initialize Debug Renderer
-    debugSystem.init(); //
+    debugSystem.init();
 
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
@@ -124,6 +121,10 @@ bool Engine::initialize(int width, int height) {
     world.camera = &camera;
     world.beginPlay();
 
+    // === INITIALIZE NEW MANAGERS ===
+    InputManager::initialize(window);
+    gameStateManager.setWorldContext(&world);
+
     return true;
 }
 
@@ -134,6 +135,9 @@ void Engine::run() {
         float currentFrame = glfwGetTime();
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        // === UPDATE INPUT MANAGER ===
+        InputManager::update();
 
         processInput();
         update(deltaTime);
@@ -156,36 +160,31 @@ void Engine::processInput() {
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE) {
         cKeyPressed = false;
     }
-
 };
 
 void Engine::update(float deltaTime) {
-    world.update(deltaTime);
+    // Instead of calling world.update() directly, we update via GameStateManager
+    gameStateManager.update(deltaTime);
 }
 
 void Engine::render() {
     // ==== GEOMETRY PASS ====
     gBuffer.bindForWriting();
 
-    // Clear with color
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     renderEntities();
 
     // ==== LIGHTING PASS ====
-    // Unbind GBuffer framebuffer and switch back to screen
     gBuffer.unbind();
     glViewport(0, 0, screenWidth, screenHeight);
 
-    // DISPLAY PASS
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
 
     lightingShader.use();
     lightingShader.setVec3("viewPos", camera.position);
-
-    // Get all lights and pass to shader
     world.lightManager.uploadToShader(lightingShader);
 
     lightingShader.setInt("gPosition", 0);
@@ -204,12 +203,11 @@ void Engine::render() {
     brdfLUT.textureUnit = 6;
     brdfLUT.bind();
 
-    // Render final quad
     renderQuad();
 
     glEnable(GL_DEPTH_TEST);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFramebuffer());  // GBuffer's framebuffer ID
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);  // Default framebuffer
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFramebuffer());
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(
         0, 0, screenWidth, screenHeight,
         0, 0, screenWidth, screenHeight,
@@ -219,6 +217,10 @@ void Engine::render() {
 
     glEnable(GL_DEPTH_TEST);
     skybox.render(camera, envCubemap);
+
+    // ==== GAME STATE UI RENDER ====
+    // If you have UI, it renders here
+    gameStateManager.render();
 
     // ==== DEBUG RENDER PASS ====
     if (bPhysicsDebug) {
@@ -233,7 +235,7 @@ void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
-    debugSystem.cleanup(); //
+    debugSystem.cleanup();
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -247,28 +249,20 @@ void Engine::renderEntities() {
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
-    // TODO: Bind the correct material from the entities static mesh component
     cubeMaterial.bind(basicShader);
 
-    // TODO: store a list of renderable entities to iterate instead
-    // Draw each entity
     for (auto& entity : world.EntityManager.GetEntities())
     {
         if (entity == nullptr) continue;
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
-
-            // Getting the Model.
             glm::mat4 model = staticMeshComponent.getTransformMatrix();
-
             basicShader.setMat4("model", model);
-
             staticMeshComponent.Mesh->bind();
             staticMeshComponent.Mesh->draw();
         }
     }
-
     glBindVertexArray(0);
 }
 
@@ -280,7 +274,6 @@ void Engine::setupQuad() {
          1.0f,  1.0f, 1.0f, 1.0f,
          1.0f, -1.0f, 1.0f, 0.0f,
     };
-
     glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
     glBindVertexArray(quadVAO);

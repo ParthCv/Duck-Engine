@@ -1,18 +1,26 @@
+#include <glad/glad.h> // MUST be included before GLFW
 #include "GameStateManager.h"
 #include <iostream>
 
+#include "../ecs/World.h"
+#include "../ecs/Component.h"
+#include "../input/InputUtils.h"
+#include "../system/CollisionSystem.h"
+#include "DuckEntity.h"
+
 GameStateManager::GameStateManager()
-    : currentState(GameState::MENU)
+    : currentState(GameState::PLAYING)
     , previousState(GameState::MENU)
     , stateTimer(0.0f)
     , onStateChangeCallback(nullptr)
+    , worldContext(nullptr)
 {
-    std::cout << "[GameStateManager] Initialized - Starting in MENU state" << std::endl;
+    std::cout << "[GameStateManager] Initialized - Starting in PLAYING state" << std::endl;
 }
 
 void GameStateManager::setState(GameState newState) {
     if (newState == currentState) {
-        return; // Already in this state
+        return;
     }
 
     std::cout << "[GameStateManager] State transition: "
@@ -20,18 +28,16 @@ void GameStateManager::setState(GameState newState) {
 
     previousState = currentState;
     currentState = newState;
-    stateTimer = 0.0f; // Reset timer for new state
+    stateTimer = 0.0f;
 
     std::cout << getStateString() << std::endl;
 
-    // Notify callback if registered
     notifyStateChange(previousState, currentState);
 }
 
 void GameStateManager::update(float deltaTime) {
     stateTimer += deltaTime;
 
-    // Call state-specific update
     switch (currentState) {
         case GameState::MENU:
             updateMenu(deltaTime);
@@ -55,7 +61,6 @@ void GameStateManager::update(float deltaTime) {
 }
 
 void GameStateManager::render() {
-    // Call state-specific render
     switch (currentState) {
         case GameState::MENU:
             renderMenu();
@@ -95,7 +100,6 @@ void GameStateManager::resumeGame() {
 void GameStateManager::restartGame() {
     std::cout << "[GameStateManager] restarting game..." << std::endl;
     setState(GameState::PLAYING);
-    // Note: Actual game reset logic should be handled by GameManager
 }
 
 void GameStateManager::returnToMenu() {
@@ -127,40 +131,117 @@ void GameStateManager::notifyStateChange(GameState oldState, GameState newState)
 
 void GameStateManager::updateMenu(float deltaTime) {
     // TODO: Menu logic here
-    // - Check for button clicks
-    // - Handle menu navigation
-    // - Start game when "Play" is clicked
-
-    // Debug: Auto-transition after 3 seconds (remove this later)
-    // if (stateTimer > 3.0f) {
-    //     setState(GameState::PLAYING);
-    // }
 }
 
 void GameStateManager::updatePlaying(float deltaTime) {
-    // TODO: Active gameplay logic here
-    // - Update ducks
-    // - Check for shots
-    // - Update score
-    // - Check win/lose conditions
+    // Guard against null world or camera
+    if (!worldContext || !worldContext->camera) return;
 
-    // This is where your main game loop logic goes
-    // The actual duck/shooting logic will be in GameManager
+    // --- CALCULATE CAMERA VECTORS ---
+    glm::mat4 view = worldContext->camera->getViewMatrix();
+    // Row 0 = Right, Row 1 = Up, Row 2 = -Forward (in standard view matrix)
+    glm::vec3 cameraRight = glm::vec3(view[0][0], view[1][0], view[2][0]);
+    glm::vec3 cameraUp    = glm::vec3(view[0][1], view[1][1], view[2][1]);
+    glm::vec3 cameraFwd   = -glm::vec3(view[0][2], view[1][2], view[2][2]);
+
+    // Reconstruct Camera Rotation Quaternion (Used to align ducks)
+    // Columns: Right, Up, Backward (-Forward)
+    glm::mat3 camRotMat(cameraRight, cameraUp, -cameraFwd);
+    glm::quat camRot = glm::quat_cast(camRotMat);
+
+    // --- DUCK SPAWNING LOGIC ---
+    static float spawnTimer = 0.0f;
+    const float SPAWN_INTERVAL = 2.0f;
+
+    spawnTimer += deltaTime;
+    if (spawnTimer >= SPAWN_INTERVAL) {
+        spawnTimer = 0.0f;
+
+        // Determine spawn side: 50% Left (-1), 50% Right (+1) relative to camera
+        bool spawnLeft = (rand() % 2) == 0;
+        float sideMultiplier = spawnLeft ? -1.0f : 1.0f;
+
+        float distForward = 15.0f;  // Distance in front of camera
+        float distSide = 35.0f;     // How far to the left/right (offscreen)
+        float randUp = 0.0f + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 6.0f;
+
+        // Position = CameraPos + (Forward * depth) + (Right * side) + (Up * height)
+        glm::vec3 spawnPos = worldContext->camera->position
+                           + (cameraFwd * distForward)
+                           + (cameraRight * (distSide * sideMultiplier))
+                           + (cameraUp * randUp);
+
+        // Spawn the duck
+        DuckEntity& newDuck = worldContext->EntityManager.CreateDuckEntity(*worldContext, spawnPos);
+
+        if (newDuck.hasComponent<Velocity>() && newDuck.hasComponent<Transform>()) {
+            float speed = 2.0f;
+
+            newDuck.getComponent<Transform>().rotation = camRot;
+
+            if (!spawnLeft) {
+                 newDuck.getComponent<Transform>().WorldRotate(180.0f, glm::vec3(0,1,0));
+            }
+
+            newDuck.getComponent<Velocity>().setVelocity(glm::vec3(1.0f, 0.0f, 0.0f), speed);
+        }
+
+        std::cout << "Spawned duck at relative pos: " << spawnPos.x << ", " << spawnPos.y << ", " << spawnPos.z << std::endl;
+    }
+
+    // Update all entities in the world
+    worldContext->EntityManager.Update(deltaTime);
+
+    // Handle Player Shooting/Raycasting
+    auto raySourceEntities = worldContext->EntityManager.GetEntitiesWith<RaycastSource, Transform>();
+
+    if (!raySourceEntities.empty()) {
+        Entity* playerEntity = raySourceEntities[0];
+        auto& transform = playerEntity->getComponent<Transform>();
+        auto& raySource = playerEntity->getComponent<RaycastSource>();
+
+        // Offset weapon position using the SAME camera vectors we calculated above
+        transform.position = worldContext->camera->position
+                           + (cameraFwd * 0.5f)
+                           - (cameraUp * 0.2f);
+
+        // Check Input
+        if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+
+            glm::vec3 rayDir = InputUtils::screenToWorldRay(
+                InputManager::getMousePosition(),
+                InputManager::getWindowWidth(),
+                InputManager::getWindowHeight(),
+                *worldContext->camera
+            );
+
+            raySource.direction = rayDir;
+            raySource.drawRay = true;
+
+            if (worldContext->collisionSystem) {
+                // Capture the result
+                auto result = worldContext->collisionSystem->RaycastFromEntity(worldContext->EntityManager, *playerEntity);
+
+                // Print the hit entity
+                if (result.hit && result.hitEntity) {
+                    std::cout << "HIT! Entity Address: " << result.hitEntity << std::endl;
+
+                    // --- DESTROY DUCK ON HIT ---
+                    result.hitEntity->destroy();
+
+                } else {
+                    std::cout << "MISS!" << std::endl;
+                }
+            }
+        }
+    }
 }
 
 void GameStateManager::updatePaused(float deltaTime) {
-    // TODO: Paused state - no game updates
-    // - Can still update UI animations
-    // - Check for resume/quit inputs
+    // Paused logic
 }
 
 void GameStateManager::updateRoundTransition(float deltaTime) {
-    // TODO: Between-round logic
-    // - Display round results
-    // - Show "Get Ready" message
-    // - Auto-transition to next round after delay
-
-    // Example: Auto-transition after 2 seconds
     if (stateTimer > 2.0f) {
         std::cout << "[GameStateManager] Round transition complete" << std::endl;
         setState(GameState::PLAYING);
@@ -168,69 +249,27 @@ void GameStateManager::updateRoundTransition(float deltaTime) {
 }
 
 void GameStateManager::updateGameOver(float deltaTime) {
-    // TODO: Game over state
-    // - Display final score
-    // - Check for restart/menu inputs
-    // - High score logic (if implemented)
+    // Game Over logic
 }
 
 void GameStateManager::updateOptions(float deltaTime) {
-    // TODO: Options menu logic
-    // - Volume sliders
+    // Options logic
 }
 
 // ============================================================================
 // STATE-SPECIFIC RENDER METHODS
 // ============================================================================
 
-void GameStateManager::renderMenu() {
-    // TODO: Render main menu
-    // - Title
-    // - Play button
-    // - Options button
-    // - Quit button
+void GameStateManager::renderMenu() { }
 
-}
-
-void GameStateManager::renderPlaying() {
-    // TODO: Render active gameplay
-    // - Ducks
-    // - Crosshair
-    // - Score/HUD
-    // - Background
-
-    // This will call your rendering systems
-}
+void GameStateManager::renderPlaying() { }
 
 void GameStateManager::renderPaused() {
-    // TODO: Render game (dimmed/frozen) + pause overlay
-    // - "PAUSED" text
-    // - Resume button
-    // - Quit to menu button
-
-    // Might want to render the game scene behind a semi-transparent overlay
-    renderPlaying(); // Render game beneath
-    // Then render pause overlay on top
+    renderPlaying();
 }
 
-void GameStateManager::renderRoundTransition() {
-    // TODO: Render transition screen
-    // - "Round X Complete!"
-    // - Score summary
-    // - "Get Ready..."
-}
+void GameStateManager::renderRoundTransition() { }
 
-void GameStateManager::renderGameOver() {
-    // TODO:  game over screen
-    // - "Game Over"
-    // - Final score
-    // - High score (if beat)
-    // - Restart button
-    // - Menu button
-}
+void GameStateManager::renderGameOver() { }
 
-void GameStateManager::renderOptions() {
-    // TODO: Render options menu
-    // - Volume controls
-    // - Back button
-}
+void GameStateManager::renderOptions() { }

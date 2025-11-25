@@ -17,8 +17,8 @@ public:
         : position(0.0f, 0.0f, 3.0f) // Hardcoded position for now
         , target(0.0f, 0.0f, 0.0f)
         , up(0.0f, 1.0f, 0.0f)
-        , fov(90.0f)
         , aspectRatio(16.0f / 9.0f)
+        , fov(90.0f)
         , nearPlane(0.1f)
         , farPlane(100.0f)
     {}
