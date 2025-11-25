@@ -4,13 +4,11 @@
 #include "../src/engine/ecs/Component.h"
 #include "../system/DebugRenderSystem.h"
 
-// INCLUDE NEW MANAGERS
 #include "../game/GameStateManager.h"
 #include "../input/InputManager.h"
 
 struct StaticMeshComponent;
 
-// Global instances since we cannot modify Engine.h easily
 DebugRenderSystem debugSystem;
 GameStateManager gameStateManager;
 
@@ -48,36 +46,45 @@ bool Engine::initialize(int width, int height) {
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
+
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     gBuffer.initialize(screenWidth, screenHeight);
     setupQuad();
+
+    shadowMap.initialize(world.lightManager);
 
     // Load shaders
     if (!equirectShader.loadFromFiles("../assets/shaders/equirect_to_cubemap.vert", "../assets/shaders/equirect_to_cubemap.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
+
     if (!basicShader.loadFromFiles("../assets/shaders/geometry.vert", "../assets/shaders/geometry.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
+
     if (!lightingShader.loadFromFiles("../assets/shaders/light.vert", "../assets/shaders/light.frag")) {
         std::cerr << "Failed to load light shaders" << std::endl;
         return false;
     }
+
     if (!irradianceShader.loadFromFiles("../assets/shaders/irradiance_cubemap.vert", "../assets/shaders/irradiance_cubemap.frag")) {
         std::cerr << "Failed to load irradiance shader" << std::endl;
         return false;
     }
+
     if (!prefilterShader.loadFromFiles("../assets/shaders/prefilter.vert", "../assets/shaders/prefilter.frag")) {
         std::cerr << "Failed to load prefilter shader" << std::endl;
         return false;
     }
+
     if (!brdfLUTShader.loadFromFiles("../assets/shaders/brdf_lut.vert", "../assets/shaders/brdf_lut.frag")) {
         std::cerr << "Failed to load BRDF shader" << std::endl;
         return false;
     }
+
     if (!physicsDebugShader.loadFromFiles("../assets/shaders/physics_debug.vert", "../assets/shaders/physics_debug.frag")) {
         std::cerr << "Failed to load debug shader" << std::endl;
         return false;
@@ -91,25 +98,29 @@ bool Engine::initialize(int width, int height) {
     cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
-    cubeMaterial.setMetallic(1.0f);
-    cubeMaterial.setRoughness(0.1f);
-    cubeMaterial.setAO(1.0f);
+    cubeMaterial.setMetallic(1.0f);      // Non-metallic
+    cubeMaterial.setRoughness(0.1f);     // Mid-rough
+    cubeMaterial.setAO(1.0f);            // Full ambient occlusion
 
     envCubemap.fromHDR(hdrTexture, equirectShader);
-    glViewport(0, 0, screenWidth, screenHeight);
+    glViewport(0, 0, screenWidth, screenHeight); // RESET THE VIEWPORT!!
     skybox.initialize("../assets/shaders/skybox.vert", "../assets/shaders/skybox.frag");
 
     irradianceMap.generateIrradiance(envCubemap, irradianceShader, 64);
     glViewport(0, 0, screenWidth, screenHeight);
 
     prefilterMap.generatePrefilter(envCubemap, prefilterShader, 128, 5);
+    std::cout << "Prefilter map ID: " << prefilterMap.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
     brdfLUT.generateBRDFLUT(brdfLUTShader, 512);
+    std::cout << "BRDF LUT ID: " << brdfLUT.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
     // Initialize Debug Renderer
     debugSystem.init();
+
+    createFloor();
 
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
@@ -160,6 +171,7 @@ void Engine::processInput() {
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE) {
         cKeyPressed = false;
     }
+
 };
 
 void Engine::update(float deltaTime) {
@@ -168,23 +180,35 @@ void Engine::update(float deltaTime) {
 }
 
 void Engine::render() {
+    //  ==== SHADOW PASS ====
+    // TODO: REMOVE - If final game does not have dynamic directional light
+    shadowMap.updateLightSpaceTransform(world.lightManager);  // Synchronize with LightManager
+
+    shadowMap.render(world);
+
     // ==== GEOMETRY PASS ====
     gBuffer.bindForWriting();
 
+    // Clear with color
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    renderFloor();
     renderEntities();
 
     // ==== LIGHTING PASS ====
+    // Unbind GBuffer framebuffer and switch back to screen
     gBuffer.unbind();
     glViewport(0, 0, screenWidth, screenHeight);
 
+    // DISPLAY PASS
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
 
     lightingShader.use();
     lightingShader.setVec3("viewPos", camera.position);
+
+    // Get all lights and pass to shader
     world.lightManager.uploadToShader(lightingShader);
 
     lightingShader.setInt("gPosition", 0);
@@ -203,11 +227,17 @@ void Engine::render() {
     brdfLUT.textureUnit = 6;
     brdfLUT.bind();
 
+    glActiveTexture(GL_TEXTURE0 + 7);
+    glBindTexture(GL_TEXTURE_2D, shadowMap.getDepthMap());
+    lightingShader.setInt("shadowMap", 7);
+    lightingShader.setMat4("lightSpaceMatrix", shadowMap.getLightSpaceMatrix());
+
+    // Render final quad
     renderQuad();
 
     glEnable(GL_DEPTH_TEST);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFramebuffer());
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFramebuffer());  // GBuffer's framebuffer ID
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);  // Default framebuffer
     glBlitFramebuffer(
         0, 0, screenWidth, screenHeight,
         0, 0, screenWidth, screenHeight,
@@ -236,6 +266,10 @@ void Engine::shutdown() {
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
     debugSystem.cleanup();
+
+    glDeleteVertexArrays(1, &floorVAO);
+    glDeleteBuffers(1, &floorVBO);
+
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -249,20 +283,28 @@ void Engine::renderEntities() {
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
+    // TODO: Bind the correct material from the entities static mesh component
     cubeMaterial.bind(basicShader);
 
+    // TODO: store a list of renderable entities to iterate instead
+    // Draw each entity
     for (auto& entity : world.EntityManager.GetEntities())
     {
         if (entity == nullptr) continue;
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
+
+            // Getting the Model.
             glm::mat4 model = staticMeshComponent.getTransformMatrix();
+
             basicShader.setMat4("model", model);
+
             staticMeshComponent.Mesh->bind();
             staticMeshComponent.Mesh->draw();
         }
     }
+
     glBindVertexArray(0);
 }
 
@@ -274,6 +316,7 @@ void Engine::setupQuad() {
          1.0f,  1.0f, 1.0f, 1.0f,
          1.0f, -1.0f, 1.0f, 0.0f,
     };
+
     glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
     glBindVertexArray(quadVAO);
@@ -288,4 +331,56 @@ void Engine::setupQuad() {
 void Engine::renderQuad() const {
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void Engine::createFloor() {
+    float floorSize = 50.0f;  // Large but not truly infinite
+    float floorVertices[] = {
+        // Positions          // Normals           // TexCoords
+        -floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+         floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  10.0f, 0.0f,
+         floorSize, 1.5f,  floorSize,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f,
+         floorSize, 1.5f,  floorSize,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f,
+        -floorSize, 1.5f,  floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 10.0f,
+        -floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f
+    };
+
+    glGenVertexArrays(1, &floorVAO);
+    glGenBuffers(1, &floorVBO);
+
+    glBindVertexArray(floorVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
+
+    // Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    // TexCoord
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+}
+
+void Engine::renderFloor() {
+    basicShader.use();
+
+    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 projection = camera.getProjectionMatrix();
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));  // Lower the floor
+
+    basicShader.setMat4("model", model);
+    basicShader.setMat4("view", view);
+    basicShader.setMat4("projection", projection);
+
+    // Use same material or create a floor material
+    cubeMaterial.bind(basicShader);
+
+    glBindVertexArray(floorVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 }

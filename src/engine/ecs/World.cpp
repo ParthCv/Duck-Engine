@@ -12,40 +12,70 @@
 
 World::World()
 {
-    // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists 
+    // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists
     // before meshes are loaded.
-    
+
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
     collisionSystem = new CollisionSystem();
 
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    // Set up lights
+    addLightsToWorld();
+    std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
+    std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 }
 
 void World::update(float deltaTime)
 {
+    float time = glfwGetTime();
+
+    float radius = 10.0f;
+    float height = 3.0f;
+
+    camera->position.x = sin(time * 0.5f) * radius;
+    camera->position.z = cos(time * 0.5f) * radius;
+    camera->position.y = height;
+
+    camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
+
+    // TODO: REMOVE - Test functionality for moving directional light
+    if (lightManager.getDirectionalLightCount() > 0) {
+        auto& dirLight = lightManager.getDirectionalLight(0);
+
+        // Rotate around Y axis
+        float angle = deltaTime * 0.2f; // Rotation speed
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+        dirLight.direction = glm::vec3(rotation * glm::vec4(dirLight.direction, 0.0f));
+    }
+
+    if (lightManager.getPointLightCount() > 1) {
+        auto& light = lightManager.getPointLight(1);
+        light.position.x = sin(time) * 3.0f;
+        light.position.z = cos(time) * 3.0f;
+    }
     EntityManager.Update(deltaTime);
 }
 
 void World::beginPlay()
 {
-    addLightsToWorld();
-    std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
-    std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
-
-    // --- MOVE INITIAL DUCK SPAWN HERE ---
-    // This ensures OpenGL context is ready for mesh loading in DuckEntity constructor
-    // for (size_t i = 0; i < duckPos.size(); ++i) {
-    //     DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
-    // }
+    // Moved to initialize()
+    // addLightsToWorld();
+    // std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
+    // std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
     EntityManager.BeginPlay();
 
+    // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
+
+    // glm::vec3 camPos = glm::vec3(0.0f, 5.0f, 10.0f);
 
     glm::vec3 camPos = camera->position;
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
+    // Add raycast source component
     auto& raySource = PlayerEntity.addComponent<RaycastSource>();
     raySource.maxDistance = 100.0f;
     raySource.drawRay = true;

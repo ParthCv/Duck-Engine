@@ -6,7 +6,7 @@
 #include "../ecs/World.h"
 #include "../ecs/Component.h"
 #include "GLFW/glfw3.h"
-#include <cstdlib> // For rand()
+#include <cstdlib>
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -39,6 +39,7 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
     spawnPosition = InPosition;
 
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
+    addComponent<StaticMeshComponent>(*this );
 
     // Initialize Mesh
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
@@ -63,9 +64,19 @@ void DuckEntity::update(float deltaTime) {
     // Get Components
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
+    auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
 
     // Move Duck by Velocity
     EntityTransform.AddLocalTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
+
+    // TODO: Manually move StaticMeshComponent in a Sin wave manner.
+    // accumulatedTime += deltaTime;
+    // float randY = std::sin(accumulatedTime);
+    // EntityStaticMesh.setPosition(glm::vec3(0,randY,0));
+
+    // Entity& OwningEntity = *EntityStaticMesh.OwningEntity;
+    // auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
+    // OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
 
     checkIfEscaped();
 }
@@ -76,7 +87,9 @@ void DuckEntity::beginPlay() {
 }
 
 void DuckEntity::setRandomFlightPath() {
+
     auto& EntityTransform = this->getComponent<Transform>();
+    auto& EntityStaticMesh = this->getComponent<StaticMeshComponent>();
     auto& EntityVelocity = this->getComponent<Velocity>();
 
     bool moveRight = EntityTransform.position.x < 0.0f;
@@ -95,9 +108,16 @@ void DuckEntity::setRandomFlightPath() {
 void DuckEntity::checkIfEscaped()
 {
     auto& EntityTransform = this->getComponent<Transform>();
-    // Increased escape distance slightly since they spawn further out
-    if (glm::distance(EntityTransform.position, spawnPosition) > 100.0f)
+    if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
     {
         this->destroy();
     }
+}
+
+void DuckEntity::KillDuck()
+{
+    this->destroy();
+
+    // TODO: Increment GameState points here.
+    // ...
 }
