@@ -40,6 +40,8 @@ add_executable(DuckEngine
         src/engine/core/model/StaticMesh.cpp
         src/engine/core/model/StaticMesh.h
         src/engine/renderer/ShadowMap.cpp
+        src/engine/system/UIManager.cpp
+        src/engine/renderer/BitmapFont.cpp
 )
 
 # Include directories for headers

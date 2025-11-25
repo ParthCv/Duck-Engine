@@ -9,6 +9,8 @@
 #include "../renderer/GBuffer.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
+#include "../system/UIManager.h"
+#include "../game/GameStateManager.h"
 #include "../renderer/ShadowMap.h"
 
 
@@ -29,6 +31,9 @@ public:
     GLuint quadVAO, quadVBO;
     void setupQuad();
     void renderQuad() const;
+
+    UIManager uiManager;
+    GameStateManager stateManager;
 
 private:
     GLFWwindow* window = nullptr;
@@ -69,4 +74,6 @@ private:
     void renderFloor();
 
     void renderEntities();
+    void handleStateChange(GameState oldState, GameState newState);
+
 };
