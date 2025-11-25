@@ -16,7 +16,6 @@ struct Vertex {
 
 class StaticMesh
 {
-private:
     GLuint VAO;
     std::vector<GLuint> VBOs;
     GLuint EBO;
