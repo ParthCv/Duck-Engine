@@ -7,6 +7,7 @@
 #include "../ecs/Component.h"
 #include "GLFW/glfw3.h"
 #include <cstdlib>
+#include <iostream>
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -123,7 +124,7 @@ void DuckEntity::checkIfEscaped()
 void DuckEntity::KillDuck()
 {
     this->destroy();
-
+    std::cout << "Duck Died" << std::endl;
     // TODO: Increment GameState points here.
     // ...
 }
