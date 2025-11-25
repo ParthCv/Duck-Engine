@@ -115,7 +115,7 @@ void DuckEntity::checkIfEscaped()
 {
     auto& EntityTransform = this->getComponent<Transform>();
     // Increased escape distance slightly since they spawn further out
-    if (glm::distance(EntityTransform.position, spawnPosition) > 10.0f)
+    if (glm::distance(EntityTransform.position, spawnPosition) > 100.0f)
     {
         this->destroy();
     }

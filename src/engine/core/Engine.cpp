@@ -158,8 +158,6 @@ void Engine::run() {
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        InputManager::update();
-
         processInput();
         update(deltaTime);
         render();
@@ -295,7 +293,6 @@ void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
     cubeMaterial.unbind();
-    debugSystem.cleanup();
     uiManager.shutdown();
     debugSystem.cleanup();
 

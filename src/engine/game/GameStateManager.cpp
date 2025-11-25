@@ -1,3 +1,4 @@
+#include <glad/glad.h>
 #include "GameStateManager.h"
 #include <iostream>
 

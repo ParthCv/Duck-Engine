@@ -54,6 +54,7 @@ void World::update(float deltaTime)
         light.position.x = sin(time) * 3.0f;
         light.position.z = cos(time) * 3.0f;
     }
+
     EntityManager.Update(deltaTime);
 }
 
@@ -65,6 +66,10 @@ void World::beginPlay()
     // std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
     EntityManager.BeginPlay();
+
+    for (size_t i = 0; i < duckPos.size(); ++i) {
+        DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
+    }
 
     // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
