@@ -24,6 +24,8 @@ World::World()
     addLightsToWorld();
     std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
+
+    duckSpawnerManager = new DuckSpawnerManager(*this);
 }
 
 void World::update(float deltaTime)
@@ -56,6 +58,7 @@ void World::update(float deltaTime)
     }
 
     EntityManager.Update(deltaTime);
+    duckSpawnerManager->Update(deltaTime);
 }
 
 void World::beginPlay()
@@ -64,8 +67,6 @@ void World::beginPlay()
     // addLightsToWorld();
     // std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
     // std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
-
-    EntityManager.BeginPlay();
 
     for (size_t i = 0; i < duckPos.size(); ++i) {
         DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
@@ -85,6 +86,8 @@ void World::beginPlay()
     raySource.maxDistance = 100.0f;
     raySource.drawRay = true;
     raySource.direction = glm::vec3(0.0f, 0.0f, -1.0f);
+
+    EntityManager.BeginPlay();
 }
 
 void World::addLightsToWorld() {
