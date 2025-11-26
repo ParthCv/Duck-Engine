@@ -4,7 +4,7 @@
 
 #include "../../ecs/World.h"
 #include "../../ecs/Component.h"
-#include "../src/engine/core/managers/InputUtils.h"
+#include "../../utils/InputUtils.h"
 #include "../../system/CollisionSystem.h"
 #include "../../game/DuckEntity.h"
 #include "InputManager.h"

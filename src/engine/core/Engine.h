@@ -9,9 +9,10 @@
 #include "../renderer/GBuffer.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
+#include "../renderer/ShadowMap.h"
 #include "managers/UIManager.h"
 #include "managers/GameStateManager.h"
-#include "../renderer/ShadowMap.h"
+#include "../utils/LoadingScreen.h"
 
 
 class Engine {
@@ -68,6 +69,8 @@ private:
     Texture brdfLUT;
 
     Texture shadowMapTexture;
+
+    LoadingScreen loadingScreen;
 
     Shader physicsDebugShader;
     bool bPhysicsDebug = false;

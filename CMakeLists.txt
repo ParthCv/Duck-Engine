@@ -42,6 +42,7 @@ add_executable(DuckEngine
         src/engine/renderer/ShadowMap.cpp
         src/engine/core/managers/UIManager.cpp
         src/engine/renderer/BitmapFont.cpp
+        src/engine/utils/LoadingScreen.cpp
 )
 
 # Include directories for headers

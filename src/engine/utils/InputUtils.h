@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
-#include "../../renderer/Camera.h"
+#include "../renderer/Camera.h"
 
 class InputUtils {
 public:
