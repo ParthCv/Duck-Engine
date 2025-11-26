@@ -42,6 +42,9 @@ add_executable(DuckEngine
         src/engine/renderer/ShadowMap.cpp
         src/engine/system/UIManager.cpp
         src/engine/renderer/BitmapFont.cpp
+        src/engine/system/AudioManager.h
+        src/engine/system/AudioManager.cpp
+        dependencies/OpenAL/libs/Win64/dr_wav.h
         src/engine/system/DuckSpawnerManager.cpp
         src/engine/system/DuckSpawnerManager.h
         src/engine/system/AudioManager.h
