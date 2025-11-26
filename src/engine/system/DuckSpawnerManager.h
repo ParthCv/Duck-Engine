@@ -25,6 +25,8 @@ public:
 
     float accumulatedTime = 0.0f;
 
+    std::vector<glm::vec3> spawnPositions;
+
     DuckSpawnerManager(World& InWorld);
 
     void Update(float deltaTime);
