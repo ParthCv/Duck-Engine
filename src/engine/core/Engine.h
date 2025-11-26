@@ -18,7 +18,7 @@ class Engine {
 public:
     World world;
 
-    bool initialize(int width, int height);
+    bool initialize(int width, int height, bool fullscreen);
     void run();
     void shutdown();
 

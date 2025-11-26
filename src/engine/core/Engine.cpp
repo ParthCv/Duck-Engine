@@ -13,7 +13,7 @@ struct StaticMeshComponent;
 DebugRenderSystem debugSystem;
 GameStateManager stateManager;
 
-bool Engine::initialize(int width, int height) {
+bool Engine::initialize(int width, int height, bool fullscreen) {
     screenWidth = width;
     screenHeight = height;
 
@@ -27,6 +27,14 @@ bool Engine::initialize(int width, int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWmonitor* monitor = nullptr;
+    if (fullscreen) {
+        monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        screenWidth = mode->width;
+        screenHeight = mode->height;
+    }
 
     // Create window FIRST
     window = glfwCreateWindow(screenWidth, screenHeight, "Duck Hunt 3D", nullptr, nullptr);
