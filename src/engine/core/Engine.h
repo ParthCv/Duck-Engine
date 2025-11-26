@@ -22,6 +22,8 @@ public:
     void run();
     void shutdown();
 
+    void onResize(int width, int height);
+
     GBuffer gBuffer;
     ShadowMap shadowMap;
     // Temp
@@ -43,6 +45,8 @@ private:
     void processInput();
     void update(float deltaTime);
     void render();
+
+    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
     Camera camera;
 

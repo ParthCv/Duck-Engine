@@ -37,6 +37,8 @@ bool Engine::initialize(int width, int height) {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     // Initialize GLAD
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
@@ -294,6 +296,11 @@ void Engine::render() {
 
 }
 
+void Engine::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
+    Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+    engine->onResize(width, height);
+}
+
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
@@ -306,6 +313,21 @@ void Engine::shutdown() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void Engine::onResize(int width, int height) {
+    screenWidth = width;
+    screenHeight = height;
+
+    glViewport(0, 0, width, height);
+
+    // Resize GBuffer
+    gBuffer.resize(width, height);
+
+    // Update camera aspect ratio
+    camera.updateAspectRatio(width, height);
+
+    std::cout << "Window resized to: " << width << "x" << height << std::endl;
 }
 
 void Engine::renderEntities() {
