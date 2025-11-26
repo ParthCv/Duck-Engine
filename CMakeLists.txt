@@ -44,6 +44,8 @@ add_executable(DuckEngine
         src/engine/renderer/BitmapFont.cpp
         src/engine/core/managers/ResourceManager.cpp
         src/engine/core/managers/ResourceManager.h
+        src/engine/system/DuckSpawnerManager.cpp
+        src/engine/system/DuckSpawnerManager.h
 )
 
 # Include directories for headers
