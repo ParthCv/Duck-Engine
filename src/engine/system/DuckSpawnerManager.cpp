@@ -3,12 +3,14 @@
 //
 
 #include "DuckSpawnerManager.h"
+#include "../game/GameUtils.h"
 
 #include <iostream>
 
 DuckSpawnerManager::DuckSpawnerManager(World &InWorld) :
     world(&InWorld)
 {
+    spawnPositions = GenerateHalfRingPoints(glm::vec3(0,0,0), 15, 5);
 }
 
 void DuckSpawnerManager::Update(float deltaTime)
@@ -40,6 +42,10 @@ void DuckSpawnerManager::SpawnDuck()
 
     // glm::vec3 initialForwardVector = glm::vec3(0.0f, 0.0f, 1.0f);
     // glm::vec3 currentForwardVector = world.camera
+
+    // TODO: Half-ring Solution
+    int randomIndex = rand() % spawnPositions.size();
+    world->EntityManager.CreateDuckEntity(*world, spawnPositions[randomIndex]);
 }
 
 void DuckSpawnerManager::ResetRound() {
