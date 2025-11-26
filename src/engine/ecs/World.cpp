@@ -15,7 +15,22 @@ World::World()
     // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists
     // before meshes are loaded.
 
-    std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
+    // TEMP LOADINg DUCKS RN
+    for (size_t i = 0; i < duckPos.size(); ++i) {
+        DuckEntity &Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
+    }
+
+    // Temp floor entity to test shadows
+    // DuckEntity& FloorDuck = EntityManager.CreateDuckEntity(*this, duckPos[duckPos.size()]);
+    // if (FloorDuck.hasComponent<Transform>()) {
+    //     FloorDuck.getComponent<Transform>().SetTransform(glm::vec3(0.0f, -2.0f, 0.0f));
+    //     FloorDuck.getComponent<Transform>().SetRotation(glm::vec3(glm::radians(45.0f),
+    //                                                     glm::radians(0.0f),
+    //                                                     glm::radians(0.0f)));
+    //     FloorDuck.getComponent<Transform>().scale = glm::vec3(100.0f, 1.0f, 100.0f);
+    // }
+
+    std::cout << "Entity Length: " << EntityManager.GetEntities().size() << std::endl;
     collisionSystem = new CollisionSystem();
 
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -24,6 +39,8 @@ World::World()
     addLightsToWorld();
     std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
+
+    duckSpawnerManager = new DuckSpawnerManager(*this);
 }
 
 void World::update(float deltaTime)
@@ -56,6 +73,7 @@ void World::update(float deltaTime)
     }
 
     EntityManager.Update(deltaTime);
+    duckSpawnerManager->Update(deltaTime);
 }
 
 void World::beginPlay()
