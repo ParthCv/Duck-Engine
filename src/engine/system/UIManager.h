@@ -68,7 +68,7 @@ struct UIButton : public UIElement {
         , isPressed(false)
     {
         type = UIElementType::BUTTON;
-        color = glm::vec4(0.3f, 0.3f, 0.3f, 0.8f);
+        color = glm::vec4(0.3f, 0.3f, 0.3f, 0.0f);
         hoverColor = glm::vec4(0.5f, 0.5f, 0.5f, 0.9f);
         pressedColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     }
