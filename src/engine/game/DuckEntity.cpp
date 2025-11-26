@@ -150,9 +150,9 @@ void DuckEntity::KillDuck() {
         return;
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
-    EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
+    // EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
     EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f);
-    cook();
+    // cook();  // Change static mesh
     isDead = true;
 
     std::cout << "Duck Died" << std::endl;
@@ -161,10 +161,15 @@ void DuckEntity::KillDuck() {
 }
 
 void DuckEntity::fall() {
-    // auto& EntityTransform = this->getComponent<Transform>();
+    auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
-    // EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
-    EntityVelocity.setVelocity(glm::vec3(0.0f, -0.2f, 0.0f), 1.0f);
+
+    // Calculate local velocity needed to fall "world" down
+    glm::quat inverseRotation = glm::inverse(EntityTransform.rotation);
+    glm::vec3 localDown = inverseRotation * glm::vec3(0.0f, -1.0f, 0.0f);
+    glm::vec3 fallVelocity = localDown * 0.2f;
+
+    EntityVelocity.setVelocity(fallVelocity, 1.0f);
 }
 
 // Change static mesh on death
