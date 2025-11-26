@@ -6,6 +6,8 @@
 #include "../ecs/World.h"
 #include "../ecs/Component.h"
 #include "GLFW/glfw3.h"
+#include <cstdlib>
+#include <iostream>
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -16,8 +18,15 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
-    collider.size = glm::vec3(1.1f);
-    collider.center = glm::vec3(0.0f);
+
+    // Initialize Mesh
+    auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
+    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+
+    // Configure Collider based on Mesh
+    collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
+    collider.center = staticMeshComponent.Mesh->getCenter();
+    collider.center.y += collider.size.y / 2.0f;
 
     // Initialize Debug
     auto& debug = addComponent<DebugDrawable>();
@@ -35,9 +44,15 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
     addComponent<StaticMeshComponent>(*this );
 
+    // Initialize Mesh
+    auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
+    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+
+    // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
-    collider.size = glm::vec3(1.1f);
-    collider.center = glm::vec3(0.0f);
+    collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
+    collider.center = staticMeshComponent.Mesh->getCenter();
+    collider.center.y += collider.size.y / 2.0f;
 
     auto& debug = addComponent<DebugDrawable>();
     debug.drawCollider = true;
@@ -72,18 +87,7 @@ void DuckEntity::update(float deltaTime) {
 
 void DuckEntity::beginPlay() {
     Entity::beginPlay();
-
-    auto& staticMeshComponent = getComponent<StaticMeshComponent>();
-    staticMeshComponent.loadMesh("../assets/models/duck.obj");
-
-    // TODO: These lines must come after mesh is loaded but crash occurs if mesh is loaded in constructor
-    auto& collider = getComponent<BoxCollider>();
-    collider.size = staticMeshComponent.Mesh->getSize() * getComponent<Transform>().scale;
-    collider.center = staticMeshComponent.Mesh->getCenter();
-    collider.center.y += collider.size.y / 2.0f;
-
-    // TODO: Set the flight path
-    // setRandomFlightPath();
+    // Mesh loading moved to constructor
 }
 
 void DuckEntity::setRandomFlightPath() {
@@ -95,18 +99,23 @@ void DuckEntity::setRandomFlightPath() {
     // TODO: Rotate to face 45 degrees up into the air
     EntityTransform.LocalRotate(-45.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    // TODO: Rotate around Y-Axis randomly
-    float randomAngle = rand() % 360;
-    EntityTransform.WorldRotate(randomAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    bool moveRight = EntityTransform.position.x < 0.0f;
+    float dirX = moveRight ? 1.0f : -1.0f;
+
+    // Rotate to face the flight direction
+    EntityTransform.rotation = glm::quat(glm::vec3(0.0f));
+    float rotationAngle = moveRight ? 90.0f : -90.0f;
+    EntityTransform.WorldRotate(rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // TODO: Set Entity Velocity
-    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
+    EntityVelocity.setVelocity(glm::vec3(dirX, 0.0f, 1.0f), 1.0f);
 }
 
 void DuckEntity::checkIfEscaped()
 {
     auto& EntityTransform = this->getComponent<Transform>();
-    if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
+    // Increased escape distance slightly since they spawn further out
+    if (glm::distance(EntityTransform.position, spawnPosition) > 100.0f)
     {
         this->destroy();
     }
@@ -115,7 +124,7 @@ void DuckEntity::checkIfEscaped()
 void DuckEntity::KillDuck()
 {
     this->destroy();
-
+    std::cout << "Duck Died" << std::endl;
     // TODO: Increment GameState points here.
     // ...
 }
