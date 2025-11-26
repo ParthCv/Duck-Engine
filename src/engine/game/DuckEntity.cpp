@@ -74,7 +74,7 @@ void DuckEntity::update(float deltaTime) {
     EntityTransform.AddLocalTransform(EntityVelocity.Direction * EntityVelocity.Speed * deltaTime);
 
     // TODO: Manually move StaticMeshComponent in a Sin wave manner.
-    accumulatedTime += deltaTime;
+    // accumulatedTime += deltaTime;
     // float randY = std::sin(accumulatedTime);
     // EntityStaticMesh.setPosition(glm::vec3(0,randY,0));
 
@@ -84,13 +84,18 @@ void DuckEntity::update(float deltaTime) {
 
     if (!isDead)
         checkIfEscaped();
-    if (accumulatedTime > 10.0f) {
-        KillDuck();
+    else {
+        timeSinceDeath += deltaTime;
+        if (timeSinceDeath > pauseAfterKillDuration && !isFalling) {
+            isFalling = true;
+            fall();
+        }
     }
+
+    // Destroy Entity if it sinks low enough
     if (EntityTransform.position.y < DeathPlaneYBound) {
         this->destroy();
     }
-
 }
 
 void DuckEntity::beginPlay() {
@@ -123,25 +128,96 @@ void DuckEntity::checkIfEscaped()
 {
     auto& EntityTransform = this->getComponent<Transform>();
     // Increased escape distance slightly since they spawn further out
-    if (glm::distance(EntityTransform.position, spawnPosition) > 100.0f)
+    if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
     {
         this->destroy();
     }
 }
 
-void DuckEntity::KillDuck()
-{
+void DuckEntity::KillDuck() {
+    if (isDead)
+        return;
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
-    // EntityTransform.WorldRotate(0, glm::vec3(0.0f, EntityTransform.rotation.y, 0.0f));
-    // EntityTransform.LocalRotate(0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
-    EntityVelocity.setVelocity(glm::vec3(0.0f, -1.0f, 0.0f), 1.0f);
-    // this->destroy();
-    // EntityTransform.AddLocalTransform(glm::vec3(0.0f, 0.0f, 0.0f));
+    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f);
+    cook();
+    isDead = true;
 
-    this->destroy();
     std::cout << "Duck Died" << std::endl;
     // TODO: Increment GameState points here.
     // ...
+}
+
+void DuckEntity::fall() {
+    // auto& EntityTransform = this->getComponent<Transform>();
+    auto& EntityVelocity = this->getComponent<Velocity>();
+    // EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
+    EntityVelocity.setVelocity(glm::vec3(0.0f, -0.2f, 0.0f), 1.0f);
+}
+
+// Change static mesh on death
+void DuckEntity::cook() {
+    auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
+
+    // TODO: Switch to Cooked duck mesh
+    // Turns into a box as a placeholder static mesh
+    staticMeshComponent.StaticMeshTransform.scale = glm::vec3(0.1f, 0.1f, 0.1f);
+    staticMeshComponent.StaticMeshTransform.SetTransform(glm::vec3(0.0f, 0.1f, 0.0f));
+    createCube(*staticMeshComponent.Mesh);
+}
+
+// Temp method to change static mesh when dead
+void DuckEntity::createCube(StaticMesh& mesh) {
+    // Cube vertices (8 corners, but we need 24 vertices for proper normals per face)
+    std::vector<Vertex> vertices = {
+        // Front face (z = 0.5)
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+
+        // Back face (z = -0.5)
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}},
+
+        // Left face (x = -0.5)
+        {{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+
+        // Right face (x = 0.5)
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+
+        // Top face (y = 0.5)
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+        // Bottom face (y = -0.5)
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}
+    };
+
+    // Cube indices (2 triangles per face, 6 faces)
+    std::vector<unsigned int> indices = {
+        0,  1,  2,  2,  3,  0,   // Front
+        4,  5,  6,  6,  7,  4,   // Back
+        8,  9,  10, 10, 11, 8,   // Left
+        12, 13, 14, 14, 15, 12,  // Right
+        16, 17, 18, 18, 19, 16,  // Top
+        20, 21, 22, 22, 23, 20   // Bottom
+    };
+
+    // Call setupMesh
+    mesh.setupMesh(vertices, indices);
 }
