@@ -193,17 +193,20 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
-    // Update input first
+    // Update input first (Always needed for UI navigation)
     InputManager::update();
 
-    // Update game state
+    // Update game state (Handles camera inputs when playing, UI logic, Etc)
     stateManager.update(deltaTime);
 
-    // Update UI
+    // Update UI (Always needed)
     uiManager.update(deltaTime);
 
-    // Update world
-    world.update(deltaTime);
+    // Update world (Physics, Entities, Lights, Spawning)
+    // ONLY update the world simulation if we are in the PLAYING state.
+    if (stateManager.getCurrentState() == GameState::PLAYING) {
+        world.update(deltaTime);
+    }
 }
 
 void Engine::render() {
