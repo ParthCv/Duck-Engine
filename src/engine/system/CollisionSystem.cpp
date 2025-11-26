@@ -1,7 +1,3 @@
-//
-// Created by Jeff on 2025-11-18.
-//
-
 #include "CollisionSystem.h"
 #include "../ecs/Component.h"
 #include "../physics/RaycastUtils.h"

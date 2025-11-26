@@ -4,8 +4,8 @@
 #include "../src/engine/ecs/Component.h"
 #include "../system/DebugRenderSystem.h"
 
-#include "../game/GameStateManager.h"
-#include "../input/InputManager.h"
+#include "managers/GameStateManager.h"
+#include "managers/InputManager.h"
 
 struct StaticMeshComponent;
 
@@ -46,6 +46,11 @@ bool Engine::initialize(int width, int height) {
 
     InputManager::initialize(window);
     uiManager.initialize(screenWidth, screenHeight);
+
+    glViewport(0, 0, screenWidth, screenHeight);
+    uiManager.renderLoadingScreen();
+    glfwSwapBuffers(window);
+    glfwPollEvents();
 
     // Setup state change callback to update UI
     stateManager.setOnStateChange([this](GameState oldState, GameState newState) {

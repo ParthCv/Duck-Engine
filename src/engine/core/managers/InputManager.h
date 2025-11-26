@@ -1,7 +1,3 @@
-//
-// Created by Norm on 11/1/2025.
-//
-
 #pragma once
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>

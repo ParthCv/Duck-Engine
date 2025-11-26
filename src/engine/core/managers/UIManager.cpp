@@ -1,7 +1,8 @@
 #include <iostream>
 #include <algorithm>
 #include "UIManager.h"
-#include "../game/GameStateManager.h"
+#include "GameStateManager.h"
+#include "InputManager.h"
 
 UIManager::UIManager()
     : quadVAO(0)
@@ -82,6 +83,12 @@ void UIManager::setupRenderingResources() {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
     glBindVertexArray(0);
+}
+
+void UIManager::renderLoadingScreen() {
+    // Clear
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void UIManager::update(float deltaTime) {

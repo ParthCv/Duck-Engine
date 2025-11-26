@@ -2,11 +2,12 @@
 #include "GameStateManager.h"
 #include <iostream>
 
-#include "../ecs/World.h"
-#include "../ecs/Component.h"
-#include "../input/InputUtils.h"
-#include "../system/CollisionSystem.h"
-#include "DuckEntity.h"
+#include "../../ecs/World.h"
+#include "../../ecs/Component.h"
+#include "../src/engine/core/managers/InputUtils.h"
+#include "../../system/CollisionSystem.h"
+#include "../../game/DuckEntity.h"
+#include "InputManager.h"
 
 GameStateManager::GameStateManager()
     : currentState(GameState::MENU)

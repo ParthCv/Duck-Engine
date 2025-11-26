@@ -9,8 +9,8 @@
 #include "../renderer/GBuffer.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
-#include "../system/UIManager.h"
-#include "../game/GameStateManager.h"
+#include "managers/UIManager.h"
+#include "managers/GameStateManager.h"
 #include "../renderer/ShadowMap.h"
 
 
