@@ -7,6 +7,7 @@
 #include "../input/InputUtils.h"
 #include "../system/CollisionSystem.h"
 #include "DuckEntity.h"
+#include "../system/AudioManager.h"
 
 GameStateManager::GameStateManager()
     : currentState(GameState::MENU)
@@ -15,6 +16,8 @@ GameStateManager::GameStateManager()
     , onStateChangeCallback(nullptr)
     , worldContext(nullptr)
 {
+
+    std::cout << "[GameStateManager] Initialized..." << std::endl;
     std::cout << "[GameStateManager] Initialized - Starting in MENU state" << std::endl;
 }
 
@@ -211,6 +214,7 @@ void GameStateManager::updatePlaying(float deltaTime) {
 
         // Check Input
         if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            AudioManager::Get().PlaySound("shoot", 0.5f);
 
             glm::vec3 rayDir = InputUtils::screenToWorldRay(
                 InputManager::getMousePosition(),

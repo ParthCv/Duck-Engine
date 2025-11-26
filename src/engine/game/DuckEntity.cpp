@@ -8,6 +8,7 @@
 #include "GLFW/glfw3.h"
 #include <cstdlib>
 #include <iostream>
+#include "../system/AudioManager.h"
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -123,6 +124,7 @@ void DuckEntity::checkIfEscaped()
 
 void DuckEntity::KillDuck()
 {
+    AudioManager::Get().PlaySound("quack");
     this->destroy();
     std::cout << "Duck Died" << std::endl;
     // TODO: Increment GameState points here.
