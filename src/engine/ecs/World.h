@@ -6,6 +6,9 @@
 #include "../system/EntityManager.h"
 #include "../system/DebugRenderSystem.h"
 #include "../system/CollisionSystem.h"
+#include "../system/DuckSpawnerManager.h"
+
+class DuckSpawnerManager;
 
 #include "glad/glad.h"
 
@@ -19,6 +22,7 @@ public:
     LightManager lightManager;
     CollisionSystem* collisionSystem = nullptr;
     DebugRenderSystem debugRenderSystem;
+    DuckSpawnerManager* duckSpawnerManager;
 
     World();
 

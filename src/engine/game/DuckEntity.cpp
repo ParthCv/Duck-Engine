@@ -34,6 +34,7 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
     debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f); // Red
     addComponent<StaticMeshComponent>(*this);
 
+    this->DuckEntity::beginPlay();
 }
 
 DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) {
@@ -58,6 +59,7 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
     debug.drawCollider = true;
     debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f);
 
+    this->DuckEntity::beginPlay();
 }
 
 DuckEntity::~DuckEntity() {}
@@ -88,6 +90,8 @@ void DuckEntity::update(float deltaTime) {
 void DuckEntity::beginPlay() {
     Entity::beginPlay();
     // Mesh loading moved to constructor
+
+    setRandomFlightPath();
 }
 
 void DuckEntity::setRandomFlightPath() {
@@ -99,16 +103,23 @@ void DuckEntity::setRandomFlightPath() {
     // TODO: Rotate to face 45 degrees up into the air
     EntityTransform.LocalRotate(-45.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    bool moveRight = EntityTransform.position.x < 0.0f;
-    float dirX = moveRight ? 1.0f : -1.0f;
+    // bool moveRight = EntityTransform.position.x < 0.0f;
+    // float dirX = moveRight ? 1.0f : -1.0f;
 
-    // Rotate to face the flight direction
-    EntityTransform.rotation = glm::quat(glm::vec3(0.0f));
-    float rotationAngle = moveRight ? 90.0f : -90.0f;
-    EntityTransform.WorldRotate(rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    // // Rotate to face the flight direction
+    // EntityTransform.rotation = glm::quat(glm::vec3(0.0f));
+    // float rotationAngle = moveRight ? 90.0f : -90.0f;
+    // EntityTransform.WorldRotate(rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // // TODO: Set Entity Velocity
+    // EntityVelocity.setVelocity(glm::vec3(dirX, 0.0f, 1.0f), 1.0f);
+
+    // TODO: Rotate around Y-Axis randomly
+    float randomAngle = rand() % 360;
+    EntityTransform.WorldRotate(randomAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // TODO: Set Entity Velocity
-    EntityVelocity.setVelocity(glm::vec3(dirX, 0.0f, 1.0f), 1.0f);
+    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 1.0f), 0.1f);
 }
 
 void DuckEntity::checkIfEscaped()
