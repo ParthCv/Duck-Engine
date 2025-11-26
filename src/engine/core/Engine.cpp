@@ -137,7 +137,6 @@ bool Engine::initialize(int width, int height) {
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
     camera.position = glm::vec3(5.0f, 5.0f, 5.0f);
-    camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
 
     std::cout << "Engine initialized successfully!" << std::endl;
 

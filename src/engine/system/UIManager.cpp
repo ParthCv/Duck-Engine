@@ -88,11 +88,6 @@ void UIManager::update(float deltaTime) {
     // Update buttons (hover/click detection)
     updateButtons();
     updateCrosshairPosition();
-
-    // TODO: Add animations here if needed
-    // - Button hover effects
-    // - Fade in/out
-    // - Pulsing effects
 }
 
 void UIManager::updateButtons() {
@@ -159,11 +154,8 @@ void UIManager::render() {
     }
 
     // Render crosshairs (foreground layer)
-    // std::cout << "[UIManager] Rendering " << crosshairs.size() << " crosshairs" << std::endl;  // DEBUG
     for (const auto& crosshair : crosshairs) {
         if (crosshair.visible) {
-            // std::cout << "[UIManager] Rendering crosshair at: "
-            //           << crosshair.position.x << ", " << crosshair.position.y << std::endl;  // DEBUG
             renderCrosshair(crosshair);
         }
     }
@@ -190,11 +182,6 @@ void UIManager::renderButton(const UIButton& button) {
         glm::vec2 textPos = position + button.size * 0.5f;
         float scale = 24.0f / 30.0f;  // Adjust as needed
         font.renderTextCentered(button.text, textPos.x, textPos.y, scale, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), windowWidth, windowHeight);
-    }
-
-    // Debug: Draw border
-    if (debugMode) {
-        // TODO: Render border outline
     }
 }
 
@@ -569,8 +556,9 @@ void UIManager::setupPlayingUI() {
     crosshair.id = "crosshair";
     crosshair.length = 30.0f;
     crosshair.thickness = 2.0f;
-    crosshair.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.8f);
-    crosshair.anchor = UIAnchor::TOP_LEFT;
+    crosshair.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.8f); // Green Crosshair
+    crosshair.anchor = UIAnchor::CENTER;
+    crosshair.position = glm::vec2(0, 0);
     activeCrosshairIndex = addCrosshair(crosshair);
 
     // Score text (top-left)
@@ -742,20 +730,12 @@ void UIManager::setupOptionsUI(GameStateManager* stateManager) {
 }
 
 void UIManager::updateCrosshairPosition() {
-    glm::vec2 mousePos = InputManager::getMousePosition();
-
-    // Debug first time
-    static bool firstUpdate = true;
-    if (firstUpdate) {
-        std::cout << "[UIManager] Updating crosshair - Mouse pos: "
-                  << mousePos.x << ", " << mousePos.y << std::endl;
-        firstUpdate = false;
-    }
+    glm::vec2 center(windowWidth / 2.0f, windowHeight / 2.0f);
 
     for (auto& crosshair : crosshairs) {
         if (crosshair.visible) {
-            crosshair.position = mousePos;
-            crosshair.anchor = UIAnchor::TOP_LEFT;
+            crosshair.position = center;
+            crosshair.anchor = UIAnchor::CENTER; // Ensure logic treats it as center
         }
     }
 }
