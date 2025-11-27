@@ -148,7 +148,7 @@ void GameStateManager::updatePlaying(float deltaTime) {
         return;
     }
 
-    // --- 1. HANDLE CAMERA ROTATION (FPS STYLE) ---
+        // --- 1. HANDLE CAMERA ROTATION (FPS STYLE) ---
     glm::vec2 mouseDelta = InputManager::getMouseDelta();
     // Only rotate if there was movement
     if (glm::length(mouseDelta) > 0.001f) {
