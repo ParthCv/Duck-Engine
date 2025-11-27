@@ -58,6 +58,8 @@ add_executable(DuckEngine
         src/engine/game/EnvironmentEntity.h
         src/engine/game/EnvironmentGenerator.cpp
         src/engine/game/EnvironmentGenerator.h
+        src/engine/game/GunEntity.cpp
+        src/engine/game/GunEntity.h
 )
 
 

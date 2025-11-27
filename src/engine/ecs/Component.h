@@ -62,7 +62,12 @@ struct Transform {
         position += glm::vec3(getTransformMatrix() * glm::vec4(InTransform, 0.0f));
     }
 
-    void SetRotation(glm::vec3 InRotation)
+    void SetPosition(const glm::vec3& InPosition)
+    {
+        position = InPosition;
+    }
+
+    void SetRotation(const glm::vec3& InRotation)
     {
         rotation = InRotation;
     }
