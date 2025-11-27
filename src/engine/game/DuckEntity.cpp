@@ -22,7 +22,7 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 
     // Initialize Mesh
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
-    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+    staticMeshComponent.loadMesh("duck.obj");
 
     // Configure Collider based on Mesh
     collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
@@ -48,7 +48,7 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
 
     // Initialize Mesh
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
-    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+    staticMeshComponent.loadMesh("duck.obj");
 
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
