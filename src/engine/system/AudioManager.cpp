@@ -19,6 +19,9 @@ void AudioManager::Init() {
         return;
     }
 
+    // Apply the stored master volume immediately upon init, recover settings applied
+    alListenerf(AL_GAIN, masterVolume);
+
     // Generate a pool of 16 sources for SFX
     for (int i = 0; i < 16; i++) {
         ALuint source;
@@ -112,6 +115,18 @@ void AudioManager::PlayMusic(const std::string& name) {
 
 void AudioManager::StopMusic() {
     alSourceStop(musicSource);
+}
+
+void AudioManager::SetMasterVolume(float volume) {
+    // Clamp volume between 0 and 1
+    if (volume < 0.0f) volume = 0.0f;
+    if (volume > 1.0f) volume = 1.0f;
+
+    // Storing the volume for later retrieval
+    masterVolume = volume;
+
+    // AL_GAIN on the listener acts as a master volume scaler
+    alListenerf(AL_GAIN, volume);
 }
 
 void AudioManager::CleanUp() {

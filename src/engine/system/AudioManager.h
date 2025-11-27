@@ -32,8 +32,14 @@ public:
     // Stop music
     void StopMusic();
 
+    // Sets the global listener gain (0.0 to 1.0)
+    void SetMasterVolume(float volume);
+
+    // Gets the current master volume - CRITICAL FOR UI PERSISTENCE
+    float GetMasterVolume() const { return masterVolume; }
+
 private:
-    AudioManager() {}
+    AudioManager() : masterVolume(1.0f) {}
 
     ALCdevice* device = nullptr;
     ALCcontext* context = nullptr;
@@ -43,4 +49,6 @@ private:
     ALuint musicSource;
 
     std::map<std::string, short*> loadedPCMData;
+
+    float masterVolume;
 };
