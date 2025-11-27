@@ -1,4 +1,3 @@
-
 #include "ResourceManager.h"
 #include <iostream>
 #include "../model/ImportedModel.h"

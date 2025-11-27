@@ -1,6 +1,4 @@
-
-#ifndef DUCKENGINE_RESOURCEMANAGER_H
-#define DUCKENGINE_RESOURCEMANAGER_H
+#pragma once
 #include <string>
 #include <unordered_map>
 #include <memory>
@@ -22,5 +20,3 @@ private:
 
     std::unordered_map<std::string, std::shared_ptr<StaticMesh>> MeshCache;
 };
-
-#endif //DUCKENGINE_RESOURCEMANAGER_H
