@@ -33,15 +33,16 @@ add_executable(DuckEngine
         src/engine/system/DebugRenderSystem.cpp
         src/engine/game/DuckEntity.cpp
         src/engine/game/DuckEntity.h
-        src/engine/input/InputManager.cpp
-        src/engine/game/GameStateManager.cpp
+        src/engine/core/managers/InputManager.cpp
+        src/engine/core/managers/GameStateManager.cpp
         src/engine/core/model/ImportedModel.cpp
         src/engine/core/model/ImportedModel.h
         src/engine/core/model/StaticMesh.cpp
         src/engine/core/model/StaticMesh.h
         src/engine/renderer/ShadowMap.cpp
-        src/engine/system/UIManager.cpp
+        src/engine/core/managers/UIManager.cpp
         src/engine/renderer/BitmapFont.cpp
+        src/engine/utils/LoadingScreen.cpp
         src/engine/core/managers/ResourceManager.cpp
         src/engine/core/managers/ResourceManager.h
         dependencies/OpenAL/libs/Win64/dr_wav.h

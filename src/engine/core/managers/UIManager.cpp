@@ -1,8 +1,10 @@
 #include <iostream>
 #include <algorithm>
 #include "UIManager.h"
-#include "../game/GameStateManager.h"
-#include "../core/managers/AudioManager.h"
+#include "GameStateManager.h"
+#include "InputManager.h"
+#include "AudioManager.h"
+
 
 UIManager::UIManager()
     : quadVAO(0)
@@ -86,6 +88,12 @@ void UIManager::setupRenderingResources() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     glBindVertexArray(0);
+}
+
+void UIManager::renderLoadingScreen() {
+    // Clear
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void UIManager::update(float deltaTime) {
@@ -588,7 +596,7 @@ void UIManager::setupMenuUI(GameStateManager* stateManager) {
     // Title text
     UIText title;
     title.id = "menu_title";
-    title.text = "DUCK HUNT 3D";
+    title.text = "DUCK HUNT 3D \\";
     title.position = glm::vec2(0, 150);
     title.fontSize = 48.0f;
     title.anchor = UIAnchor::TOP_CENTER;
@@ -667,7 +675,7 @@ void UIManager::setupPlayingUI() {
     // Ammo text (BOTTOM-LEFT)
     UIText ammoText;
     ammoText.id = "ammo_text";
-    ammoText.text = "AMMO: 10";
+    ammoText.text = "AMMO: 10 \\";
     ammoText.position = glm::vec2(20, 20);  // 20px from bottom-left
     ammoText.fontSize = 24.0f;
     ammoText.anchor = UIAnchor::BOTTOM_LEFT;  // Changed from TOP_LEFT

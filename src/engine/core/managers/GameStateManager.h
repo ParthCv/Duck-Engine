@@ -1,11 +1,6 @@
-//
-// Created by Norm on 11/17/2025.
-//
-
 #pragma once
 #include <string>
 #include <functional>
-#include "../input/InputManager.h"
 
 class World;
 

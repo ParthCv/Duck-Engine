@@ -1,7 +1,3 @@
-//
-// Created by Norm on 11/4/2025.
-//
-
 #pragma once
 #include <glm/glm.hpp>
 #include "../renderer/Camera.h"
