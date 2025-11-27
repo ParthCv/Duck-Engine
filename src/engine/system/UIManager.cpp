@@ -649,11 +649,9 @@ void UIManager::setupPlayingUI() {
     crosshair.id = "crosshair";
     crosshair.length = 30.0f;
     crosshair.thickness = 2.0f;
-    crosshair.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.8f);
-    // Force crosshair to Center for FPS mode
+    crosshair.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.8f); // Green Crosshair
     crosshair.anchor = UIAnchor::CENTER;
     crosshair.position = glm::vec2(0, 0);
-
     activeCrosshairIndex = addCrosshair(crosshair);
 
     // Score text (top-left)
@@ -856,7 +854,7 @@ void UIManager::updateCrosshairPosition() {
     for (auto& crosshair : crosshairs) {
         if (crosshair.visible) {
             crosshair.position = center;
-            crosshair.anchor = UIAnchor::CENTER;
+            crosshair.anchor = UIAnchor::CENTER; // Ensure logic treats it as center
         }
     }
 }
