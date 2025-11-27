@@ -32,6 +32,9 @@ public:
     template<typename... Components>
     std::vector<Entity*> GetEntitiesWith();
 
+    template <typename T, typename... Args>
+    T& CreateEntityOfType(World& InWorld, Args&&... ConstructorArgs);
+
 private:
     std::vector<std::unique_ptr<Entity>> Entities;
 
@@ -52,4 +55,14 @@ std::vector<Entity*> EntityManager::GetEntitiesWith() {
     }
 
     return result;
+}
+
+template <typename T, typename... Args>
+T& EntityManager::CreateEntityOfType(World& InWorld, Args&&... ConstructorArgs)
+{
+    static_assert(std::is_base_of<Entity, T>::value, "T must derive from Entity class");
+    std::unique_ptr<T> NewEntity = std::make_unique<T>(InWorld, std::forward<Args>(ConstructorArgs)...);
+    T* EntityPtr = NewEntity.get(); // must cache this before calling std::move() if we want to return it
+    Entities.emplace_back(std::move(NewEntity)); // unique_ptr<T> automatically converts to unique_ptr<Entity>
+    return *EntityPtr;
 }

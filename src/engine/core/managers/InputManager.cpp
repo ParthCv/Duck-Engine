@@ -96,13 +96,6 @@ void InputManager::update() {
     keys[GLFW_KEY_LEFT_SHIFT] = (glfwGetKey(windowPtr, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
     keys[GLFW_KEY_LEFT_CONTROL] = (glfwGetKey(windowPtr, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
 
-    // If you need ALL keys, uncomment this (less efficient):
-    /*
-    for (int i = 0; i <= GLFW_KEY_LAST; i++) {
-        keys[i] = (glfwGetKey(windowPtr, i) == GLFW_PRESS);
-    }
-    */
-
     // Poll mouse buttons
     mouseButtons[GLFW_MOUSE_BUTTON_LEFT] = (glfwGetMouseButton(windowPtr, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
     mouseButtons[GLFW_MOUSE_BUTTON_RIGHT] = (glfwGetMouseButton(windowPtr, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
@@ -120,6 +113,21 @@ glm::vec2 InputManager::getMousePosition() {
 
 glm::vec2 InputManager::getMouseDelta() {
     return mousePosition - mousePreviousPosition;
+}
+
+void InputManager::resetMouseDelta() {
+    // Sync previous position to current so delta becomes 0 for the next frame
+    mousePreviousPosition = mousePosition;
+}
+
+void InputManager::setCursorVisible(bool visible) {
+    if (windowPtr) {
+        if (visible) {
+            glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        } else {
+            glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+    }
 }
 
 bool InputManager::isMouseButtonDown(int button) {
@@ -179,14 +187,6 @@ void InputManager::windowSizeCallback(GLFWwindow* window, int width, int height)
 }
 
 // Empty callback stubs (not used in polling mode)
-void InputManager::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    // Not used in polling mode
-}
-
-void InputManager::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-    // Not used in polling mode
-}
-
-void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    // Not used in polling mode
-}
+void InputManager::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {}
+void InputManager::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {}
+void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {}

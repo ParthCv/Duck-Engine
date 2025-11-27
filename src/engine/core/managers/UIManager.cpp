@@ -3,6 +3,8 @@
 #include "UIManager.h"
 #include "GameStateManager.h"
 #include "InputManager.h"
+#include "AudioManager.h"
+
 
 UIManager::UIManager()
     : quadVAO(0)
@@ -77,10 +79,13 @@ void UIManager::setupRenderingResources() {
 
     glBindVertexArray(lineVAO);
     glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
+    // Setup attributes matching the shader (Pos + Tex) just like Quad, so stride is 4 floats
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     glBindVertexArray(0);
 }
@@ -94,17 +99,11 @@ void UIManager::renderLoadingScreen() {
 void UIManager::update(float deltaTime) {
     // Update buttons (hover/click detection)
     updateButtons();
+    updateSliders();
     updateCrosshairPosition();
-
-    // TODO: Add animations here if needed
-    // - Button hover effects
-    // - Fade in/out
-    // - Pulsing effects
 }
 
 void UIManager::updateButtons() {
-    glm::vec2 mousePos = InputManager::getMousePosition();
-
     for (auto& button : buttons) {
         if (!button.visible) continue;
 
@@ -119,6 +118,45 @@ void UIManager::updateButtons() {
             }
         } else if (InputManager::isMouseButtonReleased(GLFW_MOUSE_BUTTON_LEFT)) {
             button.isPressed = false;
+        }
+    }
+}
+
+void UIManager::updateSliders() {
+    glm::vec2 mousePos = InputManager::getMousePosition();
+    bool mouseDown = InputManager::isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT);
+    bool mousePressed = InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT);
+
+    for (auto& slider : sliders) {
+        if (!slider.visible) continue;
+
+        // Check if started clicking on the slider
+        if (mousePressed && isMouseOverElement(slider)) {
+            slider.isDragging = true;
+        }
+
+        // Dragging, update value
+        if (mouseDown && slider.isDragging) {
+            glm::vec2 pos = getAnchoredPosition(slider);
+            float relativeX = mousePos.x - pos.x;
+
+            // Calculate percentage based on mouse position relative to slider width
+            float percentage = glm::clamp(relativeX / slider.size.x, 0.0f, 1.0f);
+
+            float newValue = slider.minVal + percentage * (slider.maxVal - slider.minVal);
+
+            if (newValue != slider.value) {
+                slider.value = newValue;
+                // Call the callback to update audio immediately
+                if (slider.onValueChanged) {
+                    slider.onValueChanged(slider.value);
+                }
+            }
+        }
+
+        // Stop dragging if mouse released
+        if (!mouseDown) {
+            slider.isDragging = false;
         }
     }
 }
@@ -151,6 +189,13 @@ void UIManager::render() {
         }
     }
 
+    // Render sliders
+    for (const auto& slider : sliders) {
+        if (slider.visible) {
+            renderSlider(slider);
+        }
+    }
+
     // Render buttons
     for (const auto& button : buttons) {
         if (button.visible) {
@@ -166,11 +211,8 @@ void UIManager::render() {
     }
 
     // Render crosshairs (foreground layer)
-    // std::cout << "[UIManager] Rendering " << crosshairs.size() << " crosshairs" << std::endl;  // DEBUG
     for (const auto& crosshair : crosshairs) {
         if (crosshair.visible) {
-            // std::cout << "[UIManager] Rendering crosshair at: "
-            //           << crosshair.position.x << ", " << crosshair.position.y << std::endl;  // DEBUG
             renderCrosshair(crosshair);
         }
     }
@@ -198,11 +240,29 @@ void UIManager::renderButton(const UIButton& button) {
         float scale = 24.0f / 30.0f;  // Adjust as needed
         font.renderTextCentered(button.text, textPos.x, textPos.y, scale, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), windowWidth, windowHeight);
     }
+}
 
-    // Debug: Draw border
-    if (debugMode) {
-        // TODO: Render border outline
-    }
+void UIManager::renderSlider(const UISlider& slider) {
+    glm::vec2 pos = getAnchoredPosition(slider);
+
+    // Render the background bar (track)
+    renderQuad(pos, slider.size, slider.color);
+
+    // Calculate handle position
+    float range = slider.maxVal - slider.minVal;
+    float percentage = (slider.value - slider.minVal) / range;
+
+    float handleWidth = 10.0f;
+    float handleHeight = slider.size.y + 10.0f; // Make it slightly taller
+
+    glm::vec2 handleSize(handleWidth, handleHeight);
+
+    // Center handle vertically and position horizontally
+    glm::vec2 handlePos;
+    handlePos.x = pos.x + (percentage * slider.size.x) - (handleWidth * 0.5f);
+    handlePos.y = pos.y + (slider.size.y * 0.5f) - (handleHeight * 0.5f);
+
+    renderQuad(handlePos, handleSize, slider.handleColor);
 }
 
 void UIManager::renderText(const UIText& text) {
@@ -310,8 +370,8 @@ void UIManager::renderLine(glm::vec2 start, glm::vec2 end, glm::vec4 color, floa
     uiShader.setVec2("screenSize", glm::vec2(windowWidth, windowHeight));
     uiShader.setVec4("color", color);
 
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBindVertexArray(lineVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(lineQuad), lineQuad);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -390,6 +450,11 @@ int UIManager::addCrosshair(const UICrosshair& crosshair) {
     return crosshairs.size() - 1;
 }
 
+int UIManager::addSlider(const UISlider& slider) {
+    sliders.push_back(slider);
+    return sliders.size() - 1;
+}
+
 void UIManager::removeElement(const std::string& id) {
     // Remove from buttons
     buttons.erase(
@@ -418,6 +483,13 @@ void UIManager::removeElement(const std::string& id) {
             [&id](const UICrosshair& c) { return c.id == id; }),
         crosshairs.end()
     );
+
+    // Remove from sliders
+    sliders.erase(
+        std::remove_if(sliders.begin(), sliders.end(),
+            [&id](const UISlider& s) { return s.id == id; }),
+        sliders.end()
+    );
 }
 
 void UIManager::clearAll() {
@@ -425,6 +497,7 @@ void UIManager::clearAll() {
     texts.clear();
     panels.clear();
     crosshairs.clear();
+    sliders.clear();
 }
 
 void UIManager::setElementVisible(const std::string& id, bool visible) {
@@ -456,6 +529,14 @@ void UIManager::setElementVisible(const std::string& id, bool visible) {
     for (auto& crosshair : crosshairs) {
         if (crosshair.id == id) {
             crosshair.visible = visible;
+            return;
+        }
+    }
+
+    // Check sliders
+    for (auto& slider : sliders) {
+        if (slider.id == id) {
+            slider.visible = visible;
             return;
         }
     }
@@ -576,8 +657,9 @@ void UIManager::setupPlayingUI() {
     crosshair.id = "crosshair";
     crosshair.length = 30.0f;
     crosshair.thickness = 2.0f;
-    crosshair.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.8f);
-    crosshair.anchor = UIAnchor::TOP_LEFT;
+    crosshair.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.8f); // Green Crosshair
+    crosshair.anchor = UIAnchor::CENTER;
+    crosshair.position = glm::vec2(0, 0);
     activeCrosshairIndex = addCrosshair(crosshair);
 
     // Score text (top-left)
@@ -731,7 +813,33 @@ void UIManager::setupOptionsUI(GameStateManager* stateManager) {
     optionsTitle.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     addText(optionsTitle);
 
-    // TODO: Add volume sliders, controls mapping, etc.
+    // Volume Label
+    UIText volumeLabel;
+    volumeLabel.id = "volume_label";
+    volumeLabel.text = "Master Volume";
+    volumeLabel.position = glm::vec2(0, -40); // Slightly above center
+    volumeLabel.fontSize = 32.0f;
+    volumeLabel.anchor = UIAnchor::CENTER;
+    volumeLabel.color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
+    addText(volumeLabel);
+
+    // Master Volume Slider
+    UISlider volumeSlider;
+    volumeSlider.id = "master_volume_slider";
+    volumeSlider.position = glm::vec2(0, 10);
+    volumeSlider.size = glm::vec2(400, 30);
+    volumeSlider.anchor = UIAnchor::CENTER;
+    volumeSlider.minVal = 0.0f;
+    volumeSlider.maxVal = 1.0f;
+    volumeSlider.value = AudioManager::Get().GetMasterVolume();
+
+    // Callback to update AudioManager
+    volumeSlider.onValueChanged = [](float val) {
+        // Assuming AudioManager singleton access
+        AudioManager::Get().SetMasterVolume(val);
+    };
+
+    addSlider(volumeSlider);
 
     // Back button
     UIButton backButton;
@@ -749,20 +857,12 @@ void UIManager::setupOptionsUI(GameStateManager* stateManager) {
 }
 
 void UIManager::updateCrosshairPosition() {
-    glm::vec2 mousePos = InputManager::getMousePosition();
-
-    // Debug first time
-    static bool firstUpdate = true;
-    if (firstUpdate) {
-        std::cout << "[UIManager] Updating crosshair - Mouse pos: "
-                  << mousePos.x << ", " << mousePos.y << std::endl;
-        firstUpdate = false;
-    }
+    glm::vec2 center(windowWidth / 2.0f, windowHeight / 2.0f);
 
     for (auto& crosshair : crosshairs) {
         if (crosshair.visible) {
-            crosshair.position = mousePos;
-            crosshair.anchor = UIAnchor::TOP_LEFT;
+            crosshair.position = center;
+            crosshair.anchor = UIAnchor::CENTER; // Ensure logic treats it as center
         }
     }
 }

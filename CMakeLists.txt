@@ -43,12 +43,30 @@ add_executable(DuckEngine
         src/engine/core/managers/UIManager.cpp
         src/engine/renderer/BitmapFont.cpp
         src/engine/utils/LoadingScreen.cpp
+        src/engine/core/managers/ResourceManager.cpp
+        src/engine/core/managers/ResourceManager.h
+        dependencies/OpenAL/libs/Win64/dr_wav.h
+        src/engine/system/DuckSpawnerManager.cpp
+        src/engine/system/DuckSpawnerManager.h
+        src/engine/core/managers/AudioManager.h
+        src/engine/core/managers/AudioManager.cpp
+        dependencies/OpenAL/libs/Win64/dr_wav.h
+        src/engine/system/DuckSpawnerManager.cpp
+        src/engine/system/DuckSpawnerManager.h
+        src/engine/game/EnvironmentEntity.cpp
+        src/engine/game/EnvironmentEntity.h
+        src/engine/game/EnvironmentGenerator.cpp
+        src/engine/game/EnvironmentGenerator.h
+        src/engine/game/GunEntity.cpp
+        src/engine/game/GunEntity.h
 )
+
 
 # Include directories for headers
 target_include_directories(DuckEngine PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies
         ${CMAKE_SOURCE_DIR}/dependencies/stb_image
+        ${CMAKE_SOURCE_DIR}/dependencies/OpenAL/include
 )
 
 # Import GLFW as a static library
@@ -61,7 +79,12 @@ set_target_properties(glfw3 PROPERTIES
 target_link_libraries(DuckEngine
         glfw3
         OpenGL::GL
+        ${CMAKE_SOURCE_DIR}/dependencies/OpenAL/libs/Win64/OpenAL32.lib
         gdi32      # Windows GDI
         user32     # Windows user32
         kernel32   # Windows kernel32
 )
+add_custom_command(TARGET DuckEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/dependencies/OpenAL/libs/Win64/OpenAL32.dll"  # Put the DLL in a /libs folder in your project root
+        $<TARGET_FILE_DIR:DuckEngine>/openal32.dll)

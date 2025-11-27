@@ -16,7 +16,8 @@ enum class UIElementType {
     BUTTON,
     PANEL,
     IMAGE,
-    CROSSHAIR
+    CROSSHAIR,
+    SLIDER
 };
 
 // Anchor positions for UI elements
@@ -69,6 +70,28 @@ struct UIButton : public UIElement {
         color = glm::vec4(0.3f, 0.3f, 0.3f, 0.8f);
         hoverColor = glm::vec4(0.5f, 0.5f, 0.5f, 0.9f);
         pressedColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    }
+};
+
+// Slider element
+struct UISlider : public UIElement {
+    float minVal;
+    float maxVal;
+    float value;
+    glm::vec4 handleColor;
+    bool isDragging;
+    std::function<void(float)> onValueChanged;
+
+    UISlider()
+        : minVal(0.0f)
+        , maxVal(1.0f)
+        , value(0.5f)
+        , handleColor(0.8f, 0.8f, 0.8f, 1.0f)
+        , isDragging(false)
+    {
+        type = UIElementType::SLIDER;
+        color = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f); // Background track color
+        size = glm::vec2(300.0f, 20.0f);
     }
 };
 
@@ -144,6 +167,7 @@ public:
     int addText(const UIText& text);
     int addPanel(const UIPanel& panel);
     int addCrosshair(const UICrosshair& crosshair);
+    int addSlider(const UISlider& slider);
 
     // Remove UI element by ID
     void removeElement(const std::string& id);
@@ -194,6 +218,7 @@ private:
     std::vector<UIText> texts;
     std::vector<UIPanel> panels;
     std::vector<UICrosshair> crosshairs;
+    std::vector<UISlider> sliders;
 
     int activeCrosshairIndex;
 
@@ -210,6 +235,7 @@ private:
     void renderText(const UIText& text);
     void renderPanel(const UIPanel& panel);
     void renderCrosshair(const UICrosshair& crosshair);
+    void renderSlider(const UISlider& slider);
 
     // Render primitives
     void renderQuad(glm::vec2 position, glm::vec2 size, glm::vec4 color);
@@ -217,6 +243,7 @@ private:
 
     // === Input Handling ===
     void updateButtons();
+    void updateSliders();
     bool isMouseOverElement(const UIElement& element);
 
     // === Coordinate Conversion ===
