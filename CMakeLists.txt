@@ -46,6 +46,10 @@ add_executable(DuckEngine
         src/engine/core/managers/ResourceManager.h
         src/engine/system/DuckSpawnerManager.cpp
         src/engine/system/DuckSpawnerManager.h
+        src/engine/game/EnvironmentEntity.cpp
+        src/engine/game/EnvironmentEntity.h
+        src/engine/game/EnvironmentGenerator.cpp
+        src/engine/game/EnvironmentGenerator.h
 )
 
 # Include directories for headers

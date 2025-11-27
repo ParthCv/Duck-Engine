@@ -9,6 +9,7 @@
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
 #include "../system/CollisionSystem.h"
+#include "../game/EnvironmentGenerator.h"
 
 World::World()
 {
@@ -80,6 +81,9 @@ void World::beginPlay()
     glm::vec3 camPos = camera->position;
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
+
+    EnvironmentGenerator envGenerator{*this, EntityManager};
+    envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));
 
     // Add raycast source component
     auto& raySource = PlayerEntity.addComponent<RaycastSource>();
