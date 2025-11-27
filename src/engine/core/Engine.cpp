@@ -6,12 +6,11 @@
 
 #include "../game/GameStateManager.h"
 #include "../input/InputManager.h"
+#include "../system/AudioManager.h"
 
 struct StaticMeshComponent;
 
 // Global instances since we cannot modify Engine.h easily
-DebugRenderSystem debugSystem;
-GameStateManager stateManager;
 
 bool Engine::initialize(int width, int height) {
     screenWidth = width;
@@ -144,6 +143,7 @@ bool Engine::initialize(int width, int height) {
     world.beginPlay();
 
     InputManager::initialize(window);
+    AudioManager::Get().Init();
     stateManager.setWorldContext(&world);
 
     return true;
