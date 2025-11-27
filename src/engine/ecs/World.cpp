@@ -33,15 +33,6 @@ void World::update(float deltaTime)
 {
     float time = glfwGetTime();
 
-    float radius = 10.0f;
-    float height = 3.0f;
-
-    camera->position.x = sin(time * 0.5f) * radius;
-    camera->position.z = cos(time * 0.5f) * radius;
-    camera->position.y = height;
-
-    camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
-
     // TODO: REMOVE - Test functionality for moving directional light
     if (lightManager.getDirectionalLightCount() > 0) {
         auto& dirLight = lightManager.getDirectionalLight(0);
@@ -64,19 +55,12 @@ void World::update(float deltaTime)
 
 void World::beginPlay()
 {
-    // Moved to initialize()
-    // addLightsToWorld();
-    // std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
-    // std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
-
     for (size_t i = 0; i < duckPos.size(); ++i) {
         DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
     }
 
     // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
-
-    // glm::vec3 camPos = glm::vec3(0.0f, 5.0f, 10.0f);
 
     glm::vec3 camPos = camera->position;
 
