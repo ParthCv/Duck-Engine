@@ -29,7 +29,7 @@ public:
         , pitch(0.0f)
         , front(0.0f, 0.0f, -1.0f)
         , aspectRatio(16.0f / 9.0f)
-        , fov(45.0f)    // Standard FPS FOV usually 60-90, keeping 45 or 90
+        , fov(45.0f)
         , nearPlane(0.1f)
         , farPlane(100.0f)
         , mouseSensitivity(0.1f)
@@ -64,6 +64,14 @@ public:
             if (pitch < -89.0f)
                 pitch = -89.0f;
         }
+
+        // === SHOOTING RANGE CONSTRAINT ===
+        // Restrict Yaw to 180 degrees centered on -90 (Forward)
+        // Range: [-180, 0]
+        if (yaw > 0.0f)
+            yaw = 0.0f;
+        if (yaw < -180.0f)
+            yaw = -180.0f;
 
         updateCameraVectors();
     }
