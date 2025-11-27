@@ -33,10 +33,14 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
         screenWidth = mode->width;
         screenHeight = mode->height;
+
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
     }
 
-    // Create window FIRST
-    window = glfwCreateWindow(screenWidth, screenHeight, "Duck Hunt 3D", nullptr, nullptr);
+    window = glfwCreateWindow(screenWidth, screenHeight, "Game", monitor, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
