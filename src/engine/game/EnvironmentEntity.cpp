@@ -1,4 +1,3 @@
-
 #include "EnvironmentEntity.h"
 #include "../ecs/World.h"
 #include "../ecs/Component.h"

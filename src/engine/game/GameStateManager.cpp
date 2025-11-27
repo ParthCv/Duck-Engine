@@ -7,7 +7,7 @@
 #include "../input/InputUtils.h"
 #include "../system/CollisionSystem.h"
 #include "DuckEntity.h"
-#include "../system/AudioManager.h"
+#include "../core/managers/AudioManager.h"
 
 GameStateManager::GameStateManager()
     : currentState(GameState::MENU)

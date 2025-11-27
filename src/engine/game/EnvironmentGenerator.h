@@ -1,6 +1,4 @@
-
-#ifndef DUCKENGINE_ENVIRONMENTGENERATOR_H
-#define DUCKENGINE_ENVIRONMENTGENERATOR_H
+#pragma once
 #include <vector>
 #include <string>
 #include <map>
@@ -33,6 +31,3 @@ private:
     std::vector<std::string> modelNames;
     std::discrete_distribution<int> weightedDist;
 };
-
-
-#endif //DUCKENGINE_ENVIRONMENTGENERATOR_H

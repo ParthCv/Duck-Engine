@@ -1,7 +1,3 @@
-//
-// Created by jeff_ on 2025-11-26.
-//
-
 #pragma once
 #include <../dependencies/OpenAL/include/al.h>
 #include <../dependencies/OpenAL/include/alc.h>

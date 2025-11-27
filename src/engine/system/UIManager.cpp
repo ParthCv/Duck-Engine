@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "UIManager.h"
 #include "../game/GameStateManager.h"
-#include "AudioManager.h"
+#include "../core/managers/AudioManager.h"
 
 UIManager::UIManager()
     : quadVAO(0)

@@ -8,7 +8,7 @@
 #include "GLFW/glfw3.h"
 #include <cstdlib>
 #include <iostream>
-#include "../system/AudioManager.h"
+#include "../core/managers/AudioManager.h"
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {

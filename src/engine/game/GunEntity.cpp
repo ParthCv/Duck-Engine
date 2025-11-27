@@ -1,6 +1,4 @@
-
 #include "GunEntity.h"
-#include "../ecs/World.h"
 #include "../ecs/Component.h"
 
 GunEntity::GunEntity(World &world, const std::string &modelName) : Entity(world) {
