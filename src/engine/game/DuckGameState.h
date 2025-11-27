@@ -1,0 +1,8 @@
+//
+// Created by Nathan on 2025-11-26.
+//
+
+#ifndef DUCKENGINE_DUCKGAMESTATE_H
+#define DUCKENGINE_DUCKGAMESTATE_H
+
+#endif //DUCKENGINE_DUCKGAMESTATE_H
