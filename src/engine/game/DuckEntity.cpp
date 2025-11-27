@@ -8,6 +8,7 @@
 #include "GLFW/glfw3.h"
 #include <cstdlib>
 #include <iostream>
+#include "../system/AudioManager.h"
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -148,16 +149,15 @@ void DuckEntity::checkIfEscaped()
 void DuckEntity::KillDuck() {
     if (isDead)
         return;
+    AudioManager::Get().PlaySound("quack");
+    //this->destroy();
+    std::cout << "Duck Died" << std::endl;
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
-    // EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
+    EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
     EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f);
-    // cook();  // Change static mesh
+    cook();  // Change static mesh
     isDead = true;
-
-    std::cout << "Duck Died" << std::endl;
-    // TODO: Increment GameState points here.
-    // ...
 }
 
 void DuckEntity::fall() {
@@ -167,7 +167,7 @@ void DuckEntity::fall() {
     // Calculate local velocity needed to fall "world" down
     glm::quat inverseRotation = glm::inverse(EntityTransform.rotation);
     glm::vec3 localDown = inverseRotation * glm::vec3(0.0f, -1.0f, 0.0f);
-    glm::vec3 fallVelocity = localDown * 0.2f;
+    glm::vec3 fallVelocity = localDown * 0.5f;
 
     EntityVelocity.setVelocity(fallVelocity, 1.0f);
 }

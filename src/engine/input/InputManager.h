@@ -18,6 +18,12 @@ public:
     static glm::vec2 getMousePosition();
     static glm::vec2 getMouseDelta();
 
+    // Reset delta (useful when switching states/locking cursor)
+    static void resetMouseDelta();
+
+    // Helper to lock/unlock cursor for FPS mode
+    static void setCursorVisible(bool visible);
+
     // Mouse button methods
     static bool isMouseButtonDown(int button);
     static bool isMouseButtonPressed(int button);  // Just pressed this frame

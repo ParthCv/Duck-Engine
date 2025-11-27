@@ -7,6 +7,7 @@
 #include "../input/InputUtils.h"
 #include "../system/CollisionSystem.h"
 #include "DuckEntity.h"
+#include "../system/AudioManager.h"
 
 GameStateManager::GameStateManager()
     : currentState(GameState::MENU)
@@ -15,6 +16,8 @@ GameStateManager::GameStateManager()
     , onStateChangeCallback(nullptr)
     , worldContext(nullptr)
 {
+
+    std::cout << "[GameStateManager] Initialized..." << std::endl;
     std::cout << "[GameStateManager] Initialized - Starting in MENU state" << std::endl;
 }
 
@@ -24,6 +27,16 @@ void GameStateManager::setState(GameState newState) {
     previousState = currentState;
     currentState = newState;
     stateTimer = 0.0f;
+
+    // === HANDLE CURSOR VISIBILITY BASED ON STATE (HIDE DURING PLAYING) ===
+    if (currentState == GameState::PLAYING) {
+        // Lock/Hide cursor for FPS gameplay
+        InputManager::setCursorVisible(false);
+        InputManager::resetMouseDelta(); // Prevent camera jump
+    } else {
+        // Unlock/Show cursor for menus
+        InputManager::setCursorVisible(true);
+    }
 
     notifyStateChange(previousState, currentState);
 }
@@ -127,33 +140,31 @@ void GameStateManager::notifyStateChange(GameState oldState, GameState newState)
 
 void GameStateManager::updateMenu(float deltaTime) {
     // TODO: Menu logic here
-    // - Check for button clicks
-    // - Handle menu navigation
-    // - Start game when "Play" is clicked
-
-    // Debug: Auto-transition after 3 seconds (remove this later)
-    // if (stateTimer > 3.0f) {
-    //     setState(GameState::PLAYING);
-    // }
 }
 
 void GameStateManager::updatePlaying(float deltaTime) {
     // Guard against null world or camera
-    if (!worldContext || !worldContext->camera) return;
+    if (!worldContext || !worldContext->camera) {
+        return;
+    }
 
-    // --- CALCULATE CAMERA VECTORS ---
-    glm::mat4 view = worldContext->camera->getViewMatrix();
-    // Row 0 = Right, Row 1 = Up, Row 2 = -Forward (in standard view matrix)
-    glm::vec3 cameraRight = glm::vec3(view[0][0], view[1][0], view[2][0]);
-    glm::vec3 cameraUp    = glm::vec3(view[0][1], view[1][1], view[2][1]);
-    glm::vec3 cameraFwd   = -glm::vec3(view[0][2], view[1][2], view[2][2]);
+        // --- 1. HANDLE CAMERA ROTATION (FPS STYLE) ---
+    glm::vec2 mouseDelta = InputManager::getMouseDelta();
+    // Only rotate if there was movement
+    if (glm::length(mouseDelta) > 0.001f) {
+        worldContext->camera->processMouseMovement(mouseDelta.x, mouseDelta.y);
+    }
+
+    // --- 2. RETRIEVE UPDATED CAMERA VECTORS ---
+    glm::vec3 cameraFwd   = worldContext->camera->front;
+    glm::vec3 cameraRight = worldContext->camera->right;
+    glm::vec3 cameraUp    = worldContext->camera->up;
 
     // Reconstruct Camera Rotation Quaternion (Used to align ducks)
-    // Columns: Right, Up, Backward (-Forward)
     glm::mat3 camRotMat(cameraRight, cameraUp, -cameraFwd);
     glm::quat camRot = glm::quat_cast(camRotMat);
 
-    // --- DUCK SPAWNING LOGIC ---
+    // --- 3. DUCK SPAWNING LOGIC ---
     static float spawnTimer = 0.0f;
     const float SPAWN_INTERVAL = 2.0f;
 
@@ -189,8 +200,6 @@ void GameStateManager::updatePlaying(float deltaTime) {
 
             newDuck.getComponent<Velocity>().setVelocity(glm::vec3(1.0f, 0.0f, 0.0f), speed);
         }
-
-        std::cout << "Spawned duck at relative pos: " << spawnPos.x << ", " << spawnPos.y << ", " << spawnPos.z << std::endl;
     }
 
     // Update all entities in the world
@@ -211,13 +220,10 @@ void GameStateManager::updatePlaying(float deltaTime) {
 
         // Check Input
         if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            AudioManager::Get().PlaySound("shoot", 0.5f);
 
-            glm::vec3 rayDir = InputUtils::screenToWorldRay(
-                InputManager::getMousePosition(),
-                InputManager::getWindowWidth(),
-                InputManager::getWindowHeight(),
-                *worldContext->camera
-            );
+            // FPS STYLE: Raycast ALWAYS goes straight forward from camera
+            glm::vec3 rayDir = cameraFwd;
 
             raySource.direction = rayDir;
             raySource.drawRay = true;

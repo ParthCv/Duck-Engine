@@ -34,6 +34,7 @@ public:
 
     UIManager uiManager;
     GameStateManager stateManager;
+    DebugRenderSystem debugSystem;
 
 private:
     GLFWwindow* window = nullptr;
