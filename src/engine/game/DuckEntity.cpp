@@ -180,7 +180,7 @@ void DuckEntity::KillDuck() {
     //this->destroy();
     // Increase score and decrement numOfDucks
     DuckGameState::get().hitDuck();
-    this->destroy();
+    // this->destroy();
     std::cout << "Duck Died" << std::endl;
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
