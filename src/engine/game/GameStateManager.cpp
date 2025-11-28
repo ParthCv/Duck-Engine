@@ -189,7 +189,7 @@ void GameStateManager::updatePlaying(float deltaTime) {
 
         // Spawn the duck
         DuckEntity& newDuck = worldContext->EntityManager.CreateDuckEntity(*worldContext, spawnPos);
-
+        DuckGameState::get().decrementNumOfDucks();
         if (newDuck.hasComponent<Velocity>() && newDuck.hasComponent<Transform>()) {
             //float speed = 2.0f;
             float speed = DuckGameState::get().getDuckSpeedBasedOnRound();
