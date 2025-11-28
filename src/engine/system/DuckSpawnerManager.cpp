@@ -5,7 +5,7 @@
 #include "DuckSpawnerManager.h"
 #include "../game/GameUtils.h"
 #include "../game/DuckGameState.h"
-#include "../system/AudioManager.h"
+#include "../core/managers/AudioManager.h"
 
 #include <iostream>
 
@@ -56,7 +56,7 @@ void DuckSpawnerManager::SpawnDuck()
 void DuckSpawnerManager::ResetRound() {
     // numberOfDucksToSpawn = ducksPerRound;
     DuckGameState::get().startNextRound();
-    AudioManager::Get().PlaySound("win", 0.5f);
+    // AudioManager::Get().PlaySound("win", 0.5f);
 }
 
 void DuckSpawnerManager::SetDucksPerRound(int num) {

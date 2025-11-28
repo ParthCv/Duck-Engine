@@ -159,7 +159,7 @@ public:
 
     // === Game state queries ===
     bool isRoundComplete() const {
-        return numOfDucks == 0;
+        return numOfDucks <= 0;
     }
 
     /**

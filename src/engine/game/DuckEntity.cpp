@@ -74,7 +74,7 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition, float speed) : Ent
 
     // Initialize Mesh
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
-    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+    staticMeshComponent.loadMesh("duck.obj");
 
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();

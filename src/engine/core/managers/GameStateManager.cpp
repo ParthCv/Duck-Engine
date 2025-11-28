@@ -9,7 +9,7 @@
 #include "../../game/DuckEntity.h"
 #include "InputManager.h"
 #include "AudioManager.h"
-#include "../game/DuckGameState.h"
+#include "../../game/DuckGameState.h"
 
 GameStateManager::GameStateManager()
     : currentState(GameState::MENU)
