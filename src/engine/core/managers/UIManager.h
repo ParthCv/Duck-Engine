@@ -54,7 +54,7 @@ struct UIElement {
 };
 
 // Button element with callback
-struct UIButton : public UIElement {
+struct UIButton : UIElement {
     std::string text;
     glm::vec4 hoverColor;
     glm::vec4 pressedColor;
@@ -74,7 +74,7 @@ struct UIButton : public UIElement {
 };
 
 // Slider element
-struct UISlider : public UIElement {
+struct UISlider : UIElement {
     float minVal;
     float maxVal;
     float value;
@@ -96,7 +96,7 @@ struct UISlider : public UIElement {
 };
 
 // Text element
-struct UIText : public UIElement {
+struct UIText : UIElement {
     std::string text;
     float fontSize;
     bool centered;
@@ -111,7 +111,7 @@ struct UIText : public UIElement {
 };
 
 // Panel/Rectangle element
-struct UIPanel : public UIElement {
+struct UIPanel : UIElement {
     bool hasBorder;
     glm::vec4 borderColor;
     float borderThickness;
@@ -126,7 +126,7 @@ struct UIPanel : public UIElement {
 };
 
 // Crosshair element (for Duck Hunt)
-struct UICrosshair : public UIElement {
+struct UICrosshair : UIElement {
     float thickness;
     float length;
 

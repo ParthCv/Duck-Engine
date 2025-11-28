@@ -263,6 +263,13 @@ void Engine::update(float deltaTime) {
     if (stateManager.getCurrentState() == GameState::PLAYING) {
         world.update(deltaTime);
     }
+
+    // static float garbageTimer = 0.0f;
+    // garbageTimer += deltaTime;
+    // if (garbageTimer >= 5.0f) {
+    //     ResourceManager::Get().CollectGarbage();
+    //     garbageTimer = 0.0f;
+    // }
 }
 
 void Engine::render() {
@@ -391,24 +398,35 @@ void Engine::renderEntities() {
     basicShader.setMat4("projection", projection);
 
     // TODO: Bind the correct material from the entities static mesh component
-    cubeMaterial.bind(basicShader);
+    // cubeMaterial.bind(basicShader);
 
     // TODO: store a list of renderable entities to iterate instead
     // Draw each entity
+    std::unordered_map<Material*, std::vector<StaticMeshComponent*>> materialBatches;
+
     for (auto& entity : world.EntityManager.GetEntities())
     {
         if (entity == nullptr) continue;
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
+            Material* mat = staticMeshComponent.material ? staticMeshComponent.material : &cubeMaterial;
+            materialBatches[mat].push_back(&staticMeshComponent);
+        }
+    }
 
-            // Getting the Model.
-            glm::mat4 model = staticMeshComponent.getTransformMatrix();
+    // Render batched by material
+    for (auto& [material, components] : materialBatches)
+    {
+        material->bind(basicShader);
 
+        for (auto* comp : components)
+        {
+            glm::mat4 model = comp->getTransformMatrix();
             basicShader.setMat4("model", model);
 
-            staticMeshComponent.Mesh->bind();
-            staticMeshComponent.Mesh->draw();
+            comp->Mesh->bind();
+            comp->Mesh->draw();
         }
     }
 

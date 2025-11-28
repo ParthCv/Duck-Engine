@@ -24,6 +24,12 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
     staticMeshComponent.loadMesh("duck.obj");
 
+    material.loadAlbedoMap("../assets/textures/duck.png");
+    material.setMetallic(0.0f);
+    material.setRoughness(0.8f);
+
+    staticMeshComponent.material = &material;
+
     // Configure Collider based on Mesh
     collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
     collider.center = staticMeshComponent.Mesh->getCenter();
@@ -33,7 +39,6 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
     auto& debug = addComponent<DebugDrawable>();
     debug.drawCollider = true;
     debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f); // Red
-    addComponent<StaticMeshComponent>(*this);
 
     this->DuckEntity::beginPlay();
 }
@@ -50,6 +55,12 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
     staticMeshComponent.loadMesh("duck.obj");
 
+    // material.loadAlbedoMap("../assets/textures/duck.png");
+    // material.setMetallic(0.0f);
+    // material.setRoughness(0.8f);
+
+    // staticMeshComponent.material = &material;
+    staticMeshComponent.material = ResourceManager::Get().GetMaterial("duck").get();
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
     collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;

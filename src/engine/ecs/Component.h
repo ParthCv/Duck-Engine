@@ -10,6 +10,7 @@
 #include "glm/gtc/quaternion.hpp"
 #include "../core/model/StaticMesh.h"
 #include "../core/managers/ResourceManager.h"
+#include "../renderer/Material.h"
 
 struct Velocity
 {
@@ -154,12 +155,14 @@ struct StaticMeshComponent
     explicit StaticMeshComponent(Entity& InEntity)
             : OwningEntity(&InEntity),
             StaticMeshTransform(Transform{}),
-            Mesh(std::make_shared<StaticMesh>())
+            Mesh(std::make_shared<StaticMesh>()),
+            material(nullptr)
     {
     }
 
     Entity* OwningEntity;
     Transform StaticMeshTransform;
+    Material* material;
     glm::mat4 ModelMatrix{};
     std::shared_ptr<StaticMesh> Mesh;
     bool bIsVisible = true;

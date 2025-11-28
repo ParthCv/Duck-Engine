@@ -7,4 +7,6 @@ GunEntity::GunEntity(World &world, const std::string &modelName) : Entity(world)
                                               glm::vec3(1.f,1.f,1.f));
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
     staticMeshComponent.loadMesh(modelName);
+    staticMeshComponent.material = ResourceManager::Get().GetMaterial("gun").get();
+
 }
