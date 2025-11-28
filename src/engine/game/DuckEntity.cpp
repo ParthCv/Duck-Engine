@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "../system/AudioManager.h"
+#include "../game/DuckGameState.h"
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -44,6 +45,31 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
     spawnPosition = InPosition;
 
     addComponent<Velocity>(glm::vec3(0.0, 0.0f, 0.0f), 0.0f);
+    addComponent<StaticMeshComponent>(*this );
+
+    // Initialize Mesh
+    auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
+    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+
+    // Initialize Collider
+    auto& collider = addComponent<BoxCollider>();
+    collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
+    collider.center = staticMeshComponent.Mesh->getCenter();
+    collider.center.y += collider.size.y / 2.0f;
+
+    auto& debug = addComponent<DebugDrawable>();
+    debug.drawCollider = true;
+    debug.colliderColor = glm::vec3(1.0f, 0.0f, 0.0f);
+
+    this->DuckEntity::beginPlay();
+}
+
+DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition, float speed) : Entity(InWorld) {
+    auto& transform = addComponent<Transform>(InPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(10,10,10));
+
+    spawnPosition = InPosition;
+
+    addComponent<Velocity>(glm::vec3(0.0, 0.0f, 1.0f), speed);
     addComponent<StaticMeshComponent>(*this );
 
     // Initialize Mesh
@@ -129,6 +155,7 @@ void DuckEntity::checkIfEscaped()
     // Increased escape distance slightly since they spawn further out
     if (glm::distance(EntityTransform.position, spawnPosition) > 100.0f)
     {
+        // DuckGameState::get().incrementDucksEscaped();
         this->destroy();
     }
 }
@@ -136,8 +163,9 @@ void DuckEntity::checkIfEscaped()
 void DuckEntity::KillDuck()
 {
     AudioManager::Get().PlaySound("quack");
+    // Increase score and decrement numOfDucks
+    // DuckGameState::get().hitDuck();
     this->destroy();
     std::cout << "Duck Died" << std::endl;
-    // TODO: Increment GameState points here.
-    // ...
+
 }

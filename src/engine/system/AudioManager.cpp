@@ -38,6 +38,7 @@ void AudioManager::Init() {
     Get().LoadSound("shoot", "../assets/audio/shoot.wav");
     Get().LoadSound("quack", "../assets/audio/quack.wav");
     Get().LoadSound("music", "../assets/audio/music.wav");
+    Get().LoadSound("win", "../assets/audio/win.wav");
     Get().LoadSound("chirpingbirds", "../assets/audio/chirpingbirds.wav");
 
     // play menu music right away

@@ -14,8 +14,8 @@ public:
     float escapeDistance = 10;
 
     DuckEntity(World& InWorld);
-
     DuckEntity(World& InWorld, glm::vec3& InPosition);
+    DuckEntity(World& InWorld, glm::vec3& InPosition, float speed);
 
     ~DuckEntity() override;
 
