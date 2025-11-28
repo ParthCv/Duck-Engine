@@ -4,14 +4,22 @@
 #include "glm/vec3.hpp"
 
 
+class StaticMesh;
+
 class DuckEntity : public Entity
 {
 public:
     float accumulatedTime = 0;
+    float timeSinceDeath = 0;
+    float pauseAfterKillDuration = 0.8f;
 
     glm::vec3 spawnPosition{};
 
-    float escapeDistance = 10;
+    float escapeDistance = 100;
+
+    bool isDead = false;
+    bool isFalling = false;
+    float DeathPlaneYBound = -10.0f;
 
     DuckEntity(World& InWorld);
     DuckEntity(World& InWorld, glm::vec3& InPosition);
@@ -28,6 +36,10 @@ public:
     void checkIfEscaped();
 
     void KillDuck();
+
+    void fall();
+    void cook();    // Change static mesh on death
+    void createCube(StaticMesh& mesh);
 };
 
 

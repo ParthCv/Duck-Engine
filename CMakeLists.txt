@@ -33,27 +33,34 @@ add_executable(DuckEngine
         src/engine/system/DebugRenderSystem.cpp
         src/engine/game/DuckEntity.cpp
         src/engine/game/DuckEntity.h
-        src/engine/input/InputManager.cpp
-        src/engine/game/GameStateManager.cpp
+        src/engine/core/managers/InputManager.cpp
+        src/engine/core/managers/GameStateManager.cpp
         src/engine/core/model/ImportedModel.cpp
         src/engine/core/model/ImportedModel.h
         src/engine/core/model/StaticMesh.cpp
         src/engine/core/model/StaticMesh.h
         src/engine/renderer/ShadowMap.cpp
-        src/engine/system/UIManager.cpp
+        src/engine/core/managers/UIManager.cpp
         src/engine/renderer/BitmapFont.cpp
-        src/engine/system/AudioManager.h
-        src/engine/system/AudioManager.cpp
+        src/engine/utils/LoadingScreen.cpp
+        src/engine/core/managers/ResourceManager.cpp
+        src/engine/core/managers/ResourceManager.h
         dependencies/OpenAL/libs/Win64/dr_wav.h
         src/engine/system/DuckSpawnerManager.cpp
         src/engine/system/DuckSpawnerManager.h
-        src/engine/system/AudioManager.h
-        src/engine/system/AudioManager.cpp
+        src/engine/core/managers/AudioManager.h
+        src/engine/core/managers/AudioManager.cpp
         dependencies/OpenAL/libs/Win64/dr_wav.h
         src/engine/system/DuckSpawnerManager.cpp
         src/engine/system/DuckSpawnerManager.h
         src/engine/game/DuckGameState.h
         src/engine/game/DuckGameState.cpp
+        src/engine/game/EnvironmentEntity.cpp
+        src/engine/game/EnvironmentEntity.h
+        src/engine/game/EnvironmentGenerator.cpp
+        src/engine/game/EnvironmentGenerator.h
+        src/engine/game/GunEntity.cpp
+        src/engine/game/GunEntity.h
 )
 
 

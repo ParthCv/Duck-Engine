@@ -1,6 +1,3 @@
-//
-// Created by jeff_ on 2025-11-26.
-//
 #include "AudioManager.h"
 
 #define DR_WAV_IMPLEMENTATION

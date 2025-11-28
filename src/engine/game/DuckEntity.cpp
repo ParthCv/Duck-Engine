@@ -8,7 +8,7 @@
 #include "GLFW/glfw3.h"
 #include <cstdlib>
 #include <iostream>
-#include "../system/AudioManager.h"
+#include "../core/managers/AudioManager.h"
 #include "../game/DuckGameState.h"
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
@@ -23,7 +23,7 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 
     // Initialize Mesh
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
-    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+    staticMeshComponent.loadMesh("duck.obj");
 
     // Configure Collider based on Mesh
     collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
@@ -49,7 +49,7 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
 
     // Initialize Mesh
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
-    staticMeshComponent.loadMesh("../assets/models/duck.obj");
+    staticMeshComponent.loadMesh("duck.obj");
 
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
@@ -111,7 +111,20 @@ void DuckEntity::update(float deltaTime) {
     // auto* OwningEntityTransform = &OwningEntity.getComponent<Transform>();
     // OwningEntityTransform->Rotate(glm::vec3(0.005, 0.001 ,0));
 
-    checkIfEscaped();
+    if (!isDead)
+        checkIfEscaped();
+    else {
+        timeSinceDeath += deltaTime;
+        if (timeSinceDeath > pauseAfterKillDuration && !isFalling) {
+            isFalling = true;
+            fall();
+        }
+    }
+
+    // Destroy Entity if it sinks low enough
+    if (EntityTransform.position.y < DeathPlaneYBound) {
+        this->destroy();
+    }
 }
 
 void DuckEntity::beginPlay() {
@@ -153,19 +166,105 @@ void DuckEntity::checkIfEscaped()
 {
     auto& EntityTransform = this->getComponent<Transform>();
     // Increased escape distance slightly since they spawn further out
-    if (glm::distance(EntityTransform.position, spawnPosition) > 100.0f)
+    if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
     {
-        // DuckGameState::get().incrementDucksEscaped();
+        DuckGameState::get().incrementDucksEscaped();
         this->destroy();
     }
 }
 
-void DuckEntity::KillDuck()
-{
+void DuckEntity::KillDuck() {
+    if (isDead)
+        return;
     AudioManager::Get().PlaySound("quack");
+    //this->destroy();
     // Increase score and decrement numOfDucks
-    // DuckGameState::get().hitDuck();
+    DuckGameState::get().hitDuck();
     this->destroy();
     std::cout << "Duck Died" << std::endl;
+    auto& EntityTransform = this->getComponent<Transform>();
+    auto& EntityVelocity = this->getComponent<Velocity>();
+    EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
+    EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f);
+    cook();  // Change static mesh
+    isDead = true;
+}
+
+void DuckEntity::fall() {
+    auto& EntityTransform = this->getComponent<Transform>();
+    auto& EntityVelocity = this->getComponent<Velocity>();
+
+    // Calculate local velocity needed to fall "world" down
+    glm::quat inverseRotation = glm::inverse(EntityTransform.rotation);
+    glm::vec3 localDown = inverseRotation * glm::vec3(0.0f, -1.0f, 0.0f);
+    glm::vec3 fallVelocity = localDown * 0.5f;
+
+    EntityVelocity.setVelocity(fallVelocity, 1.0f);
+}
+
+// Change static mesh on death
+void DuckEntity::cook() {
+    auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
+
+    // TODO: Switch to Cooked duck mesh
+    // Turns into a box as a placeholder static mesh
+    staticMeshComponent.StaticMeshTransform.scale = glm::vec3(0.1f, 0.1f, 0.1f);
+    staticMeshComponent.StaticMeshTransform.SetTransform(glm::vec3(0.0f, 0.1f, 0.0f));
+    createCube(*staticMeshComponent.Mesh);
+}
+
+// Temp method to change static mesh when dead
+void DuckEntity::createCube(StaticMesh& mesh) {
+    // Cube vertices (8 corners, but we need 24 vertices for proper normals per face)
+    std::vector<Vertex> vertices = {
+        // Front face (z = 0.5)
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+
+        // Back face (z = -0.5)
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}},
+
+        // Left face (x = -0.5)
+        {{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+
+        // Right face (x = 0.5)
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+
+        // Top face (y = 0.5)
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+        // Bottom face (y = -0.5)
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}
+    };
+
+    // Cube indices (2 triangles per face, 6 faces)
+    std::vector<unsigned int> indices = {
+        0,  1,  2,  2,  3,  0,   // Front
+        4,  5,  6,  6,  7,  4,   // Back
+        8,  9,  10, 10, 11, 8,   // Left
+        12, 13, 14, 14, 15, 12,  // Right
+        16, 17, 18, 18, 19, 16,  // Top
+        20, 21, 22, 22, 23, 20   // Bottom
+    };
+
+    // Call setupMesh
+    mesh.setupMesh(vertices, indices);
 
 }

@@ -1,13 +1,11 @@
 #pragma once
-#include "../renderer/Shader.h"
-#include "../renderer/BitmapFont.h"
+#include "../../renderer/Shader.h"
+#include "../../renderer/BitmapFont.h"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
 #include <functional>
-#include "../input/InputManager.h"
-
 
 // Forward declarations
 class GameStateManager;
@@ -203,6 +201,8 @@ public:
     // Utility
     void setDebugMode(bool enabled) { debugMode = enabled; }
 
+    void renderLoadingScreen();
+
 private:
     // OpenGL rendering setup
     Shader uiShader;
@@ -229,6 +229,8 @@ private:
 
     // === Internal Rendering Methods ===
     void setupRenderingResources();
+
+
     void renderButton(const UIButton& button);
     void renderText(const UIText& text);
     void renderPanel(const UIPanel& panel);

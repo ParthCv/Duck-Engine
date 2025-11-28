@@ -2,12 +2,13 @@
 #include "GameStateManager.h"
 #include <iostream>
 
-#include "../ecs/World.h"
-#include "../ecs/Component.h"
-#include "../input/InputUtils.h"
-#include "../system/CollisionSystem.h"
-#include "DuckEntity.h"
-#include "../system/AudioManager.h"
+#include "../../ecs/World.h"
+#include "../../ecs/Component.h"
+#include "../../utils/InputUtils.h"
+#include "../../system/CollisionSystem.h"
+#include "../../game/DuckEntity.h"
+#include "InputManager.h"
+#include "AudioManager.h"
 #include "../game/DuckGameState.h"
 
 GameStateManager::GameStateManager()
@@ -149,7 +150,7 @@ void GameStateManager::updatePlaying(float deltaTime) {
         return;
     }
 
-    // --- 1. HANDLE CAMERA ROTATION (FPS STYLE) ---
+        // --- 1. HANDLE CAMERA ROTATION (FPS STYLE) ---
     glm::vec2 mouseDelta = InputManager::getMouseDelta();
     // Only rotate if there was movement
     if (glm::length(mouseDelta) > 0.001f) {
