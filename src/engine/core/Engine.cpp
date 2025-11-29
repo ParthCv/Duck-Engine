@@ -153,6 +153,11 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
     updateLoadingScreen();
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
+    floorMaterial.loadAlbedoMap("../assets/textures/pbr_ground/albedo.png");
+    // floorMaterial.loadAOMap("../assets/textures/pbr_ground/ao.png");
+    floorMaterial.loadNormalMap("../assets/textures/pbr_ground/normals.png");
+    floorMaterial.loadRoughnessMap("../assets/textures/pbr_ground/roughness.png");
+
     updateLoadingScreen();
     cubeMaterial.setMetallic(1.0f);      // Non-metallic
     cubeMaterial.setRoughness(0.1f);     // Mid-rough
@@ -397,9 +402,6 @@ void Engine::renderEntities() {
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
-    // TODO: Bind the correct material from the entities static mesh component
-    // cubeMaterial.bind(basicShader);
-
     // TODO: store a list of renderable entities to iterate instead
     // Draw each entity
     std::unordered_map<Material*, std::vector<StaticMeshComponent*>> materialBatches;
@@ -514,7 +516,7 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
 
 
 void Engine::createFloor() {
-    float floorSize = 50.0f;  // Large but not truly infinite
+    float floorSize = 80.0f;  // Large but not truly infinite
     float floorVertices[] = {
         // Positions          // Normals           // TexCoords
         -floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
@@ -550,7 +552,7 @@ void Engine::renderFloor() {
 
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = camera.getProjectionMatrix();
-    glm::mat4 model = glm::mat4(1.0f);
+    auto model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));  // Lower the floor
 
     basicShader.setMat4("model", model);
@@ -558,7 +560,7 @@ void Engine::renderFloor() {
     basicShader.setMat4("projection", projection);
 
     // Use same material or create a floor material
-    cubeMaterial.bind(basicShader);
+    floorMaterial.bind(basicShader);
 
     glBindVertexArray(floorVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
