@@ -410,7 +410,7 @@ void Engine::renderEntities() {
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
-            Material* mat = staticMeshComponent.material ? staticMeshComponent.material : &cubeMaterial;
+            Material* mat = staticMeshComponent.material ? staticMeshComponent.material.get() : &cubeMaterial;
             materialBatches[mat].push_back(&staticMeshComponent);
         }
     }

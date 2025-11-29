@@ -1,7 +1,3 @@
-//
-// Created by User on 11/18/2025.
-//
-
 #include "DuckEntity.h"
 #include "../ecs/World.h"
 #include "../ecs/Component.h"
@@ -24,11 +20,7 @@ DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
     staticMeshComponent.loadMesh("duck.obj");
 
-    material.loadAlbedoMap("../assets/textures/duck.png");
-    material.setMetallic(0.0f);
-    material.setRoughness(0.8f);
-
-    staticMeshComponent.material = &material;
+    staticMeshComponent.material = ResourceManager::Get().GetMaterial("duck");
 
     // Configure Collider based on Mesh
     collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
@@ -60,7 +52,7 @@ DuckEntity::DuckEntity(World &InWorld, glm::vec3 &InPosition) : Entity(InWorld) 
     // material.setRoughness(0.8f);
 
     // staticMeshComponent.material = &material;
-    staticMeshComponent.material = ResourceManager::Get().GetMaterial("duck").get();
+    staticMeshComponent.material = ResourceManager::Get().GetMaterial("duck");
     // Initialize Collider
     auto& collider = addComponent<BoxCollider>();
     collider.size = staticMeshComponent.Mesh->getSize() * transform.scale;
@@ -187,11 +179,10 @@ void DuckEntity::fall() {
 void DuckEntity::cook() {
     auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
 
-    // TODO: Switch to Cooked duck mesh
-    // Turns into a box as a placeholder static mesh
-    staticMeshComponent.StaticMeshTransform.scale = glm::vec3(0.1f, 0.1f, 0.1f);
+    staticMeshComponent.loadMesh("turkey.obj");
+    staticMeshComponent.material = ResourceManager::Get().GetMaterial("turkey");
+    staticMeshComponent.StaticMeshTransform.scale = glm::vec3(0.2f, 0.2f, 0.2f);
     staticMeshComponent.StaticMeshTransform.SetTransform(glm::vec3(0.0f, 0.1f, 0.0f));
-    createCube(*staticMeshComponent.Mesh);
 }
 
 // Temp method to change static mesh when dead

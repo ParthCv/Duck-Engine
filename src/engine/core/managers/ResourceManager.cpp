@@ -54,6 +54,10 @@ std::shared_ptr<Material> ResourceManager::GetMaterial(const std::string &materi
         newMaterial->loadAlbedoMap("../assets/textures/gun.png");
         newMaterial->setMetallic(0.0f);
         newMaterial->setRoughness(0.8f);
+    } else if (materialName == "turkey") {
+        newMaterial->setAlbedo(glm::vec3(0.83f, 0.68f, 0.22));
+        newMaterial->setMetallic(1.0f);
+        newMaterial->setRoughness(0.0f);
     }
 
     MaterialCache[materialName] = newMaterial;

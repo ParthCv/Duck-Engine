@@ -162,7 +162,7 @@ struct StaticMeshComponent
 
     Entity* OwningEntity;
     Transform StaticMeshTransform;
-    Material* material;
+    std::shared_ptr<Material> material;
     glm::mat4 ModelMatrix{};
     std::shared_ptr<StaticMesh> Mesh;
     bool bIsVisible = true;
