@@ -34,6 +34,22 @@ void World::update(float deltaTime)
 {
     float time = glfwGetTime();
 
+    // --- FPS GUN UPDATE LOGIC ---
+    if (gunEntity && camera) {
+        auto& transform = gunEntity->getComponent<Transform>();
+
+        // Gun position
+        glm::vec3 offset = (camera->right * 0.25f) + (camera->up * -0.25f) + (camera->front * 0.5f);
+        transform.position = camera->position + offset;
+
+        // Gun Rotation
+        glm::mat3 camRotation(camera->right, camera->up, -camera->front);
+        glm::quat orientation = glm::quat_cast(camRotation);
+        orientation = orientation * glm::angleAxis(glm::radians(180.0f), glm::vec3(0, 1, 0));
+
+        transform.rotation = orientation;
+    }
+
     // TODO: REMOVE - Test functionality for moving directional light
     if (lightManager.getDirectionalLightCount() > 0) {
         auto& dirLight = lightManager.getDirectionalLight(0);
@@ -67,11 +83,14 @@ void World::beginPlay()
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
-    auto& gunEntity = EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
+    // Store the gun entity pointer in the class member 'gunEntity'
+    gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
+
+    // Initial position setup (First frame)
     glm::vec3 gunPos{camPos.x, camPos.y - 0.2f, camPos.z - 0.4f};
     glm::vec3 gunRot{0.f, 3.14159f, 0.f};
-    gunEntity.getComponent<Transform>().SetPosition(gunPos);
-    gunEntity.getComponent<Transform>().SetRotation(gunRot);
+    gunEntity->getComponent<Transform>().SetPosition(gunPos);
+    gunEntity->getComponent<Transform>().SetRotation(gunRot);
 
     EnvironmentGenerator envGenerator{*this, EntityManager};
     envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));

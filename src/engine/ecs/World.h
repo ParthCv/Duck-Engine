@@ -57,5 +57,6 @@ private:
         glm::vec3(0.0f, 2.0f, 0.0f),
     };
 
+    // Store gun ref, so we can update its position every frame
+    Entity* gunEntity = nullptr;
 };
-
