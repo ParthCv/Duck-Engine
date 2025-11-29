@@ -154,7 +154,6 @@ void DuckEntity::KillDuck() {
     std::cout << "Duck Died" << std::endl;
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
-    EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
     EntityVelocity.setVelocity(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f);
     cook();  // Change static mesh
     isDead = true;
@@ -174,13 +173,21 @@ void DuckEntity::fall() {
 
 // Change static mesh on death
 void DuckEntity::cook() {
-    auto& staticMeshComponent = addComponent<StaticMeshComponent>(*this);
+    auto& EntityTransform = this->getComponent<Transform>();
 
-    // TODO: Switch to Cooked duck mesh
-    // Turns into a box as a placeholder static mesh
-    staticMeshComponent.StaticMeshTransform.scale = glm::vec3(0.1f, 0.1f, 0.1f);
-    staticMeshComponent.StaticMeshTransform.SetTransform(glm::vec3(0.0f, 0.1f, 0.0f));
-    createCube(*staticMeshComponent.Mesh);
+    // Save previous rotation
+    glm::quat savedRotation = EntityTransform.rotation;
+    auto& staticMeshComponent = getComponent<StaticMeshComponent>();
+    staticMeshComponent.loadMesh("turkey.obj");
+
+    staticMeshComponent.StaticMeshTransform.scale = glm::vec3(0.17f);
+    staticMeshComponent.StaticMeshTransform.position = glm::vec3(0, 0, 0);
+
+    // Rotate mesh 90 degrees and move up a little
+    staticMeshComponent.StaticMeshTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    staticMeshComponent.StaticMeshTransform.AddLocalTransform(glm::vec3(0.0f, 0.1f, 0.0f));
+
+    EntityTransform.rotation = savedRotation;
 }
 
 // Temp method to change static mesh when dead
