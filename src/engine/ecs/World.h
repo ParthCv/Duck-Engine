@@ -59,4 +59,8 @@ private:
 
     // Store gun ref, so we can update its position every frame
     Entity* gunEntity = nullptr;
+
+    // Recoil State
+    float gunRecoilOffset = 0.0f; // Z-axis kickback
+    float gunRecoilPitch = 0.0f;  // Upward barrel rotation
 };
