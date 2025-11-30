@@ -35,7 +35,7 @@ Entity* DuckFactory::createDuck(World& world, const glm::vec3& position, float s
     collider.center = staticMesh.Mesh->getCenter();
 
     // Adjust center offset based on unscaled size
-    collider.center.y += collider.size.y / 2.0f;
+    collider.center.y += (collider.size.y * transform.scale.y) / 2.0f;
 
     entity.addComponent<DebugDrawable>();
     entity.addComponent<DuckComponent>();
@@ -49,8 +49,9 @@ Entity* DuckFactory::createDuck(World& world, const glm::vec3& position, float s
     // Set random flight path
     TransformSystem::LocalRotate(transform, -45.0f, glm::vec3(1.0f, 0.0f, 0.0f));
     float randomAngle = rand() % 360;
-    TransformSystem::WorldRotate(transform, randomAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-    velocity.Direction = glm::vec3(0.0f, 0.0f, 1.0f);
+    glm::quat rotation = glm::quat(glm::vec3(glm::radians(-45.0f), glm::radians(randomAngle), 0.0f));
+    velocity.Direction = rotation * glm::vec3(0.0f, 0.0f, 10.0f);
+
 
     return &entity;
 }

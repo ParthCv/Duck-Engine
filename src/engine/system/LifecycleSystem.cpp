@@ -18,19 +18,23 @@ void LifecycleSystem::update(World& world, float deltaTime) {
 
             if (health.isDead) {
                 health.timeSinceDeath += deltaTime;
+
+                // Wait for the "pause" to finish, then start falling
                 if (health.timeSinceDeath > health.pauseAfterKillDuration && !health.isFalling) {
                     health.isFalling = true;
-                    
-                    auto& velocity = entity->getComponent<Velocity>();
-                    // Calculate local velocity needed to fall "world" down
-                    glm::quat inverseRotation = glm::inverse(transform.rotation);
-                    glm::vec3 localDown = inverseRotation * glm::vec3(0.0f, -1.0f, 0.0f);
-                    glm::vec3 fallVelocity = localDown * 0.5f;
-                    velocity.Direction = fallVelocity;
-                    velocity.Speed = 1.0f;
+
+                    if(entity->hasComponent<Velocity>()) {
+                        auto& velocity = entity->getComponent<Velocity>();
+
+                        // FIX: Simplified Falling Logic
+                        // Since MovementSystem is now World Space, we just set direction to World Down.
+                        velocity.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
+                        velocity.Speed = 50.0f; // Set a fast fall speed
+                    }
                 }
             }
 
+            // Destroy if below the death plane
             if (transform.position.y < health.DeathPlaneYBound) {
                 entity->destroy();
             }
@@ -51,6 +55,7 @@ void LifecycleSystem::killDuck(Entity& entity) {
 
     if (entity.hasComponent<Velocity>()) {
         auto& velocity = entity.getComponent<Velocity>();
+        // Stop the bird mid-air
         velocity.Direction = glm::vec3(0.0f);
         velocity.Speed = 0.0f;
     }
@@ -66,6 +71,6 @@ void LifecycleSystem::killDuck(Entity& entity) {
         mesh.material = ResourceManager::Get().GetMaterial("turkey");
 
         // Scale down the turkey model to match the duck size (turkey model is larger)
-        transform.scale = glm::vec3(2.0f); // Half the duck's original scale (10.0f)
+        transform.scale = glm::vec3(2.0f);
     }
 }
