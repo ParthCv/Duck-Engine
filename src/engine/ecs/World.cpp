@@ -84,6 +84,7 @@ void World::update(float deltaTime)
     movementSystem.update(*this, deltaTime);
     boundsSystem.update(*this, deltaTime);
     lifecycleSystem.update(*this, deltaTime);
+    gunSystem.update(*this, *camera, deltaTime);
 
     EntityManager.Update(deltaTime);
     duckSpawnerManager->Update(deltaTime);
@@ -98,14 +99,8 @@ void World::beginPlay()
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
-    // Store the gun entity pointer in the class member 'gunEntity'
-    gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
-
-    // Initial position setup (First frame)
-    glm::vec3 gunPos{camPos.x, camPos.y - 0.2f, camPos.z - 0.4f};
-    glm::vec3 gunRot{0.f, 3.14159f, 0.f};
-    gunEntity->getComponent<Transform>().position = gunPos;
-    gunEntity->getComponent<Transform>().rotation = glm::quat(gunRot);
+    // Create the gun entity (GunSystem will handle positioning and rotation)
+    EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
 
     EnvironmentGenerator envGenerator{*this, EntityManager};
     envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));
