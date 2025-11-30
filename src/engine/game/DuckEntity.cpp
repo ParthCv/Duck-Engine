@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "../core/managers/AudioManager.h"
-#include "../game/DuckGameState.h"
+#include "../core/managers/GameStateManager.h"
 
 DuckEntity::DuckEntity(World& InWorld) : Entity(InWorld)
 {
@@ -171,7 +171,7 @@ void DuckEntity::checkIfEscaped()
     // Increased escape distance slightly since they spawn further out
     if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
     {
-        DuckGameState::get().incrementDucksEscaped();
+        GameStateManager::get().incrementDucksEscaped();
         this->destroy();
     }
 }
@@ -182,9 +182,9 @@ void DuckEntity::KillDuck() {
     AudioManager::Get().PlaySound("quack");
     //this->destroy();
     // Increase score and decrement numOfDucks
-    DuckGameState::get().hitDuck();
+    GameStateManager::get().hitDuck();
     // this->destroy();
-    std::cout << "Duck Died" << std::endl;
+    // std::cout << "Duck Died" << std::endl;
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
     EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));

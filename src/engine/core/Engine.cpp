@@ -5,7 +5,7 @@
 #include "../system/DebugRenderSystem.h"
 
 #include "managers/AudioManager.h"
-#include "managers/GameStateManager.h"
+#include "managers/UIStateManager.h"
 #include "managers/InputManager.h"
 
 struct StaticMeshComponent;

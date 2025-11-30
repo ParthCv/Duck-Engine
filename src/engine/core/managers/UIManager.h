@@ -9,7 +9,7 @@
 #include <functional>
 
 // Forward declarations
-class GameStateManager;
+class UIStateManager;
 
 // UI Element Types
 enum class UIElementType {
@@ -183,11 +183,11 @@ public:
     void setElementText(const std::string& id, const std::string& newText);
 
     // === State-specific UI Setup ===
-    void setupMenuUI(GameStateManager* stateManager, std::function<void()> onQuit = nullptr);
+    void setupMenuUI(UIStateManager* stateManager, std::function<void()> onQuit = nullptr);
     void setupPlayingUI();
-    void setupPausedUI(GameStateManager* stateManager);
-    void setupGameOverUI(GameStateManager* stateManager);
-    void setupOptionsUI(GameStateManager* stateManager);
+    void setupPausedUI(UIStateManager* stateManager);
+    void setupGameOverUI(UIStateManager* stateManager);
+    void setupOptionsUI(UIStateManager* stateManager);
 
     // Needs constant update
     void updateCrosshairPosition();

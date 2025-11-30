@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include "UIManager.h"
-#include "GameStateManager.h"
+#include "UIStateManager.h"
 #include "InputManager.h"
 #include "AudioManager.h"
 
@@ -741,7 +741,7 @@ void UIManager::shutdown() {
 }
 
 // === State-specific UI Setup ===
-void UIManager::setupMenuUI(GameStateManager* stateManager, std::function<void()> onQuit) {
+void UIManager::setupMenuUI(UIStateManager* stateManager, std::function<void()> onQuit) {
     clearMenuUI();
 
     std::cout << "[UIManager] Setting up MENU UI" << std::endl;
@@ -839,7 +839,7 @@ void UIManager::setupPlayingUI() {
     addText(roundText);
 }
 
-void UIManager::setupPausedUI(GameStateManager* stateManager) {
+void UIManager::setupPausedUI(UIStateManager* stateManager) {
     std::cout << "[UIManager] Setting up PAUSED UI" << std::endl;
 
     // Semi-transparent overlay
@@ -890,7 +890,7 @@ void UIManager::setupPausedUI(GameStateManager* stateManager) {
     addButton(menuButton);
 }
 
-void UIManager::setupGameOverUI(GameStateManager* stateManager) {
+void UIManager::setupGameOverUI(UIStateManager* stateManager) {
     clearGameOverUI();
 
     std::cout << "[UIManager] Setting up GAME OVER UI" << std::endl;
@@ -944,7 +944,7 @@ void UIManager::setupGameOverUI(GameStateManager* stateManager) {
     addButton(menuButton);
 }
 
-void UIManager::setupOptionsUI(GameStateManager* stateManager) {
+void UIManager::setupOptionsUI(UIStateManager* stateManager) {
     clearAll();
 
     std::cout << "[UIManager] Setting up OPTIONS UI" << std::endl;

@@ -1,81 +1,173 @@
 #pragma once
-#include <string>
-#include <functional>
-
-class World;
-
-// Possible game states for Duck Hunt (TBD)
-enum class GameState {
-    MENU,               // Main menu
-    PLAYING,            // Active gameplay
-    PAUSED,             // Game paused
-    ROUND_TRANSITION,   // Between rounds? Multiple rounds per game?
-    GAME_OVER,          // All rounds complete or failed
-    OPTIONS             // Settings menu (volume)
-};
 
 class GameStateManager {
+    static GameStateManager* instance;
+
+    int round = 1;              // Start at round 1
+    int score = 0;
+    int maxNumOfBullets = 10;
+    int numOfBullets = 10;
+    int maxNumOfDucks = 10;     // Num of ducks per round
+    int numOfDucks = 10;        // Ducks left to spawn during a round
+    int numOfDucksEscaped = 0;  // Ducks we did not shoot and disappeared
+
+    int basePointsPerDuck = 25;
+    float initialSpeed = 0.5;
+    const float duckSpeedMultiplier = 1.1f; // Increases per round
+    const float scoreMultiplier = 1.1f; // Increases per round
+
+    // EventQueue if time permits
+
 public:
-    GameStateManager();
+    static GameStateManager& get() {
+        if (!instance)
+            instance = new GameStateManager();
+        return *instance;
+    }
 
-    // State management
-    void setState(GameState newState);
-    GameState getCurrentState() const { return currentState; }
-    GameState getPreviousState() const { return previousState; }
+    // === Round Management ===
+    void incrementRound() {
+        round++;
+    }
 
-    // Update and render for current state
-    void update(float deltaTime);
-    void render();
+    void resetRound() {
+        round = 1;
+    }
 
-    // State queries
-    bool isPlaying() const { return currentState == GameState::PLAYING; }
-    bool isPaused() const { return currentState == GameState::PAUSED; }
-    bool isInMenu() const { return currentState == GameState::MENU; }
-    bool isGameOver() const { return currentState == GameState::GAME_OVER; }
+    int getRound() const {
+        return round;
+    }
 
-    // Utility methods
-    void togglePause();
-    void resumeGame();
-    void restartGame();
-    void returnToMenu();
+    // === Score Management ===
+    void addScore(int points) {
+        score += points;
+    }
 
-    void setWorldContext(World* world) { worldContext = world; }
+    void resetScore() {
+        score = 0;
+    }
 
-    // Get state as string (for debugging)
-    [[nodiscard]] std::string getStateString() const;
+    int getScore() const {
+        return score;
+    }
 
-    // Optional: Register callbacks for state changes
-    using StateCallback = std::function<void(GameState oldState, GameState newState)>;
-    void setOnStateChange(StateCallback callback) { onStateChangeCallback = callback; }
+    // === Bullet Management ===
+    void decrementBullet() {
+        if (numOfBullets > 0) {
+            numOfBullets--;
+        }
+    }
 
-private:
-    GameState currentState;
-    GameState previousState;
+    void resetBullets() {
+        numOfBullets = maxNumOfBullets;
+    }
 
-    // Time tracking for state-specific logic
-    float stateTimer; // duration in current state
+    int getNumOfBullets() const {
+        return numOfBullets;
+    }
 
-    World* worldContext = nullptr;
+    int getMaxNumOfBullets() const {
+        return maxNumOfBullets;
+    }
 
-    // State-specific update methods
-    void updateMenu(float deltaTime);
-    void updatePlaying(float deltaTime);
-    void updatePaused(float deltaTime);
-    void updateRoundTransition(float deltaTime);
-    void updateGameOver(float deltaTime);
-    void updateOptions(float deltaTime);
+    void setMaxNumOfBullets(int max) {
+        maxNumOfBullets = max;
+        if (numOfBullets > max) {
+            numOfBullets = max;
+        }
+    }
 
-    // State-specific render methods
-    void renderMenu();
-    void renderPlaying();
-    void renderPaused();
-    void renderRoundTransition();
-    void renderGameOver();
-    void renderOptions();
+    bool hasBulletsRemaining() const {
+        return numOfBullets > 0;
+    }
 
-    // Callback for state changes
-    StateCallback onStateChangeCallback;
+    // === Duck Management ===
 
-    // Helper to trigger callbacks
-    void notifyStateChange(GameState oldState, GameState newState);
+    int getNumOfDucks() const {
+        return numOfDucks;
+    }
+
+    void decrementNumOfDucks() {
+        if (numOfDucks > 0) {
+            numOfDucks--;
+        }
+    }
+
+    void incrementDucksEscaped() {
+        numOfDucksEscaped++;
+        decrementNumOfDucks();
+    }
+
+    void resetDucks() {
+        numOfDucks = maxNumOfDucks;
+        numOfDucksEscaped = 0;
+    }
+
+    int getMaxNumOfDucks() const {
+        return maxNumOfDucks;
+    }
+
+    void setMaxNumOfDucks(int max) {
+        maxNumOfDucks = max;
+        if (numOfDucks > max) {
+            numOfDucks = max;
+        }
+    }
+
+    int getNumOfDucksEscaped() const {
+        return numOfDucksEscaped;
+    }
+
+    bool areDucksRemaining() const {
+        return numOfDucks > 0;
+    }
+
+    void hitDuck() {
+        addScore(static_cast<int>(basePointsPerDuck * scoreMultiplier * round));
+        decrementNumOfDucks();
+    }
+
+    void shootBullet() {
+        if (hasBulletsRemaining()) {
+            decrementBullet();
+        }
+    }
+
+    void duckEscaped() {
+        incrementDucksEscaped();
+    }
+
+    float getDuckSpeedBasedOnRound() {
+        return initialSpeed * duckSpeedMultiplier * round;
+    }
+
+    void startNextRound() {
+        incrementRound();
+        resetBullets();
+        resetDucks();
+    }
+
+    void resetGame() {
+        resetRound();
+        resetScore();
+        resetBullets();
+        resetDucks();
+    }
+
+    // === Game state queries ===
+    bool isRoundComplete() const {
+        return numOfDucks <= 0;
+    }
+
+    /**
+     * Returns whether we failed a round.
+     *
+     * We fail a round if we hit less than 7 ducks.
+     * Ensure we call this after the last duck has either been shot or escaped
+     * @return
+     */
+    bool isRoundFailed() const {
+        return numOfDucks == 0 &&
+            numOfDucksEscaped <= 3;  // We don't hit at least 7
+    }
 };

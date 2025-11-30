@@ -11,7 +11,7 @@
 #include "../renderer/Skybox.h"
 #include "../renderer/ShadowMap.h"
 #include "managers/UIManager.h"
-#include "managers/GameStateManager.h"
+#include "managers/UIStateManager.h"
 #include "../utils/LoadingScreen.h"
 
 
@@ -37,7 +37,7 @@ public:
     void renderQuad() const;
 
     UIManager uiManager;
-    GameStateManager stateManager;
+    UIStateManager stateManager;
     DebugRenderSystem debugSystem;
 
 private:
