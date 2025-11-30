@@ -51,12 +51,11 @@ bool ShadowMap::initialize(LightManager& lightManager) {
 void ShadowMap::updateLightSpaceTransform(LightManager& lightManager) {
     // Directional light position is the opposite it's direction * scalar
     glm::vec3 directionalLightPosition;
-    if (lightManager.getDirectionalLightCount() > 1) {
+    if (lightManager.getDirectionalLightCount() >= 1) {
         directionalLightPosition = glm::normalize(lightManager.getDirectionalLight(0).direction) * -directionLightPositionScalar;
     } else {
-        directionalLightPosition = glm::normalize(glm::vec3(-1.0f, 2.0f, -1.0f));
+        directionalLightPosition = glm::normalize(glm::vec3(-1.0f, 2.0f, -1.0f)) * -directionLightPositionScalar;
     }
-
     lightView = glm::lookAt(
        directionalLightPosition,
        lookAtOrigin,

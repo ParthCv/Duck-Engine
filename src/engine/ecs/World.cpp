@@ -2,7 +2,6 @@
 #include <iostream>
 #include <random>
 #include <ctime>
-#include <cstdlib>
 
 #include "Component.h"
 #include "../game/DuckEntity.h"
@@ -73,21 +72,14 @@ void World::update(float deltaTime)
         transform.rotation = orientation;
     }
 
-    // TODO: REMOVE - Test functionality for moving directional light
-    if (lightManager.getDirectionalLightCount() > 0) {
-        auto& dirLight = lightManager.getDirectionalLight(0);
-
-        // Rotate around Y axis
-        float angle = deltaTime * 0.2f; // Rotation speed
-        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
-        dirLight.direction = glm::vec3(rotation * glm::vec4(dirLight.direction, 0.0f));
-    }
-
-    if (lightManager.getPointLightCount() > 1) {
-        auto& light = lightManager.getPointLight(1);
-        light.position.x = sin(time) * 3.0f;
-        light.position.z = cos(time) * 3.0f;
-    }
+    // if (lightManager.getDirectionalLightCount() > 0) {
+    //     auto& dirLight = lightManager.getDirectionalLight(0);
+    //
+    //     // Rotate around Y axis
+    //     float angle = deltaTime * 0.2f; // Rotation speed
+    //     glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    //     dirLight.direction = glm::vec3(rotation * glm::vec4(dirLight.direction, 0.0f));
+    // }
 
     EntityManager.Update(deltaTime);
     duckSpawnerManager->Update(deltaTime);
@@ -95,10 +87,6 @@ void World::update(float deltaTime)
 
 void World::beginPlay()
 {
-    for (size_t i = 0; i < duckPos.size(); ++i) {
-        DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
-    }
-
     // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
 
@@ -131,7 +119,7 @@ void World::addLightsToWorld() {
     DirectionalLight sunLight(
         glm::vec3(-0.5f, -1.0f, -0.3f),
         glm::vec3(1.0f, 0.95f, 0.9f),
-        1.0f
+        2.0f
     );
     lightManager.addDirectionalLight(sunLight);
 
@@ -178,73 +166,4 @@ void World::addLightsToWorld() {
 
 void World::cleanUp()
 {
-}
-
-void World::CreateCube(GLuint& inVAO, GLuint& inVBO) {
-    float vertices[] = {
-        // Positions          // Normals           // TexCoords
-        // Front face (Z+)
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-        // Back face (Z-)
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-        // Left face (X-)
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        // Right face (X+)
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        // Bottom face (Y-)
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-        // Top face (Y+)
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-    };
-
-    glGenVertexArrays(1, &inVAO);
-    glGenBuffers(1, &inVBO);
-
-    glBindVertexArray(inVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, inVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Position (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Normal (location = 1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // TexCoord (location = 2)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    glBindVertexArray(0);
 }

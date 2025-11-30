@@ -32,32 +32,8 @@ public:
 
     void addLightsToWorld();
 
-    void testRandomRaycasting(float deltaTime);
-
-    /*
-     * Garbage collecting deactivated entities.
-     */
     void cleanUp();
-
-    // TODO: Temporary testing function
-    static void CreateCube(GLuint& inVAO, GLuint& inVBO);
-    void CreateLine(GLuint& inVAO, GLuint& inVBO);
-
 private:
-    std::vector<glm::vec3> duckPos = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(2.5f, 0.0f, 0.0f),
-        glm::vec3(-2.5f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 2.5f),
-        glm::vec3(0.0f, 0.0f, -2.5f),
-        glm::vec3(2.5f, 0.0f, 2.5f),
-        glm::vec3(-2.5f, 0.0f, 2.5f),
-        glm::vec3(2.5f, 0.0f, -2.5f),
-        glm::vec3(-2.5f, 0.0f, -2.5f),
-        glm::vec3(0.0f, 2.0f, 0.0f),
-    };
-
-    // Store gun ref, so we can update its position every frame
     Entity* gunEntity = nullptr;
 
     // Recoil State

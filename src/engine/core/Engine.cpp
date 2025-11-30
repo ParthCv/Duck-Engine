@@ -272,18 +272,9 @@ void Engine::update(float deltaTime) {
     // Update UI (Always needed)
     uiManager.update(deltaTime);
 
-    // Update world (Physics, Entities, Lights, Spawning)
-    // ONLY update the world simulation if we are in the PLAYING state.
     if (stateManager.getCurrentState() == GameState::PLAYING) {
         world.update(deltaTime);
     }
-
-    // static float garbageTimer = 0.0f;
-    // garbageTimer += deltaTime;
-    // if (garbageTimer >= 5.0f) {
-    //     ResourceManager::Get().CollectGarbage();
-    //     garbageTimer = 0.0f;
-    // }
 }
 
 void Engine::render() {
