@@ -260,6 +260,9 @@ private:
     // Debug mode
     bool debugMode;
 
+    // Flag to control HUD rendering
+    bool showGameplayHUD;
+
     struct SpriteCoords {
         int x, y, w, h;
     };
