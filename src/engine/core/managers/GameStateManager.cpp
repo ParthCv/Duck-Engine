@@ -8,6 +8,7 @@
 #include "../../system/CollisionSystem.h"
 #include "../../game/DuckFactory.h"
 #include "../../system/LifecycleSystem.h"
+#include "../../system/GunSystem.h"
 #include "InputManager.h"
 #include "AudioManager.h"
 #include "../../game/DuckGameState.h"
@@ -223,6 +224,12 @@ void GameStateManager::updatePlaying(float deltaTime) {
             DuckGameState::get().hasBulletsRemaining()
         ) {
             AudioManager::Get().PlaySound("shoot", 0.5f);
+
+            // Apply recoil to all gun entities
+            auto gunEntities = worldContext->EntityManager.GetEntitiesWith<GunComponent, Transform>();
+            for (auto* gunEntity : gunEntities) {
+                GunSystem::applyRecoil(*gunEntity);
+            }
 
             // FPS STYLE: Raycast ALWAYS goes straight forward from camera
             glm::vec3 rayDir = cameraFwd;

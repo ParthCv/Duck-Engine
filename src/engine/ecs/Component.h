@@ -10,4 +10,5 @@
 #include "components/HealthComponent.h"
 #include "components/BoundsComponent.h"
 #include "components/ScoreValueComponent.h"
+#include "components/GunComponent.h"
 

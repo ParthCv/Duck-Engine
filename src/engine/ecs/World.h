@@ -10,6 +10,7 @@
 #include "../system/MovementSystem.h"
 #include "../system/BoundsSystem.h"
 #include "../system/LifecycleSystem.h"
+#include "../system/GunSystem.h"
 
 class DuckSpawnerManager;
 
@@ -29,6 +30,7 @@ public:
     MovementSystem movementSystem;
     BoundsSystem boundsSystem;
     LifecycleSystem lifecycleSystem;
+    GunSystem gunSystem;
 
     World();
 
@@ -62,11 +64,4 @@ private:
         glm::vec3(-2.5f, 0.0f, -2.5f),
         glm::vec3(0.0f, 2.0f, 0.0f),
     };
-
-    // Store gun ref, so we can update its position every frame
-    Entity* gunEntity = nullptr;
-
-    // Recoil State
-    float gunRecoilOffset = 0.0f; // Z-axis kickback
-    float gunRecoilPitch = 0.0f;  // Upward barrel rotation
 };
