@@ -1,6 +1,7 @@
 #include "ResourceManager.h"
 #include <iostream>
 #include "../model/ImportedModel.h"
+#include "../src/engine/renderer/Material.h"
 
 ResourceManager& ResourceManager::Get()
 {
@@ -31,6 +32,38 @@ std::shared_ptr<StaticMesh> ResourceManager::GetStaticMesh(const std::string& fi
     return newMesh;
 }
 
+std::shared_ptr<Material> ResourceManager::GetMaterial(const std::string &materialName) {
+    auto it = MaterialCache.find(materialName);
+    if (it != MaterialCache.end()) {
+        return it->second;
+    }
+
+    std::cout << "[ResourceManager] Loading Material: " << materialName << std::endl;
+
+    auto newMaterial = std::make_shared<Material>();
+
+    if (materialName == "duck") {
+        newMaterial->loadAlbedoMap("../assets/textures/duck.png");
+        newMaterial->setMetallic(0.0f);
+        newMaterial->setRoughness(0.8f);
+    } else if (materialName == "env") {
+        newMaterial->loadAlbedoMap("../assets/textures/env.png");
+        newMaterial->setMetallic(0.0f);
+        newMaterial->setRoughness(0.8f);
+    } else if (materialName == "gun") {
+        newMaterial->loadAlbedoMap("../assets/textures/gun.png");
+        newMaterial->setMetallic(0.0f);
+        newMaterial->setRoughness(0.8f);
+    } else if (materialName == "turkey") {
+        newMaterial->setAlbedo(glm::vec3(0.99f, 0.82f, 0.09));
+        newMaterial->setMetallic(1.0f);
+        newMaterial->setRoughness(0.0f);
+    }
+
+    MaterialCache[materialName] = newMaterial;
+    return newMaterial;
+}
+
 void ResourceManager::CollectGarbage()
 {
     for (auto it = MeshCache.begin(); it != MeshCache.end(); ) {
@@ -39,6 +72,15 @@ void ResourceManager::CollectGarbage()
         if (it->second.use_count() == 1) {
             std::cout << "[ResourceManager] Unloading unused mesh: " << it->first << std::endl;
             it = MeshCache.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (auto it = MaterialCache.begin(); it != MaterialCache.end(); ) {
+        if (it->second.use_count() == 1) {
+            std::cout << "[ResourceManager] Unloading unused material: " << it->first << std::endl;
+            it = MaterialCache.erase(it);
         } else {
             ++it;
         }

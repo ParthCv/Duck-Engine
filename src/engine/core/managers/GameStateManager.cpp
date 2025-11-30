@@ -145,7 +145,7 @@ void GameStateManager::updateMenu(float deltaTime) {
 
 void GameStateManager::updatePlaying(float deltaTime) {
     // Guard against null world or camera
-    if (!worldContext || !worldContext->camera) {
+    if (!worldContext ) {
         return;
     }
 

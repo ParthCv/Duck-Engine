@@ -43,20 +43,112 @@ void UIManager::initialize(int width, int height) {
 
     setupRenderingResources();
 
+    if (!spriteAtlas.loadPixelArt("../assets/sprites/duckhunt_sheet_2.png", 0)) {
+        std::cerr << "[UIManager] Failed to load sprite atlas" << std::endl;
+    }
+
+    for (auto & duckState : duckStates) {
+        duckState = DuckState::NOT_SPAWNED  ;
+    }
+
     std::cout << "[UIManager] Initialized successfully!" << std::endl;
 }
 
+void UIManager::renderDuckStatusBar() {
+    int duckSize = 72;
+    int spacing = 80;
+    int panelWidth = 10 * spacing + 20;
+    int panelHeight = 100;
+    int panelX = (windowWidth - panelWidth) / 2;
+    int panelY = windowHeight - panelHeight - 20;
+
+    renderQuad(
+        glm::vec2(panelX, panelY),
+        glm::vec2(panelWidth, panelHeight),
+        glm::vec4(0.0f, 0.0f, 0.0f, 0.7f)
+    );
+
+
+    for (int i = 0; i < 10; i++) {
+        int duckX = panelX + 10 + (i * spacing);
+        int duckY = panelY + (panelHeight - duckSize) / 2;
+
+        SpriteCoords sprite;
+        switch (duckStates[i]) {
+            case DuckState::NOT_SPAWNED:
+                sprite = sprite_duck_not_spawned;
+                break;
+            case DuckState::SPAWNED:
+                sprite = sprite_duck_spawned;
+                break;
+            case DuckState::HIT:
+                sprite = sprite_duck_hit;
+                break;
+            case DuckState::ESCAPED:
+                sprite = sprite_duck_escaped;
+                break;
+        }
+
+        renderSprite(
+            glm::vec2(duckX, duckY),
+            glm::vec2(duckSize, duckSize),
+            glm::vec4(1, 1, 1, 1),
+            sprite.x, sprite.y, sprite.w, sprite.h
+        );
+    }
+}
+
+void UIManager::renderAmmoBar() {
+    int bulletSize = 24;
+    int spacing = 30;
+    int panelWidth = 10 * spacing + 40;
+    int panelHeight = 80;
+
+    int panelX = 20;
+    int panelY = windowHeight - panelHeight - 20;
+
+    renderQuad(
+        glm::vec2(panelX, panelY),
+        glm::vec2(panelWidth, panelHeight),
+        glm::vec4(0.0f, 0.0f, 0.0f, 0.7f)
+    );
+
+    float labelScale = 24.0f / 30.0f;
+    font.renderText(
+        "AMMO",
+        panelX + 10,
+        panelY + 10,
+        labelScale,
+        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+        windowWidth,
+        windowHeight
+    );
+
+    int bulletStartY = panelY + panelHeight - bulletSize - 10;
+
+
+    for (int i = 0; i < 10; i++) {
+        int bulletX = panelX + 10 + (i * spacing);
+
+        if (i < currentAmmo) {
+            renderSprite(
+                glm::vec2(bulletX, bulletStartY),
+                glm::vec2(bulletSize, bulletSize),
+                glm::vec4(1, 1, 1, 1),
+                sprite_bullet.x, sprite_bullet.y,
+                sprite_bullet.w, sprite_bullet.h
+            );
+        }
+    }
+}
 void UIManager::setupRenderingResources() {
     // Setup quad for rendering rectangles/buttons
     float quadVertices[] = {
         // positions   // tex coords
-        0.0f, 1.0f,    0.0f, 1.0f,
-        1.0f, 0.0f,    1.0f, 0.0f,
-        0.0f, 0.0f,    0.0f, 0.0f,
-
-        0.0f, 1.0f,    0.0f, 1.0f,
-        1.0f, 1.0f,    1.0f, 1.0f,
-        1.0f, 0.0f,    1.0f, 0.0f
+        0.0f, 1.0f,    0.0f, 1.0f,  // top-left
+        1.0f, 1.0f,    1.0f, 1.0f,  // top-right
+        0.0f, 0.0f,    0.0f, 0.0f,  // bottom-left
+        1.0f, 0.0f,    1.0f, 0.0f   // bottom-right
     };
 
     glGenVertexArrays(1, &quadVAO);
@@ -64,7 +156,7 @@ void UIManager::setupRenderingResources() {
 
     glBindVertexArray(quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_DYNAMIC_DRAW); // Note: DYNAMIC
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -94,6 +186,24 @@ void UIManager::renderLoadingScreen() {
     // Clear
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void UIManager::resetDuckStates() {
+    for (auto & duckState : duckStates) {
+        duckState = DuckState::NOT_SPAWNED;
+    }
+}
+
+std::string UIManager::formatScore(int score) {
+    // Clamp to 4 digits max (0-9999)
+    score = glm::clamp(score, 0, 9999);
+
+    // Format with leading zeros
+    std::string scoreStr = std::to_string(score);
+    while (scoreStr.length() < 4) {
+        scoreStr = "0" + scoreStr;
+    }
+    return scoreStr;
 }
 
 void UIManager::update(float deltaTime) {
@@ -174,7 +284,6 @@ bool UIManager::isMouseOverElement(const UIElement& element) {
 }
 
 void UIManager::render() {
-    // Enable blending for transparency
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST);
@@ -188,6 +297,10 @@ void UIManager::render() {
             renderPanel(panel);
         }
     }
+
+    renderDuckStatusBar();
+
+    renderAmmoBar();
 
     // Render sliders
     for (const auto& slider : sliders) {
@@ -342,7 +455,7 @@ void UIManager::renderQuad(glm::vec2 position, glm::vec2 size, glm::vec4 color) 
     uiShader.setVec4("color", color);
 
     glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
 
@@ -566,6 +679,42 @@ void UIManager::onWindowResize(int newWidth, int newHeight) {
     std::cout << "[UIManager] Window resized to " << windowWidth << "x" << windowHeight << std::endl;
 }
 
+void UIManager::renderSprite(glm::vec2 position, glm::vec2 size, glm::vec4 color, int sprite_x, int sprite_y,
+    int sprite_w, int sprite_h) {
+    // Calculate UVs
+    float u_min = (float)sprite_x / spriteAtlas.width;
+    float v_min = (float)sprite_y / spriteAtlas.height;
+    float u_max = (float)(sprite_x + sprite_w) / spriteAtlas.width;
+    float v_max = (float)(sprite_y + sprite_h) / spriteAtlas.height;
+
+    // Update quad vertices with custom UVs
+    float vertices[] = {
+        0.0f, 1.0f, u_min, v_max,
+        1.0f, 1.0f, u_max, v_max,
+        0.0f, 0.0f, u_min, v_min,
+        1.0f, 0.0f, u_max, v_min
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+    // Setup shader
+    uiShader.use();
+    uiShader.setVec2("screenSize", glm::vec2(windowWidth, windowHeight));
+    uiShader.setVec2("position", position);
+    uiShader.setVec2("size", size);
+    uiShader.setVec4("color", color);
+    uiShader.setInt("renderMode", 2);  // Textured mode
+
+    // Bind texture
+    spriteAtlas.bind();
+    uiShader.setInt("fontTexture", spriteAtlas.textureUnit);
+
+    // Draw
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
 void UIManager::shutdown() {
     if (quadVAO != 0) {
         glDeleteVertexArrays(1, &quadVAO);
@@ -657,7 +806,7 @@ void UIManager::setupPlayingUI() {
     crosshair.id = "crosshair";
     crosshair.length = 30.0f;
     crosshair.thickness = 2.0f;
-    crosshair.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.8f); // Green Crosshair
+    crosshair.color = glm::vec4(0.0f, 1.0f, 0.0f, 0.8f);
     crosshair.anchor = UIAnchor::CENTER;
     crosshair.position = glm::vec2(0, 0);
     activeCrosshairIndex = addCrosshair(crosshair);
@@ -665,29 +814,19 @@ void UIManager::setupPlayingUI() {
     // Score text (top-left)
     UIText scoreText;
     scoreText.id = "score_text";
-    scoreText.text = "SCORE: 0";
+    scoreText.text = "SCORE: " + formatScore(currentScore);
     scoreText.position = glm::vec2(20, 20);
-    scoreText.fontSize = 24.0f;  // Adjust size as needed
+    scoreText.fontSize = 36.0f;
     scoreText.anchor = UIAnchor::TOP_LEFT;
     scoreText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     addText(scoreText);
 
-    // Ammo text (BOTTOM-LEFT)
-    UIText ammoText;
-    ammoText.id = "ammo_text";
-    ammoText.text = "AMMO: 10 \\";
-    ammoText.position = glm::vec2(20, 20);  // 20px from bottom-left
-    ammoText.fontSize = 24.0f;
-    ammoText.anchor = UIAnchor::BOTTOM_LEFT;  // Changed from TOP_LEFT
-    ammoText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    addText(ammoText);
-
     // Round text (top-right)
     UIText roundText;
     roundText.id = "round_text";
-    roundText.text = "ROUND: 1";
-    roundText.position = glm::vec2(20, 20);  // 20px from top-right corner
-    roundText.fontSize = 24.0f;
+    roundText.text = "ROUND: " + std::to_string(currentRound);
+    roundText.position = glm::vec2(20, 20);
+    roundText.fontSize = 36.0f;
     roundText.anchor = UIAnchor::TOP_RIGHT;
     roundText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     addText(roundText);

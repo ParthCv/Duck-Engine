@@ -4,6 +4,8 @@
 #include <memory>
 #include "../model/StaticMesh.h"
 
+class Material;
+
 class ResourceManager
 {
 public:
@@ -13,10 +15,12 @@ public:
     ResourceManager& operator=(const ResourceManager&) = delete;
 
     std::shared_ptr<StaticMesh> GetStaticMesh(const std::string& fileName);
+    std::shared_ptr<Material> GetMaterial(const std::string& fileName);
     void CollectGarbage();
 
 private:
     ResourceManager() = default;
 
     std::unordered_map<std::string, std::shared_ptr<StaticMesh>> MeshCache;
+    std::unordered_map<std::string, std::shared_ptr<Material>> MaterialCache;
 };

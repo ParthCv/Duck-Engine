@@ -42,7 +42,7 @@ public:
     void setWorldContext(World* world) { worldContext = world; }
 
     // Get state as string (for debugging)
-    std::string getStateString() const;
+    [[nodiscard]] std::string getStateString() const;
 
     // Optional: Register callbacks for state changes
     using StateCallback = std::function<void(GameState oldState, GameState newState)>;

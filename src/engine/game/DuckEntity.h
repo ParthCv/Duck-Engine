@@ -1,6 +1,7 @@
 #ifndef DUCKENGINE_DUCKENTITY_H
 #define DUCKENGINE_DUCKENTITY_H
 #include "../ecs/Entity.h"
+#include "../renderer/Material.h"
 #include "glm/vec3.hpp"
 
 
@@ -8,6 +9,9 @@ class StaticMesh;
 
 class DuckEntity : public Entity
 {
+
+    Material material;
+
 public:
     float accumulatedTime = 0;
     float timeSinceDeath = 0;

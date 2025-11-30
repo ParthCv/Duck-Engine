@@ -1,6 +1,7 @@
 #pragma once
 #include "../../renderer/Shader.h"
 #include "../../renderer/BitmapFont.h"
+#include "../src/engine/renderer/Texture.h"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
@@ -54,7 +55,7 @@ struct UIElement {
 };
 
 // Button element with callback
-struct UIButton : public UIElement {
+struct UIButton : UIElement {
     std::string text;
     glm::vec4 hoverColor;
     glm::vec4 pressedColor;
@@ -74,7 +75,7 @@ struct UIButton : public UIElement {
 };
 
 // Slider element
-struct UISlider : public UIElement {
+struct UISlider : UIElement {
     float minVal;
     float maxVal;
     float value;
@@ -96,7 +97,7 @@ struct UISlider : public UIElement {
 };
 
 // Text element
-struct UIText : public UIElement {
+struct UIText : UIElement {
     std::string text;
     float fontSize;
     bool centered;
@@ -111,7 +112,7 @@ struct UIText : public UIElement {
 };
 
 // Panel/Rectangle element
-struct UIPanel : public UIElement {
+struct UIPanel : UIElement {
     bool hasBorder;
     glm::vec4 borderColor;
     float borderThickness;
@@ -126,7 +127,7 @@ struct UIPanel : public UIElement {
 };
 
 // Crosshair element (for Duck Hunt)
-struct UICrosshair : public UIElement {
+struct UICrosshair : UIElement {
     float thickness;
     float length;
 
@@ -161,6 +162,8 @@ public:
     void onWindowResize(int newWidth, int newHeight);
 
     // === UI Element Management ===
+    void renderSprite(glm::vec2 position, glm::vec2 size, glm::vec4 color,
+                  int sprite_x, int sprite_y, int sprite_w, int sprite_h);
 
     // Add UI elements (returns index for later access)
     int addButton(const UIButton& button);
@@ -203,6 +206,34 @@ public:
 
     void renderLoadingScreen();
 
+    enum class DuckState {
+        NOT_SPAWNED,
+        SPAWNED,
+        HIT,
+        ESCAPED
+    };
+
+    DuckState duckStates[10];
+
+    int currentAmmo = 10;
+    int currentScore = 0;
+    int currentRound = 1;
+
+    void resetDuckStates();
+
+    void renderDuckStatusBar();
+
+    void renderAmmoBar();
+
+    void setDuckState(int duckIndex, DuckState state) {duckStates[duckIndex] = state;}
+
+    void setAmmo(int ammo) { currentAmmo = glm::clamp(ammo, 0, 10); }
+
+    void setScore(int score) { currentScore = score; }
+
+    void setRound(int round) { currentRound = round; }
+
+    void addScore(int points) { currentScore += points; }
 private:
     // OpenGL rendering setup
     Shader uiShader;
@@ -212,6 +243,8 @@ private:
     // Window dimensions
     int windowWidth;
     int windowHeight;
+
+    Texture spriteAtlas;
 
     // UI Elements storage
     std::vector<UIButton> buttons;
@@ -226,6 +259,18 @@ private:
 
     // Debug mode
     bool debugMode;
+
+    struct SpriteCoords {
+        int x, y, w, h;
+    };
+
+    SpriteCoords sprite_bullet = {212, 235, 32, 32};
+    SpriteCoords sprite_duck_not_spawned = {0, 120, 34, 34};
+    SpriteCoords sprite_duck_spawned = {170, 120, 34, 34};
+    SpriteCoords sprite_duck_hit = {130, 238, 34, 34};
+    SpriteCoords sprite_duck_escaped = {300, 156, 34, 34};
+
+    std::string formatScore(int score);
 
     // === Internal Rendering Methods ===
     void setupRenderingResources();

@@ -29,6 +29,7 @@ public:
     ShadowMap shadowMap;
     // Temp
     Material cubeMaterial;
+    Material floorMaterial;
 
     // Temp for GBuffer
     GLuint quadVAO, quadVBO;

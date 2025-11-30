@@ -33,10 +33,14 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
         screenWidth = mode->width;
         screenHeight = mode->height;
+
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
     }
 
-    // Create window FIRST
-    window = glfwCreateWindow(screenWidth, screenHeight, "Duck Hunt 3D", nullptr, nullptr);
+    window = glfwCreateWindow(screenWidth, screenHeight, "Game", monitor, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -149,6 +153,11 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
     updateLoadingScreen();
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
+    floorMaterial.loadAlbedoMap("../assets/textures/pbr_ground/albedo.png");
+    // floorMaterial.loadAOMap("../assets/textures/pbr_ground/ao.png");
+    floorMaterial.loadNormalMap("../assets/textures/pbr_ground/normals.png");
+    floorMaterial.loadRoughnessMap("../assets/textures/pbr_ground/roughness.png");
+
     updateLoadingScreen();
     cubeMaterial.setMetallic(1.0f);      // Non-metallic
     cubeMaterial.setRoughness(0.1f);     // Mid-rough
@@ -259,6 +268,13 @@ void Engine::update(float deltaTime) {
     if (stateManager.getCurrentState() == GameState::PLAYING) {
         world.update(deltaTime);
     }
+
+    // static float garbageTimer = 0.0f;
+    // garbageTimer += deltaTime;
+    // if (garbageTimer >= 5.0f) {
+    //     ResourceManager::Get().CollectGarbage();
+    //     garbageTimer = 0.0f;
+    // }
 }
 
 void Engine::render() {
@@ -386,25 +402,33 @@ void Engine::renderEntities() {
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
-    // TODO: Bind the correct material from the entities static mesh component
-    cubeMaterial.bind(basicShader);
-
     // TODO: store a list of renderable entities to iterate instead
     // Draw each entity
+    std::unordered_map<Material*, std::vector<StaticMeshComponent*>> materialBatches;
+
     for (auto& entity : world.EntityManager.GetEntities())
     {
         if (entity == nullptr) continue;
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
+            Material* mat = staticMeshComponent.material ? staticMeshComponent.material.get() : &cubeMaterial;
+            materialBatches[mat].push_back(&staticMeshComponent);
+        }
+    }
 
-            // Getting the Model.
-            glm::mat4 model = staticMeshComponent.getTransformMatrix();
+    // Render batched by material
+    for (auto& [material, components] : materialBatches)
+    {
+        material->bind(basicShader);
 
+        for (auto* comp : components)
+        {
+            glm::mat4 model = comp->getTransformMatrix();
             basicShader.setMat4("model", model);
 
-            staticMeshComponent.Mesh->bind();
-            staticMeshComponent.Mesh->draw();
+            comp->Mesh->bind();
+            comp->Mesh->draw();
         }
     }
 
@@ -492,7 +516,7 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
 
 
 void Engine::createFloor() {
-    float floorSize = 50.0f;  // Large but not truly infinite
+    float floorSize = 80.0f;  // Large but not truly infinite
     float floorVertices[] = {
         // Positions          // Normals           // TexCoords
         -floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
@@ -528,7 +552,7 @@ void Engine::renderFloor() {
 
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = camera.getProjectionMatrix();
-    glm::mat4 model = glm::mat4(1.0f);
+    auto model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));  // Lower the floor
 
     basicShader.setMat4("model", model);
@@ -536,7 +560,7 @@ void Engine::renderFloor() {
     basicShader.setMat4("projection", projection);
 
     // Use same material or create a floor material
-    cubeMaterial.bind(basicShader);
+    floorMaterial.bind(basicShader);
 
     glBindVertexArray(floorVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
