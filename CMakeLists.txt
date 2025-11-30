@@ -31,8 +31,12 @@ add_executable(DuckEngine
         src/engine/system/CollisionSystem.cpp
         src/engine/system/DebugRenderSystem.h
         src/engine/system/DebugRenderSystem.cpp
-        src/engine/game/DuckEntity.cpp
-        src/engine/game/DuckEntity.h
+        src/engine/system/TransformSystem.cpp
+        src/engine/system/RenderingSystem.cpp
+        src/engine/system/MovementSystem.cpp
+        src/engine/system/BoundsSystem.cpp
+        src/engine/system/LifecycleSystem.cpp
+        src/engine/game/DuckFactory.cpp
         src/engine/core/managers/InputManager.cpp
         src/engine/core/managers/GameStateManager.cpp
         src/engine/core/model/ImportedModel.cpp

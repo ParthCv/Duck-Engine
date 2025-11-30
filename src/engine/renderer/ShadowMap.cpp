@@ -2,12 +2,12 @@
 
 #include <iostream>
 #include <ostream>
-#include "../src/engine/ecs/Component.h"
+#include "../ecs/Component.h"
 #include "../system/TransformSystem.h"
 #include "../ecs/components/Transform.h"
-
-struct StaticMeshComponent;
-class Entity;
+#include "../core/model/StaticMesh.h"
+#include "../ecs/components/StaticMeshComponent.h"
+#include "../ecs/Entity.h"
 
 ShadowMap::ShadowMap() : depthMapFBO(0), shadowTexture(0) {
 }

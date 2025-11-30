@@ -1,11 +1,8 @@
-//
-// Created by User on 11/25/2025.
-//
-
 #include "DuckSpawnerManager.h"
 #include "../game/GameUtils.h"
 #include "../game/DuckGameState.h"
 #include "../core/managers/AudioManager.h"
+#include "../game/DuckFactory.h"
 
 #include <iostream>
 
@@ -49,8 +46,7 @@ void DuckSpawnerManager::SpawnDuck()
 
     // TODO: Half-ring Solution
     int randomIndex = rand() % spawnPositions.size();
-    // world->EntityManager.CreateDuckEntity(*world, spawnPositions[randomIndex]);
-    world->EntityManager.CreateDuckEntityWithVelocity(*world, spawnPositions[randomIndex], DuckGameState::get().getDuckSpeedBasedOnRound());
+    DuckFactory::createDuck(*world, spawnPositions[randomIndex], DuckGameState::get().getDuckSpeedBasedOnRound());
 }
 
 void DuckSpawnerManager::ResetRound() {

@@ -116,8 +116,8 @@ void World::beginPlay()
     // Initial position setup (First frame)
     glm::vec3 gunPos{camPos.x, camPos.y - 0.2f, camPos.z - 0.4f};
     glm::vec3 gunRot{0.f, 3.14159f, 0.f};
-    gunEntity->getComponent<Transform>().SetPosition(gunPos);
-    gunEntity->getComponent<Transform>().SetRotation(gunRot);
+    gunEntity->getComponent<Transform>().position = gunPos;
+    gunEntity->getComponent<Transform>().rotation = glm::quat(gunRot);
 
     EnvironmentGenerator envGenerator{*this, EntityManager};
     envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));

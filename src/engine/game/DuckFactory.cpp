@@ -4,10 +4,19 @@
 #include "../ecs/Component.h"
 #include "../system/TransformSystem.h"
 #include "../core/managers/ResourceManager.h"
+#include "../ecs/components/Transform.h"
+#include "../ecs/components/Velocity.h"
+#include "../ecs/components/StaticMeshComponent.h"
+#include "../ecs/components/BoxCollider.h"
+#include "../ecs/components/DebugDrawable.h"
+#include "../ecs/components/DuckComponent.h"
+#include "../ecs/components/HealthComponent.h"
+#include "../ecs/components/BoundsComponent.h"
+#include "../ecs/components/ScoreValueComponent.h"
 #include <cstdlib>
 
 Entity* DuckFactory::createDuck(World& world, const glm::vec3& position, float speed) {
-    auto& entity = world.EntityManager.createEntity();
+    auto& entity = world.EntityManager.CreateEntity(world);
 
     // Add components
     auto& transform = entity.addComponent<Transform>();

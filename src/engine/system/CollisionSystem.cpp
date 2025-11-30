@@ -20,8 +20,11 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
         auto& transform = entity->getComponent<Transform>();
         auto& collider = entity->getComponent<BoxCollider>();
 
-        glm::vec3 aabbMin = collider.GetMin(transform);
-        glm::vec3 aabbMax = collider.GetMax(transform);
+        glm::vec3 scaledSize = collider.size * transform.scale;
+        glm::vec3 halfSize = scaledSize * 0.5f;
+        glm::vec3 worldCenter = transform.position + collider.center;
+        glm::vec3 aabbMin = worldCenter - halfSize;
+        glm::vec3 aabbMax = worldCenter + halfSize;
 
         Physics::RaycastHit hit = Physics::raycastAABB(
             origin, direction, aabbMin, aabbMax
@@ -84,8 +87,11 @@ std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
         auto& transform = entity->getComponent<Transform>();
         auto& collider = entity->getComponent<BoxCollider>();
 
-        glm::vec3 aabbMin = collider.GetMin(transform);
-        glm::vec3 aabbMax = collider.GetMax(transform);
+        glm::vec3 scaledSize = collider.size * transform.scale;
+        glm::vec3 halfSize = scaledSize * 0.5f;
+        glm::vec3 worldCenter = transform.position + collider.center;
+        glm::vec3 aabbMin = worldCenter - halfSize;
+        glm::vec3 aabbMax = worldCenter + halfSize;
 
         if (aabbMin.x <= max.x && aabbMax.x >= min.x &&
             aabbMin.y <= max.y && aabbMax.y >= min.y &&
