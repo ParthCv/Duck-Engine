@@ -15,6 +15,7 @@ UIManager::UIManager()
     , windowHeight(1080)
     , debugMode(false)
     , activeCrosshairIndex(-1)
+    , showGameplayHUD(false) // Default to hidden
 {
 }
 
@@ -65,7 +66,7 @@ void UIManager::renderDuckStatusBar() {
     renderQuad(
         glm::vec2(panelX, panelY),
         glm::vec2(panelWidth, panelHeight),
-        glm::vec4(0.0f, 0.0f, 0.0f, 0.7f)
+        glm::vec4(0.0f, 0.0f, 0.0f, 0.4f) // Background for UI
     );
 
 
@@ -110,7 +111,7 @@ void UIManager::renderAmmoBar() {
     renderQuad(
         glm::vec2(panelX, panelY),
         glm::vec2(panelWidth, panelHeight),
-        glm::vec4(0.0f, 0.0f, 0.0f, 0.7f)
+        glm::vec4(0.0f, 0.0f, 0.0f, 0.4f) // Background for UI
     );
 
     float labelScale = 24.0f / 30.0f;
@@ -298,9 +299,12 @@ void UIManager::render() {
         }
     }
 
-    renderDuckStatusBar();
-
-    renderAmmoBar();
+    // --- HUD LOGIC ---
+    // Only render the Duck Status and Ammo Bar if we are in Gameplay mode
+    if (showGameplayHUD) {
+        renderDuckStatusBar();
+        renderAmmoBar();
+    }
 
     // Render sliders
     for (const auto& slider : sliders) {
@@ -737,7 +741,7 @@ void UIManager::shutdown() {
 }
 
 // === State-specific UI Setup ===
-void UIManager::setupMenuUI(GameStateManager* stateManager) {
+void UIManager::setupMenuUI(GameStateManager* stateManager, std::function<void()> onQuit) {
     clearMenuUI();
 
     std::cout << "[UIManager] Setting up MENU UI" << std::endl;
@@ -789,15 +793,18 @@ void UIManager::setupMenuUI(GameStateManager* stateManager) {
     quitButton.position = glm::vec2(0, 160);
     quitButton.size = glm::vec2(200, 60);
     quitButton.anchor = UIAnchor::CENTER;
-    quitButton.onClick = []() {
+    quitButton.onClick = [onQuit]() {
         std::cout << "[UIManager] Quit button clicked!" << std::endl;
-        // TODO: Signal engine to close
+        if (onQuit) {
+            onQuit();
+        }
     };
     addButton(quitButton);
 }
 
 void UIManager::setupPlayingUI() {
     clearPlayingUI();
+    showGameplayHUD = true; // Enable the HUD
 
     std::cout << "[UIManager] Setting up PLAYING UI" << std::endl;
 
@@ -1018,6 +1025,7 @@ void UIManager::clearPlayingUI() {
     removeElement("score_text");
     removeElement("ammo_text");
     removeElement("round_text");
+    showGameplayHUD = false; // Disable the HUD
 }
 
 void UIManager::clearPausedUI() {
