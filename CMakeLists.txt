@@ -53,6 +53,8 @@ add_executable(DuckEngine
         dependencies/OpenAL/libs/Win64/dr_wav.h
         src/engine/system/DuckSpawnerManager.cpp
         src/engine/system/DuckSpawnerManager.h
+        src/engine/game/DuckGameState.h
+        src/engine/game/DuckGameState.cpp
         src/engine/game/EnvironmentEntity.cpp
         src/engine/game/EnvironmentEntity.h
         src/engine/game/EnvironmentGenerator.cpp

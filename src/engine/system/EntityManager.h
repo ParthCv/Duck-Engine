@@ -20,6 +20,7 @@ public:
     DuckEntity& CreateDuckEntity(World& InWorld);
 
     DuckEntity& CreateDuckEntity(World& InWorld, glm::vec3& InPosition);
+    DuckEntity& CreateDuckEntityWithVelocity(World& InWorld, glm::vec3& InPosition, float speed);
 
     Entity& CreateDeferredEntity(World& InWorld);
 

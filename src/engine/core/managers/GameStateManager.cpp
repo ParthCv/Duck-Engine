@@ -9,6 +9,7 @@
 #include "../../game/DuckEntity.h"
 #include "InputManager.h"
 #include "AudioManager.h"
+#include "../../game/DuckGameState.h"
 
 GameStateManager::GameStateManager()
     : currentState(GameState::MENU)
@@ -189,9 +190,10 @@ void GameStateManager::updatePlaying(float deltaTime) {
 
         // Spawn the duck
         DuckEntity& newDuck = worldContext->EntityManager.CreateDuckEntity(*worldContext, spawnPos);
-
+        DuckGameState::get().decrementNumOfDucks();
         if (newDuck.hasComponent<Velocity>() && newDuck.hasComponent<Transform>()) {
-            float speed = 2.0f;
+            //float speed = 2.0f;
+            float speed = DuckGameState::get().getDuckSpeedBasedOnRound();
 
             newDuck.getComponent<Transform>().rotation = camRot;
 
@@ -220,7 +222,10 @@ void GameStateManager::updatePlaying(float deltaTime) {
                            - (cameraUp * 0.2f);
 
         // Check Input
-        if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        if (
+            InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) &&
+            DuckGameState::get().hasBulletsRemaining()
+        ) {
             AudioManager::Get().PlaySound("shoot", 0.5f);
 
             // FPS STYLE: Raycast ALWAYS goes straight forward from camera
@@ -248,6 +253,7 @@ void GameStateManager::updatePlaying(float deltaTime) {
                     std::cout << "MISS!" << std::endl;
                 }
             }
+            DuckGameState::get().decrementBullet();
         }
     }
 }

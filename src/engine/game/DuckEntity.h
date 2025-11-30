@@ -26,8 +26,8 @@ public:
     float DeathPlaneYBound = -10.0f;
 
     DuckEntity(World& InWorld);
-
     DuckEntity(World& InWorld, glm::vec3& InPosition);
+    DuckEntity(World& InWorld, glm::vec3& InPosition, float speed);
 
     ~DuckEntity() override;
 
