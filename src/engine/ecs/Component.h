@@ -9,6 +9,8 @@
 #include "glm/detail/type_quat.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "../core/model/StaticMesh.h"
+#include "../core/managers/ResourceManager.h"
+#include "../renderer/Material.h"
 
 struct Velocity
 {
@@ -61,7 +63,12 @@ struct Transform {
         position += glm::vec3(getTransformMatrix() * glm::vec4(InTransform, 0.0f));
     }
 
-    void SetRotation(glm::vec3 InRotation)
+    void SetPosition(const glm::vec3& InPosition)
+    {
+        position = InPosition;
+    }
+
+    void SetRotation(const glm::vec3& InRotation)
     {
         rotation = InRotation;
     }
@@ -148,20 +155,21 @@ struct StaticMeshComponent
     explicit StaticMeshComponent(Entity& InEntity)
             : OwningEntity(&InEntity),
             StaticMeshTransform(Transform{}),
-            Mesh(std::make_shared<StaticMesh>())
+            Mesh(std::make_shared<StaticMesh>()),
+            material(nullptr)
     {
     }
 
     Entity* OwningEntity;
     Transform StaticMeshTransform;
+    std::shared_ptr<Material> material;
     glm::mat4 ModelMatrix{};
     std::shared_ptr<StaticMesh> Mesh;
     bool bIsVisible = true;
     bool bTicks = true;
 
-    void loadMesh(const std::string& modelFilePath) {
-        ImportedModel model{modelFilePath};
-        Mesh->loadFromImportedModel(model);
+    void loadMesh(const std::string& fileName) {
+        Mesh = ResourceManager::Get().GetStaticMesh(fileName);
     }
 
     void initTransform()

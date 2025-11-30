@@ -4,16 +4,15 @@
 #include "../src/engine/ecs/Component.h"
 #include "../system/DebugRenderSystem.h"
 
-#include "../game/GameStateManager.h"
-#include "../input/InputManager.h"
+#include "managers/AudioManager.h"
+#include "managers/GameStateManager.h"
+#include "managers/InputManager.h"
 
 struct StaticMeshComponent;
 
 // Global instances since we cannot modify Engine.h easily
-DebugRenderSystem debugSystem;
-GameStateManager stateManager;
 
-bool Engine::initialize(int width, int height) {
+bool Engine::initialize(int width, int height, bool fullscreen) {
     screenWidth = width;
     screenHeight = height;
 
@@ -28,8 +27,20 @@ bool Engine::initialize(int width, int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Create window FIRST
-    window = glfwCreateWindow(screenWidth, screenHeight, "Duck Hunt 3D", nullptr, nullptr);
+    GLFWmonitor* monitor = nullptr;
+    if (fullscreen) {
+        monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        screenWidth = mode->width;
+        screenHeight = mode->height;
+
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+    }
+
+    window = glfwCreateWindow(screenWidth, screenHeight, "Game", monitor, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -37,6 +48,8 @@ bool Engine::initialize(int width, int height) {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     // Initialize GLAD
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
@@ -47,13 +60,30 @@ bool Engine::initialize(int width, int height) {
     InputManager::initialize(window);
     uiManager.initialize(screenWidth, screenHeight);
 
+    // Setup loading screen
+    glViewport(0, 0, screenWidth, screenHeight);
+    loadingScreen.initialize(screenWidth, screenHeight);
+    float loadTime = 0.0f;
+    auto updateLoadingScreen = [&]() {
+        loadTime += 0.1f;
+        glViewport(0, 0, screenWidth, screenHeight);  // Reset viewport
+        glDisable(GL_DEPTH_TEST);
+        loadingScreen.render(glfwGetTime());
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    };
+
+    updateLoadingScreen();
+
     // Setup state change callback to update UI
     stateManager.setOnStateChange([this](GameState oldState, GameState newState) {
         handleStateChange(oldState, newState);
     });
 
-    // Setup initial UI (menu screen)
-    uiManager.setupMenuUI(&stateManager);
+    // Setup initial UI with the Quit Callback
+    uiManager.setupMenuUI(&stateManager, [this]() {
+        glfwSetWindowShouldClose(window, true);
+    });
 
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
@@ -61,90 +91,122 @@ bool Engine::initialize(int width, int height) {
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
+    updateLoadingScreen();
     gBuffer.initialize(screenWidth, screenHeight);
     setupQuad();
 
+    updateLoadingScreen();
     shadowMap.initialize(world.lightManager);
 
     // Load shaders
+    updateLoadingScreen();
     if (!equirectShader.loadFromFiles("../assets/shaders/equirect_to_cubemap.vert", "../assets/shaders/equirect_to_cubemap.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
 
+    updateLoadingScreen();
     if (!basicShader.loadFromFiles("../assets/shaders/geometry.vert", "../assets/shaders/geometry.frag")) {
         std::cerr << "Failed to load basic shaders" << std::endl;
         return false;
     }
 
+    updateLoadingScreen();
     if (!lightingShader.loadFromFiles("../assets/shaders/light.vert", "../assets/shaders/light.frag")) {
         std::cerr << "Failed to load light shaders" << std::endl;
         return false;
     }
 
+    updateLoadingScreen();
     if (!irradianceShader.loadFromFiles("../assets/shaders/irradiance_cubemap.vert", "../assets/shaders/irradiance_cubemap.frag")) {
         std::cerr << "Failed to load irradiance shader" << std::endl;
         return false;
     }
 
+    updateLoadingScreen();
     if (!prefilterShader.loadFromFiles("../assets/shaders/prefilter.vert", "../assets/shaders/prefilter.frag")) {
         std::cerr << "Failed to load prefilter shader" << std::endl;
         return false;
     }
 
+    updateLoadingScreen();
     if (!brdfLUTShader.loadFromFiles("../assets/shaders/brdf_lut.vert", "../assets/shaders/brdf_lut.frag")) {
         std::cerr << "Failed to load BRDF shader" << std::endl;
         return false;
     }
 
+    updateLoadingScreen();
     if (!physicsDebugShader.loadFromFiles("../assets/shaders/physics_debug.vert", "../assets/shaders/physics_debug.frag")) {
         std::cerr << "Failed to load debug shader" << std::endl;
         return false;
     }
 
+    updateLoadingScreen();
     hdrTexture.loadHDR("../assets/textures/hdri/dark_sky.hdr", 0);
 
+    updateLoadingScreen();
     cubeMaterial.loadAlbedoMap("../assets/textures/pbr/albedo.png");
+    updateLoadingScreen();
     cubeMaterial.loadNormalMap("../assets/textures/pbr/normal.png");
+    updateLoadingScreen();
     cubeMaterial.loadMetallicMap("../assets/textures/pbr/metallic.png");
+    updateLoadingScreen();
     cubeMaterial.loadRoughnessMap("../assets/textures/pbr/roughness.png");
+    updateLoadingScreen();
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
+    floorMaterial.loadAlbedoMap("../assets/textures/pbr_ground/albedo.png");
+    // floorMaterial.loadAOMap("../assets/textures/pbr_ground/ao.png");
+    floorMaterial.loadNormalMap("../assets/textures/pbr_ground/normals.png");
+    floorMaterial.loadRoughnessMap("../assets/textures/pbr_ground/roughness.png");
+
+    updateLoadingScreen();
     cubeMaterial.setMetallic(1.0f);      // Non-metallic
     cubeMaterial.setRoughness(0.1f);     // Mid-rough
     cubeMaterial.setAO(1.0f);            // Full ambient occlusion
 
+    updateLoadingScreen();
     envCubemap.fromHDR(hdrTexture, equirectShader);
     glViewport(0, 0, screenWidth, screenHeight); // RESET THE VIEWPORT!!
     skybox.initialize("../assets/shaders/skybox.vert", "../assets/shaders/skybox.frag");
 
+    updateLoadingScreen();
     irradianceMap.generateIrradiance(envCubemap, irradianceShader, 64);
     glViewport(0, 0, screenWidth, screenHeight);
 
+    updateLoadingScreen();
     prefilterMap.generatePrefilter(envCubemap, prefilterShader, 128, 5);
     std::cout << "Prefilter map ID: " << prefilterMap.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
+    updateLoadingScreen();
     brdfLUT.generateBRDFLUT(brdfLUTShader, 512);
     std::cout << "BRDF LUT ID: " << brdfLUT.id << std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
 
+    updateLoadingScreen();
     // Initialize Debug Renderer
     debugSystem.init();
 
     createFloor();
 
+    updateLoadingScreen();
+
     // Setup camera
     camera.updateAspectRatio(screenWidth, screenHeight);
     camera.position = glm::vec3(5.0f, 5.0f, 5.0f);
-    camera.target = glm::vec3(0.0f, 2.0f, 0.0f);
 
     std::cout << "Engine initialized successfully!" << std::endl;
+
+    updateLoadingScreen();
 
     world.camera = &camera;
     world.beginPlay();
 
+    updateLoadingScreen();
+
     InputManager::initialize(window);
+    AudioManager::Get().Init();
     stateManager.setWorldContext(&world);
 
     return true;
@@ -168,13 +230,20 @@ void Engine::run() {
 }
 
 void Engine::processInput() {
-    // ESC key closes window
+
     if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
-        if (stateManager.getCurrentState() == GameState::PLAYING) {
+        GameState currentState = stateManager.getCurrentState();
+
+        if (currentState == GameState::PLAYING) {
             stateManager.togglePause();
-        } else {
-            glfwSetWindowShouldClose(window, true);
         }
+        else if (currentState == GameState::PAUSED) {
+            stateManager.togglePause(); // Resume game
+        }
+        else if (currentState == GameState::OPTIONS) {
+            stateManager.returnToMenu(); // Go back to menu
+        }
+        // If in MENU or GAME_OVER, do nothing (waiting for button clicks)
     }
 
     // P key toggles pause
@@ -194,17 +263,27 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
-    // Update input first
+    // Update input first (Always needed for UI navigation)
     InputManager::update();
 
-    // Update game state
+    // Update game state (Handles camera inputs when playing, UI logic, Etc)
     stateManager.update(deltaTime);
 
-    // Update UI
+    // Update UI (Always needed)
     uiManager.update(deltaTime);
 
-    // Update world
-    world.update(deltaTime);
+    // Update world (Physics, Entities, Lights, Spawning)
+    // ONLY update the world simulation if we are in the PLAYING state.
+    if (stateManager.getCurrentState() == GameState::PLAYING) {
+        world.update(deltaTime);
+    }
+
+    // static float garbageTimer = 0.0f;
+    // garbageTimer += deltaTime;
+    // if (garbageTimer >= 5.0f) {
+    //     ResourceManager::Get().CollectGarbage();
+    //     garbageTimer = 0.0f;
+    // }
 }
 
 void Engine::render() {
@@ -289,6 +368,11 @@ void Engine::render() {
 
 }
 
+void Engine::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
+    Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+    engine->onResize(width, height);
+}
+
 void Engine::shutdown() {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
@@ -303,6 +387,21 @@ void Engine::shutdown() {
     glfwTerminate();
 }
 
+void Engine::onResize(int width, int height) {
+    screenWidth = width;
+    screenHeight = height;
+
+    glViewport(0, 0, width, height);
+
+    // Resize GBuffer
+    gBuffer.resize(width, height);
+
+    // Update camera aspect ratio
+    camera.updateAspectRatio(width, height);
+
+    std::cout << "Window resized to: " << width << "x" << height << std::endl;
+}
+
 void Engine::renderEntities() {
     basicShader.use();
 
@@ -312,25 +411,33 @@ void Engine::renderEntities() {
     basicShader.setMat4("view", view);
     basicShader.setMat4("projection", projection);
 
-    // TODO: Bind the correct material from the entities static mesh component
-    cubeMaterial.bind(basicShader);
-
     // TODO: store a list of renderable entities to iterate instead
     // Draw each entity
+    std::unordered_map<Material*, std::vector<StaticMeshComponent*>> materialBatches;
+
     for (auto& entity : world.EntityManager.GetEntities())
     {
         if (entity == nullptr) continue;
         if (entity->hasComponent<StaticMeshComponent>())
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
+            Material* mat = staticMeshComponent.material ? staticMeshComponent.material.get() : &cubeMaterial;
+            materialBatches[mat].push_back(&staticMeshComponent);
+        }
+    }
 
-            // Getting the Model.
-            glm::mat4 model = staticMeshComponent.getTransformMatrix();
+    // Render batched by material
+    for (auto& [material, components] : materialBatches)
+    {
+        material->bind(basicShader);
 
+        for (auto* comp : components)
+        {
+            glm::mat4 model = comp->getTransformMatrix();
             basicShader.setMat4("model", model);
 
-            staticMeshComponent.Mesh->bind();
-            staticMeshComponent.Mesh->draw();
+            comp->Mesh->bind();
+            comp->Mesh->draw();
         }
     }
 
@@ -398,7 +505,9 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
     // Setup new UI
     switch (newState) {
         case GameState::MENU:
-            uiManager.setupMenuUI(&stateManager);
+            uiManager.setupMenuUI(&stateManager, [this]() {
+                glfwSetWindowShouldClose(window, true);
+            });
             break;
         case GameState::PLAYING:
             uiManager.setupPlayingUI();
@@ -418,7 +527,7 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
 
 
 void Engine::createFloor() {
-    float floorSize = 50.0f;  // Large but not truly infinite
+    float floorSize = 80.0f;  // Large but not truly infinite
     float floorVertices[] = {
         // Positions          // Normals           // TexCoords
         -floorSize, 1.5f, -floorSize,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
@@ -454,7 +563,7 @@ void Engine::renderFloor() {
 
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = camera.getProjectionMatrix();
-    glm::mat4 model = glm::mat4(1.0f);
+    auto model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));  // Lower the floor
 
     basicShader.setMat4("model", model);
@@ -462,7 +571,7 @@ void Engine::renderFloor() {
     basicShader.setMat4("projection", projection);
 
     // Use same material or create a floor material
-    cubeMaterial.bind(basicShader);
+    floorMaterial.bind(basicShader);
 
     glBindVertexArray(floorVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);

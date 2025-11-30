@@ -1,10 +1,4 @@
-//
-// Created by Jeff on 2025-11-18.
-//
-
-#ifndef DUCKENGINE_COLLISIONSYSTEM_H
-#define DUCKENGINE_COLLISIONSYSTEM_H
-
+#pragma once
 #include "../physics/RaycastUtils.h"
 #include <vector>
 #include <cfloat>
@@ -31,5 +25,3 @@ public:
                                           const glm::vec3& min,
                                           const glm::vec3& max);
 };
-
-#endif

@@ -37,6 +37,11 @@ DuckEntity & EntityManager::CreateDuckEntity(World &InWorld, glm::vec3 &InPositi
     return dynamic_cast<DuckEntity&>(*Entities.back());
 }
 
+DuckEntity& EntityManager::CreateDuckEntityWithVelocity(World& InWorld, glm::vec3& InPosition, float speed) {
+    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld, InPosition, speed));
+    return dynamic_cast<DuckEntity&>(*Entities.back());
+}
+
 Entity& EntityManager::CreateDeferredEntity(World& InWorld)
 {
     DeferredEntities.emplace_back(std::make_unique<Entity>(InWorld));

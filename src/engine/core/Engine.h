@@ -9,23 +9,27 @@
 #include "../renderer/GBuffer.h"
 #include "../renderer/Cubemap.h"
 #include "../renderer/Skybox.h"
-#include "../system/UIManager.h"
-#include "../game/GameStateManager.h"
 #include "../renderer/ShadowMap.h"
+#include "managers/UIManager.h"
+#include "managers/GameStateManager.h"
+#include "../utils/LoadingScreen.h"
 
 
 class Engine {
 public:
     World world;
 
-    bool initialize(int width, int height);
+    bool initialize(int width, int height, bool fullscreen);
     void run();
     void shutdown();
+
+    void onResize(int width, int height);
 
     GBuffer gBuffer;
     ShadowMap shadowMap;
     // Temp
     Material cubeMaterial;
+    Material floorMaterial;
 
     // Temp for GBuffer
     GLuint quadVAO, quadVBO;
@@ -34,6 +38,7 @@ public:
 
     UIManager uiManager;
     GameStateManager stateManager;
+    DebugRenderSystem debugSystem;
 
 private:
     GLFWwindow* window = nullptr;
@@ -43,6 +48,8 @@ private:
     void processInput();
     void update(float deltaTime);
     void render();
+
+    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
     Camera camera;
 
@@ -64,6 +71,8 @@ private:
     Texture brdfLUT;
 
     Texture shadowMapTexture;
+
+    LoadingScreen loadingScreen;
 
     Shader physicsDebugShader;
     bool bPhysicsDebug = false;

@@ -6,9 +6,12 @@
 
 #include "Component.h"
 #include "../game/DuckEntity.h"
+#include "../game/GunEntity.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
 #include "../system/CollisionSystem.h"
+#include "../game/EnvironmentGenerator.h"
+#include "../core/managers/InputManager.h"
 
 World::World()
 {
@@ -24,20 +27,51 @@ World::World()
     addLightsToWorld();
     std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
+
+    duckSpawnerManager = new DuckSpawnerManager(*this);
 }
 
 void World::update(float deltaTime)
 {
     float time = glfwGetTime();
 
-    float radius = 10.0f;
-    float height = 3.0f;
+    // --- RECOIL LOGIC ---
+    // Recovery from recoil (Lerp back to 0), Higher recoverySpeed = snappier recovery
+    float recoverySpeed = 10.0f;
+    gunRecoilOffset = glm::mix(gunRecoilOffset, 0.0f, deltaTime * recoverySpeed);
+    gunRecoilPitch  = glm::mix(gunRecoilPitch, 0.0f, deltaTime * recoverySpeed);
 
-    camera->position.x = sin(time * 0.5f) * radius;
-    camera->position.z = cos(time * 0.5f) * radius;
-    camera->position.y = height;
+    // Recoil on input (Update numbers to liking)
+    if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        gunRecoilOffset = 0.2f;  // Move back
+        gunRecoilPitch = 0.1f;   // Rotate up
+    }
 
-    camera->target = glm::vec3(0.0f, 2.0f, 0.0f);
+    // --- FPS GUN UPDATE LOGIC ---
+    if (gunEntity && camera) {
+        auto& transform = gunEntity->getComponent<Transform>();
+
+        // 1. POSITION: Lock to camera with offset + Recoil Kickback
+        // Recoil moves the gun opposite to the camera front vector
+        glm::vec3 kickback = -camera->front * gunRecoilOffset;
+
+        // Base Offset: Right: +0.25f, Down: -0.25f, Forward: +0.5f
+        glm::vec3 offset = (camera->right * 0.25f) + (camera->up * -0.25f) + (camera->front * 0.5f);
+
+        transform.position = camera->position + offset + kickback;
+
+        // 2. ROTATION: Lock to camera orientation + Recoil Pitch
+        // Construct a rotation matrix from the camera's basis vectors
+        glm::mat3 camRotation(camera->right, camera->up, -camera->front);
+        glm::quat orientation = glm::quat_cast(camRotation);
+
+        // Apply muzzle climb (rotate around camera right axis)
+        glm::quat recoilRot = glm::angleAxis(gunRecoilPitch, camera->right);
+        orientation = recoilRot * orientation;
+        orientation = orientation * glm::angleAxis(glm::radians(180.0f), glm::vec3(0, 1, 0));
+
+        transform.rotation = orientation;
+    }
 
     // TODO: REMOVE - Test functionality for moving directional light
     if (lightManager.getDirectionalLightCount() > 0) {
@@ -56,17 +90,11 @@ void World::update(float deltaTime)
     }
 
     EntityManager.Update(deltaTime);
+    duckSpawnerManager->Update(deltaTime);
 }
 
 void World::beginPlay()
 {
-    // Moved to initialize()
-    // addLightsToWorld();
-    // std::cout << "Directional lights: " << lightManager.getDirectionalLightCount() << std::endl;
-    // std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
-
-    EntityManager.BeginPlay();
-
     for (size_t i = 0; i < duckPos.size(); ++i) {
         DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
     }
@@ -74,17 +102,29 @@ void World::beginPlay()
     // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
 
-    // glm::vec3 camPos = glm::vec3(0.0f, 5.0f, 10.0f);
-
     glm::vec3 camPos = camera->position;
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
+
+    // Store the gun entity pointer in the class member 'gunEntity'
+    gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
+
+    // Initial position setup (First frame)
+    glm::vec3 gunPos{camPos.x, camPos.y - 0.2f, camPos.z - 0.4f};
+    glm::vec3 gunRot{0.f, 3.14159f, 0.f};
+    gunEntity->getComponent<Transform>().SetPosition(gunPos);
+    gunEntity->getComponent<Transform>().SetRotation(gunRot);
+
+    EnvironmentGenerator envGenerator{*this, EntityManager};
+    envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));
 
     // Add raycast source component
     auto& raySource = PlayerEntity.addComponent<RaycastSource>();
     raySource.maxDistance = 100.0f;
     raySource.drawRay = true;
     raySource.direction = glm::vec3(0.0f, 0.0f, -1.0f);
+
+    EntityManager.BeginPlay();
 }
 
 void World::addLightsToWorld() {

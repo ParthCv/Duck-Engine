@@ -1,4 +1,3 @@
-
 #include "StaticMesh.h"
 
 void StaticMesh::setupMesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
