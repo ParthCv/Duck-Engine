@@ -57,5 +57,10 @@ private:
         glm::vec3(0.0f, 2.0f, 0.0f),
     };
 
-};
+    // Store gun ref, so we can update its position every frame
+    Entity* gunEntity = nullptr;
 
+    // Recoil State
+    float gunRecoilOffset = 0.0f; // Z-axis kickback
+    float gunRecoilPitch = 0.0f;  // Upward barrel rotation
+};
