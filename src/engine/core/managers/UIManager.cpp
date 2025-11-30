@@ -741,7 +741,7 @@ void UIManager::shutdown() {
 }
 
 // === State-specific UI Setup ===
-void UIManager::setupMenuUI(GameStateManager* stateManager) {
+void UIManager::setupMenuUI(GameStateManager* stateManager, std::function<void()> onQuit) {
     clearMenuUI();
 
     std::cout << "[UIManager] Setting up MENU UI" << std::endl;
@@ -793,9 +793,11 @@ void UIManager::setupMenuUI(GameStateManager* stateManager) {
     quitButton.position = glm::vec2(0, 160);
     quitButton.size = glm::vec2(200, 60);
     quitButton.anchor = UIAnchor::CENTER;
-    quitButton.onClick = []() {
+    quitButton.onClick = [onQuit]() {
         std::cout << "[UIManager] Quit button clicked!" << std::endl;
-        // TODO: Signal engine to close
+        if (onQuit) {
+            onQuit();
+        }
     };
     addButton(quitButton);
 }

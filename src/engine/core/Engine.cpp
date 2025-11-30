@@ -80,8 +80,10 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
         handleStateChange(oldState, newState);
     });
 
-    // Setup initial UI (menu screen)
-    uiManager.setupMenuUI(&stateManager);
+    // Setup initial UI with the Quit Callback
+    uiManager.setupMenuUI(&stateManager, [this]() {
+        glfwSetWindowShouldClose(window, true);
+    });
 
     // Set viewport
     glViewport(0, 0, screenWidth, screenHeight);
@@ -228,13 +230,20 @@ void Engine::run() {
 }
 
 void Engine::processInput() {
-    // ESC key closes window
+
     if (InputManager::isKeyPressed(GLFW_KEY_ESCAPE)) {
-        if (stateManager.getCurrentState() == GameState::PLAYING) {
+        GameState currentState = stateManager.getCurrentState();
+
+        if (currentState == GameState::PLAYING) {
             stateManager.togglePause();
-        } else {
-            glfwSetWindowShouldClose(window, true);
         }
+        else if (currentState == GameState::PAUSED) {
+            stateManager.togglePause(); // Resume game
+        }
+        else if (currentState == GameState::OPTIONS) {
+            stateManager.returnToMenu(); // Go back to menu
+        }
+        // If in MENU or GAME_OVER, do nothing (waiting for button clicks)
     }
 
     // P key toggles pause
@@ -496,7 +505,9 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
     // Setup new UI
     switch (newState) {
         case GameState::MENU:
-            uiManager.setupMenuUI(&stateManager);
+            uiManager.setupMenuUI(&stateManager, [this]() {
+                glfwSetWindowShouldClose(window, true);
+            });
             break;
         case GameState::PLAYING:
             uiManager.setupPlayingUI();

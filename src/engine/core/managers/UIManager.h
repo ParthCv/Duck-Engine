@@ -183,7 +183,7 @@ public:
     void setElementText(const std::string& id, const std::string& newText);
 
     // === State-specific UI Setup ===
-    void setupMenuUI(GameStateManager* stateManager);
+    void setupMenuUI(GameStateManager* stateManager, std::function<void()> onQuit = nullptr);
     void setupPlayingUI();
     void setupPausedUI(GameStateManager* stateManager);
     void setupGameOverUI(GameStateManager* stateManager);
