@@ -61,6 +61,7 @@ add_executable(DuckEngine
         src/engine/game/EnvironmentGenerator.h
         src/engine/game/GunEntity.cpp
         src/engine/game/GunEntity.h
+        src/engine/game/EventQueue.h
 )
 
 

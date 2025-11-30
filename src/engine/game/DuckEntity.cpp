@@ -171,7 +171,7 @@ void DuckEntity::checkIfEscaped()
     // Increased escape distance slightly since they spawn further out
     if (glm::distance(EntityTransform.position, spawnPosition) > escapeDistance)
     {
-        GameStateManager::get().incrementDucksEscaped();
+        GameStateManager::get().duckEscaped(0.0f, 0.0f);
         this->destroy();
     }
 }
@@ -180,11 +180,10 @@ void DuckEntity::KillDuck() {
     if (isDead)
         return;
     AudioManager::Get().PlaySound("quack");
-    //this->destroy();
+
     // Increase score and decrement numOfDucks
-    GameStateManager::get().hitDuck();
-    // this->destroy();
-    // std::cout << "Duck Died" << std::endl;
+    GameStateManager::get().hitDuck(0.0f, 0.0f);  // Marks next slot as HIT
+
     auto& EntityTransform = this->getComponent<Transform>();
     auto& EntityVelocity = this->getComponent<Velocity>();
     EntityTransform.SetRotation(glm::vec3(0, EntityTransform.rotation.y, 0));
@@ -213,60 +212,4 @@ void DuckEntity::cook() {
     staticMeshComponent.material = ResourceManager::Get().GetMaterial("turkey");
     staticMeshComponent.StaticMeshTransform.scale = glm::vec3(0.2f, 0.2f, 0.2f);
     staticMeshComponent.StaticMeshTransform.SetTransform(glm::vec3(0.0f, 0.1f, 0.0f));
-}
-
-// Temp method to change static mesh when dead
-void DuckEntity::createCube(StaticMesh& mesh) {
-    // Cube vertices (8 corners, but we need 24 vertices for proper normals per face)
-    std::vector<Vertex> vertices = {
-        // Front face (z = 0.5)
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-
-        // Back face (z = -0.5)
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}},
-
-        // Left face (x = -0.5)
-        {{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-        {{-0.5f, -0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        {{-0.5f,  0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-
-        // Right face (x = 0.5)
-        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
-        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-
-        // Top face (y = 0.5)
-        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-
-        // Bottom face (y = -0.5)
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}},
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}
-    };
-
-    // Cube indices (2 triangles per face, 6 faces)
-    std::vector<unsigned int> indices = {
-        0,  1,  2,  2,  3,  0,   // Front
-        4,  5,  6,  6,  7,  4,   // Back
-        8,  9,  10, 10, 11, 8,   // Left
-        12, 13, 14, 14, 15, 12,  // Right
-        16, 17, 18, 18, 19, 16,  // Top
-        20, 21, 22, 22, 23, 20   // Bottom
-    };
-
-    // Call setupMesh
-    mesh.setupMesh(vertices, indices);
-
 }

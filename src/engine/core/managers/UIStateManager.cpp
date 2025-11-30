@@ -253,7 +253,7 @@ void UIStateManager::updatePlaying(float deltaTime) {
                     std::cout << "MISS!" << std::endl;
                 }
             }
-            GameStateManager::get().decrementBullet();
+            GameStateManager::get().shootBullet();
         }
     }
 }

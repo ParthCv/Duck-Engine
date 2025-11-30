@@ -206,34 +206,38 @@ public:
 
     void renderLoadingScreen();
 
-    enum class DuckState {
-        NOT_SPAWNED,
-        SPAWNED,
-        HIT,
-        ESCAPED
-    };
+    // enum class DuckState {
+    //     NOT_SPAWNED,
+    //     SPAWNED,
+    //     HIT,
+    //     ESCAPED
+    // };
+    //
+    // DuckState duckStates[10];
+    //
+    // int currentAmmo = 10;
+    // int currentScore = 0;
+    // int currentRound = 1;
 
-    DuckState duckStates[10];
-
-    int currentAmmo = 10;
-    int currentScore = 0;
-    int currentRound = 1;
-
-    void resetDuckStates();
+    // void resetDuckStates();
 
     void renderDuckStatusBar();
 
     void renderAmmoBar();
 
-    void setDuckState(int duckIndex, DuckState state) {duckStates[duckIndex] = state;}
+    void renderScore();
 
-    void setAmmo(int ammo) { currentAmmo = glm::clamp(ammo, 0, 10); }
+    void renderRound();
 
-    void setScore(int score) { currentScore = score; }
+    // void setDuckState(int duckIndex, DuckState state) {duckStates[duckIndex] = state;}
 
-    void setRound(int round) { currentRound = round; }
-
-    void addScore(int points) { currentScore += points; }
+    // void setAmmo(int ammo) { currentAmmo = glm::clamp(ammo, 0, 10); }
+    //
+    // void setScore(int score) { currentScore = score; }
+    //
+    // void setRound(int round) { currentRound = round; }
+    //
+    // void addScore(int points) { currentScore += points; }
 private:
     // OpenGL rendering setup
     Shader uiShader;

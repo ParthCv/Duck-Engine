@@ -4,6 +4,7 @@
 #include <ctime>
 
 #include "Component.h"
+#include "../core/managers/GameStateManager.h"
 #include "../game/DuckEntity.h"
 #include "../game/GunEntity.h"
 #include "../renderer/Camera.h"
@@ -28,6 +29,8 @@ World::World()
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
     duckSpawnerManager = new DuckSpawnerManager(*this);
+
+    GameStateManager::get().resetDuckStates();  // Initialize Duck State array
 }
 
 void World::update(float deltaTime)

@@ -19,11 +19,13 @@ public:
 
     glm::vec3 spawnPosition{};
 
-    float escapeDistance = 100;
+    float escapeDistance = 20;
 
     bool isDead = false;
     bool isFalling = false;
     float DeathPlaneYBound = -10.0f;
+    // inline static int duckCountPerRound = 0;
+    // int duckID;
 
     DuckEntity(World& InWorld);
     DuckEntity(World& InWorld, glm::vec3& InPosition);
@@ -43,7 +45,6 @@ public:
 
     void fall();
     void cook();    // Change static mesh on death
-    void createCube(StaticMesh& mesh);
 };
 
 
