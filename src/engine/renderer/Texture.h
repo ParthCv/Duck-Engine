@@ -17,6 +17,7 @@ public:
 
     bool loadFromFile(const std::string& filePath, unsigned int textureSlot);
     bool loadHDR(const std::string& filePath, unsigned int textureSlot);
+    bool loadPixelArt(const std::string& filePath, unsigned int textureSlot);
     void generateBRDFLUT(Shader& brdfShader, int size = 512);
 
     void bind() const;
