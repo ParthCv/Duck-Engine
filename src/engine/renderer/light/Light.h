@@ -1,6 +1,5 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <vector>
 
 struct DirectionalLight {
     glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f);

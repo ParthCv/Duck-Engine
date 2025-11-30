@@ -38,7 +38,7 @@ add_executable(DuckEngine
         src/engine/system/LifecycleSystem.cpp
         src/engine/game/DuckFactory.cpp
         src/engine/core/managers/InputManager.cpp
-        src/engine/core/managers/GameStateManager.cpp
+        src/engine/core/managers/UIStateManager.cpp
         src/engine/core/model/ImportedModel.cpp
         src/engine/core/model/ImportedModel.h
         src/engine/core/model/StaticMesh.cpp
@@ -57,8 +57,8 @@ add_executable(DuckEngine
         dependencies/OpenAL/libs/Win64/dr_wav.h
         src/engine/system/DuckSpawnerManager.cpp
         src/engine/system/DuckSpawnerManager.h
-        src/engine/game/DuckGameState.h
-        src/engine/game/DuckGameState.cpp
+        src/engine/core/managers/GameStateManager.h
+        src/engine/core/managers/GameStateManager.cpp
         src/engine/game/EnvironmentEntity.cpp
         src/engine/game/EnvironmentEntity.h
         src/engine/game/EnvironmentGenerator.cpp
