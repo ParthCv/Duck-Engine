@@ -25,11 +25,14 @@ void DebugRenderSystem::drawColliders(EntityManager& entityManager, Shader& debu
         auto& drawable = entity->getComponent<DebugDrawable>();
 
         if (!drawable.drawCollider) continue;
+
+        // Apply transform scale to match actual collision size
+        glm::vec3 scaledSize = collider.size * transform.scale;
+
         DebugRenderer::getInstance().drawBox(
             debugShader,
             transform.position + collider.center,
-            // arbitrary value to make the hitbox larger
-            collider.size * 1.1f,
+            scaledSize,
             drawable.colliderColor
         );
     }

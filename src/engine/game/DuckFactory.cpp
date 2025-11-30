@@ -31,8 +31,10 @@ Entity* DuckFactory::createDuck(World& world, const glm::vec3& position, float s
     staticMesh.material = ResourceManager::Get().GetMaterial("duck");
 
     auto& collider = entity.addComponent<BoxCollider>();
-    collider.size = staticMesh.Mesh->getSize() * transform.scale;
+    collider.size = staticMesh.Mesh->getSize(); // Store unscaled size (CollisionSystem will apply transform.scale)
     collider.center = staticMesh.Mesh->getCenter();
+
+    // Adjust center offset based on unscaled size
     collider.center.y += collider.size.y / 2.0f;
 
     entity.addComponent<DebugDrawable>();

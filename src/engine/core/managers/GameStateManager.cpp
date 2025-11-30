@@ -204,9 +204,6 @@ void GameStateManager::updatePlaying(float deltaTime) {
         }
     }
 
-    // Update all entities in the world
-    worldContext->EntityManager.Update(deltaTime);
-
     // Handle Player Shooting/Raycasting
     auto raySourceEntities = worldContext->EntityManager.GetEntitiesWith<RaycastSource, Transform>();
 
@@ -234,18 +231,30 @@ void GameStateManager::updatePlaying(float deltaTime) {
             raySource.drawRay = true;
 
             if (worldContext->collisionSystem) {
-                // Capture the result
-                auto result = worldContext->collisionSystem->RaycastFromEntity(worldContext->EntityManager, *playerEntity);
+                // Raycast from CAMERA position (not gun position) for accurate aiming
+                auto result = worldContext->collisionSystem->Raycast(
+                    worldContext->EntityManager,
+                    worldContext->camera->position,  // Start from camera center
+                    rayDir,
+                    raySource.maxDistance
+                );
 
-                // Print the hit entity
+                // Update raycast component for debug visualization
+                raySource.lastHit = result.hit;
+                if (result.hit) {
+                    raySource.lastHitPoint = result.hitInfo.point;
+                    raySource.hitEntity = result.hitEntity;
+                } else {
+                    raySource.hitEntity = nullptr;
+                }
+
+                // Process the hit
                 if (result.hit && result.hitEntity) {
-
                         if (result.hitEntity->hasComponent<DuckComponent>()) {
                             LifecycleSystem::killDuck(*result.hitEntity);
                         } else {
                             std::cout << "Hit something, but it wasn't a duck" << std::endl;
                         }
-
                 } else {
                     std::cout << "MISS!" << std::endl;
                 }

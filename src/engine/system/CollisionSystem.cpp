@@ -17,6 +17,12 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
     for (auto* entity : entities) {
         if (!entity->getIsActive()) continue;
 
+        // Skip dead entities (they shouldn't block raycasts)
+        if (entity->hasComponent<HealthComponent>()) {
+            auto& health = entity->getComponent<HealthComponent>();
+            if (health.isDead) continue;
+        }
+
         auto& transform = entity->getComponent<Transform>();
         auto& collider = entity->getComponent<BoxCollider>();
 
@@ -83,6 +89,12 @@ std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
 
     for (auto* entity : entities) {
         if (!entity->getIsActive()) continue;
+
+        // Skip dead entities (they shouldn't be included in area queries)
+        if (entity->hasComponent<HealthComponent>()) {
+            auto& health = entity->getComponent<HealthComponent>();
+            if (health.isDead) continue;
+        }
 
         auto& transform = entity->getComponent<Transform>();
         auto& collider = entity->getComponent<BoxCollider>();

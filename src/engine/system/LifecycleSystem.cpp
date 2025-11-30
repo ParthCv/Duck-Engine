@@ -55,14 +55,17 @@ void LifecycleSystem::killDuck(Entity& entity) {
         velocity.Speed = 0.0f;
     }
 
-    if (entity.hasComponent<Transform>()) {
-        auto& transform = entity.getComponent<Transform>();
-        transform.rotation = glm::quat(); // Reset rotation
-    }
+    // Keep the rotation as-is so the duck doesn't visually "jump" when killed
+    // The duck will fall in whatever orientation it had when shot (more natural)
 
-    if (entity.hasComponent<StaticMeshComponent>()) {
+    if (entity.hasComponent<StaticMeshComponent>() && entity.hasComponent<Transform>()) {
         auto& mesh = entity.getComponent<StaticMeshComponent>();
+        auto& transform = entity.getComponent<Transform>();
+
         mesh.Mesh = ResourceManager::Get().GetStaticMesh("turkey.obj");
         mesh.material = ResourceManager::Get().GetMaterial("turkey");
+
+        // Scale down the turkey model to match the duck size (turkey model is larger)
+        transform.scale = glm::vec3(2.0f); // Half the duck's original scale (10.0f)
     }
 }
