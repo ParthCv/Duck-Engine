@@ -2,7 +2,6 @@
 #include "EntityManager.h"
 
 #include "../ecs/Component.h"
-#include "../game/DuckEntity.h"
 
 EntityManager::EntityManager() = default;
 
@@ -26,27 +25,12 @@ Entity& EntityManager::CreateEntity(World& InWorld)
     return *Entities.back();
 }
 
-DuckEntity& EntityManager::CreateDuckEntity(World &InWorld)
-{
-    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld));
-    return dynamic_cast<DuckEntity&>(*Entities.back());
-}
-
-DuckEntity & EntityManager::CreateDuckEntity(World &InWorld, glm::vec3 &InPosition) {
-    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld, InPosition));
-    return dynamic_cast<DuckEntity&>(*Entities.back());
-}
-
-DuckEntity& EntityManager::CreateDuckEntityWithVelocity(World& InWorld, glm::vec3& InPosition, float speed) {
-    Entities.emplace_back(std::make_unique<DuckEntity>(InWorld, InPosition, speed));
-    return dynamic_cast<DuckEntity&>(*Entities.back());
-}
-
 Entity& EntityManager::CreateDeferredEntity(World& InWorld)
 {
     DeferredEntities.emplace_back(std::make_unique<Entity>(InWorld));
     return *DeferredEntities.back();
 }
+
 
 void EntityManager::SynchronizeEntities()
 {
@@ -58,17 +42,6 @@ void EntityManager::SynchronizeEntities()
 
 void EntityManager::Update(float deltaTime)
 {
-    // TODO: Do all the updating below.
-    for (auto& entity : Entities) {
-        // TODO update the Entity itself.
-        entity->update(deltaTime);
-
-        // --- FIX: Check if component exists before updating ---
-        if (entity->hasComponent<StaticMeshComponent>()) {
-            entity->getComponent<StaticMeshComponent>().update(deltaTime);
-        }
-    }
-
     // TODO: Cleanup at the end.
     CleanupInactiveEntities();
 }

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <ostream>
 #include "../src/engine/ecs/Component.h"
+#include "../system/TransformSystem.h"
+#include "../ecs/components/Transform.h"
 
 struct StaticMeshComponent;
 class Entity;
@@ -90,8 +92,8 @@ void ShadowMap::renderScene(World& world) {
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
 
-            // Getting the Model.
-            glm::mat4 model = staticMeshComponent.getTransformMatrix();
+            auto& transform = entity->getComponent<Transform>();
+            glm::mat4 model = TransformSystem::getTransformMatrix(transform);
 
             simpleDepthShader.setMat4("model", model);
 

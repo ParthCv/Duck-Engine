@@ -6,7 +6,8 @@
 #include "../../ecs/Component.h"
 #include "../../utils/InputUtils.h"
 #include "../../system/CollisionSystem.h"
-#include "../../game/DuckEntity.h"
+#include "../../game/DuckFactory.h"
+#include "../../system/LifecycleSystem.h"
 #include "InputManager.h"
 #include "AudioManager.h"
 #include "../../game/DuckGameState.h"
@@ -188,20 +189,18 @@ void GameStateManager::updatePlaying(float deltaTime) {
                            + (cameraRight * (distSide * sideMultiplier))
                            + (cameraUp * randUp);
 
-        // Spawn the duck
-        DuckEntity& newDuck = worldContext->EntityManager.CreateDuckEntity(*worldContext, spawnPos);
+        Entity* newDuck = DuckFactory::createDuck(*worldContext, spawnPos, DuckGameState::get().getDuckSpeedBasedOnRound());
         DuckGameState::get().decrementNumOfDucks();
-        if (newDuck.hasComponent<Velocity>() && newDuck.hasComponent<Transform>()) {
-            //float speed = 2.0f;
-            float speed = DuckGameState::get().getDuckSpeedBasedOnRound();
-
-            newDuck.getComponent<Transform>().rotation = camRot;
+        if (newDuck->hasComponent<Velocity>() && newDuck->hasComponent<Transform>()) {
+            auto& transform = newDuck->getComponent<Transform>();
+            transform.rotation = camRot;
 
             if (!spawnLeft) {
-                 newDuck.getComponent<Transform>().WorldRotate(180.0f, glm::vec3(0,1,0));
+                transform.rotation = glm::quat_cast(glm::rotate(glm::mat4_cast(transform.rotation), glm::radians(180.0f), glm::vec3(0,1,0)));
             }
 
-            newDuck.getComponent<Velocity>().setVelocity(glm::vec3(1.0f, 0.0f, 0.0f), speed);
+            auto& velocity = newDuck->getComponent<Velocity>();
+            velocity.Direction = glm::vec3(1.0f, 0.0f, 0.0f);
         }
     }
 
@@ -241,10 +240,8 @@ void GameStateManager::updatePlaying(float deltaTime) {
                 // Print the hit entity
                 if (result.hit && result.hitEntity) {
 
-                        DuckEntity* hitDuck = dynamic_cast<DuckEntity*>(result.hitEntity);
-
-                        if (hitDuck) {
-                            hitDuck->KillDuck();
+                        if (result.hitEntity->hasComponent<DuckComponent>()) {
+                            LifecycleSystem::killDuck(*result.hitEntity);
                         } else {
                             std::cout << "Hit something, but it wasn't a duck" << std::endl;
                         }

@@ -403,45 +403,7 @@ void Engine::onResize(int width, int height) {
 }
 
 void Engine::renderEntities() {
-    basicShader.use();
-
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = camera.getProjectionMatrix();
-
-    basicShader.setMat4("view", view);
-    basicShader.setMat4("projection", projection);
-
-    // TODO: store a list of renderable entities to iterate instead
-    // Draw each entity
-    std::unordered_map<Material*, std::vector<StaticMeshComponent*>> materialBatches;
-
-    for (auto& entity : world.EntityManager.GetEntities())
-    {
-        if (entity == nullptr) continue;
-        if (entity->hasComponent<StaticMeshComponent>())
-        {
-            auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
-            Material* mat = staticMeshComponent.material ? staticMeshComponent.material.get() : &cubeMaterial;
-            materialBatches[mat].push_back(&staticMeshComponent);
-        }
-    }
-
-    // Render batched by material
-    for (auto& [material, components] : materialBatches)
-    {
-        material->bind(basicShader);
-
-        for (auto* comp : components)
-        {
-            glm::mat4 model = comp->getTransformMatrix();
-            basicShader.setMat4("model", model);
-
-            comp->Mesh->bind();
-            comp->Mesh->draw();
-        }
-    }
-
-    glBindVertexArray(0);
+    renderingSystem.renderEntities(world, basicShader, camera, cubeMaterial);
 }
 
 void Engine::setupQuad() {

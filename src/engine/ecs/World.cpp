@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 #include "Component.h"
-#include "../game/DuckEntity.h"
+#include "../game/DuckFactory.h"
 #include "../game/GunEntity.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
@@ -89,6 +89,10 @@ void World::update(float deltaTime)
         light.position.z = cos(time) * 3.0f;
     }
 
+    movementSystem.update(*this, deltaTime);
+    boundsSystem.update(*this, deltaTime);
+    lifecycleSystem.update(*this, deltaTime);
+
     EntityManager.Update(deltaTime);
     duckSpawnerManager->Update(deltaTime);
 }
@@ -96,7 +100,7 @@ void World::update(float deltaTime)
 void World::beginPlay()
 {
     for (size_t i = 0; i < duckPos.size(); ++i) {
-        DuckEntity& Duck = EntityManager.CreateDuckEntity(*this, duckPos[i]);
+        DuckFactory::createDuck(*this, duckPos[i], 0.1f);
     }
 
     // Create a player entity to act as the source for raycasting
