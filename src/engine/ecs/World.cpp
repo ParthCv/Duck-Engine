@@ -91,10 +91,6 @@ void World::update(float deltaTime)
 
 void World::beginPlay()
 {
-    for (size_t i = 0; i < duckPos.size(); ++i) {
-        DuckFactory::createDuck(*this, duckPos[i], 0.1f);
-    }
-
     // Create a player entity to act as the source for raycasting
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
 

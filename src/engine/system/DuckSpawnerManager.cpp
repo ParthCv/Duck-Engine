@@ -1,6 +1,6 @@
 #include "DuckSpawnerManager.h"
 #include "../game/GameUtils.h"
-#include "../game/DuckGameState.h"
+#include "../core/managers/GameStateManager.h"
 #include "../core/managers/AudioManager.h"
 #include "../game/DuckFactory.h"
 
@@ -15,13 +15,13 @@ DuckSpawnerManager::DuckSpawnerManager(World &InWorld) :
 void DuckSpawnerManager::Update(float deltaTime) {
     accumulatedTime += deltaTime;
     if (static_cast<int>(accumulatedTime) % static_cast<int>(spawnInterval) == 0 &&
-        !bSpawned && DuckGameState::get().getNumOfDucks() > 0)
+        !bSpawned && GameStateManager::get().getNumOfDucks() > 0)
     {
         std::cout << static_cast<int>(accumulatedTime) << "\n";
         SpawnDuck();
         bSpawned = true;
         // numberOfDucksToSpawn--;
-        DuckGameState::get().decrementNumOfDucks();
+        GameStateManager::get().decrementNumOfDucks();
     }
 
     if (static_cast<int>(accumulatedTime) % static_cast<int>(spawnInterval) != 0) {
@@ -29,7 +29,7 @@ void DuckSpawnerManager::Update(float deltaTime) {
     }
 
     // if (numberOfDucksToSpawn <= 0) {
-    if (DuckGameState::get().isRoundComplete()) {
+    if (GameStateManager::get().isRoundComplete()) {
         ResetRound();
     }
 }
@@ -46,16 +46,16 @@ void DuckSpawnerManager::SpawnDuck()
 
     // TODO: Half-ring Solution
     int randomIndex = rand() % spawnPositions.size();
-    DuckFactory::createDuck(*world, spawnPositions[randomIndex], DuckGameState::get().getDuckSpeedBasedOnRound());
+    DuckFactory::createDuck(*world, spawnPositions[randomIndex], GameStateManager::get().getDuckSpeedBasedOnRound());
 }
 
 void DuckSpawnerManager::ResetRound() {
     // numberOfDucksToSpawn = ducksPerRound;
-    DuckGameState::get().startNextRound();
+    GameStateManager::get().startNextRound();
     // AudioManager::Get().PlaySound("win", 0.5f);
 }
 
 void DuckSpawnerManager::SetDucksPerRound(int num) {
     // ducksPerRound = num;
-    DuckGameState::get().setMaxNumOfDucks(num);
+    GameStateManager::get().setMaxNumOfDucks(num);
 }

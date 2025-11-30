@@ -3,7 +3,7 @@
 #include "../ecs/Entity.h"
 #include "../ecs/components/Transform.h"
 #include "../ecs/components/BoundsComponent.h"
-#include "../game/DuckGameState.h"
+#include "../core/managers/GameStateManager.h"
 
 void BoundsSystem::update(World& world, float deltaTime) {
     for (auto& entity : world.EntityManager.GetEntities()) {
@@ -12,7 +12,7 @@ void BoundsSystem::update(World& world, float deltaTime) {
             auto& bounds = entity->getComponent<BoundsComponent>();
 
             if (glm::distance(transform.position, bounds.spawnPosition) > bounds.escapeDistance) {
-                DuckGameState::get().incrementDucksEscaped();
+                GameStateManager::get().incrementDucksEscaped();
                 entity->destroy();
             }
         }

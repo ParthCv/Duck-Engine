@@ -5,7 +5,7 @@
 #include "../ecs/components/Velocity.h"
 #include "../ecs/components/HealthComponent.h"
 #include "../ecs/components/StaticMeshComponent.h"
-#include "../game/DuckGameState.h"
+#include "../core/managers/GameStateManager.h"
 #include "../core/managers/AudioManager.h"
 #include "../core/managers/ResourceManager.h"
 #include <iostream>
@@ -46,7 +46,7 @@ void LifecycleSystem::killDuck(Entity& entity) {
 
     health.isDead = true;
     AudioManager::Get().PlaySound("quack");
-    DuckGameState::get().hitDuck();
+    GameStateManager::get().hitDuck();
     std::cout << "Duck Died" << std::endl;
 
     if (entity.hasComponent<Velocity>()) {
