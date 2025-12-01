@@ -1,6 +1,6 @@
 #include "EnvironmentGenerator.h"
-#include "EnvironmentEntity.h"
-#include "../system/EntityManager.h"
+#include "ecs/EnvironmentEntity.h"
+#include "../src/engine/ecs/system/EntityManager.h"
 #include "GameUtils.h"
 
 EnvironmentGenerator::EnvironmentGenerator(World& world, EntityManager& entityManager,

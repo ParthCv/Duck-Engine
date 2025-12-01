@@ -1,8 +1,7 @@
 #include "Engine.h"
 #include <iostream>
-#include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
-#include "../system/DebugRenderSystem.h"
+#include "../src/engine/ecs/system/DebugRenderSystem.h"
 
 #include "managers/AudioManager.h"
 #include "managers/UIStateManager.h"

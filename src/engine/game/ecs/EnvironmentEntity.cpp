@@ -1,8 +1,8 @@
 #include "EnvironmentEntity.h"
-#include "../ecs/World.h"
-#include "../core/managers/ResourceManager.h"
-#include "../ecs/components/StaticMeshComponent.h"
-#include "../ecs/components/Transform.h"
+#include "../../ecs/World.h"
+#include "../../core/managers/ResourceManager.h"
+#include "../../ecs/components/StaticMeshComponent.h"
+#include "../../ecs/components/Transform.h"
 
 EnvironmentEntity::EnvironmentEntity(World &world, glm::vec3 &position, const std::string &modelName)
     : Entity(world) {

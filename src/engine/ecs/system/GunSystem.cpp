@@ -1,9 +1,9 @@
 #include "GunSystem.h"
-#include "../ecs/World.h"
-#include "../ecs/Entity.h"
-#include "../ecs/components/Transform.h"
-#include "../ecs/components/GunComponent.h"
-#include "../renderer/Camera.h"
+#include "../src/engine/ecs/World.h"
+#include "../src/engine/ecs/Entity.h"
+#include "../src/engine/ecs/components/Transform.h"
+#include "../src/engine/ecs/components/GunComponent.h"
+#include "../src/engine/renderer/Camera.h"
 #include "glm/gtc/quaternion.hpp"
 
 void GunSystem::update(World& world, Camera& camera, float deltaTime) {

@@ -1,13 +1,13 @@
 #include "LifecycleSystem.h"
-#include "../ecs/World.h"
-#include "../ecs/Entity.h"
-#include "../ecs/components/Transform.h"
-#include "../ecs/components/Velocity.h"
-#include "../ecs/components/HealthComponent.h"
-#include "../ecs/components/StaticMeshComponent.h"
-#include "../core/managers/GameStateManager.h"
-#include "../core/managers/AudioManager.h"
-#include "../core/managers/ResourceManager.h"
+#include "../src/engine/ecs/World.h"
+#include "../src/engine/ecs/Entity.h"
+#include "../src/engine/ecs/components/Transform.h"
+#include "../src/engine/ecs/components/Velocity.h"
+#include "../src/engine/ecs/components/HealthComponent.h"
+#include "../src/engine/ecs/components/StaticMeshComponent.h"
+#include "../src/engine/core/managers/GameStateManager.h"
+#include "../src/engine/core/managers/AudioManager.h"
+#include "../src/engine/core/managers/ResourceManager.h"
 #include <iostream>
 
 void LifecycleSystem::update(World& world, float deltaTime) {

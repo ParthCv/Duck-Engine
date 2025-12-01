@@ -6,12 +6,11 @@
 #include "Component.h"
 #include "../core/managers/GameStateManager.h"
 #include "../game/DuckFactory.h"
-#include "../game/GunEntity.h"
+#include "../game/ecs/GunEntity.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
-#include "../system/CollisionSystem.h"
+#include "../ecs/system/CollisionSystem.h"
 #include "../game/EnvironmentGenerator.h"
-#include "../core/managers/InputManager.h"
 
 World::World()
 {

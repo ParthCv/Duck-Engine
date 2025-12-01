@@ -5,7 +5,7 @@
 #include "../../ecs/World.h"
 #include "../../ecs/Component.h"
 #include "../../utils/InputUtils.h"
-#include "../../system/CollisionSystem.h"
+#include "../../ecs/system/CollisionSystem.h"
 #include "InputManager.h"
 #include "AudioManager.h"
 #include "GameStateManager.h"

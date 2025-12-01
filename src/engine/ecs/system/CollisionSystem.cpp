@@ -1,6 +1,6 @@
 #include "CollisionSystem.h"
-#include "../ecs/Component.h"
-#include "../physics/RaycastUtils.h"
+#include "../src/engine/ecs/Component.h"
+#include "../src/engine/physics/RaycastUtils.h"
 #include "../system/EntityManager.h"
 
 CollisionSystem::RaycastResult CollisionSystem::Raycast(

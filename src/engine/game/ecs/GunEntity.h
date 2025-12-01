@@ -1,5 +1,5 @@
 #pragma once
-#include "../ecs/Entity.h"
+#include "../../ecs/Entity.h"
 #include <string>
 
 class GunEntity : public Entity {

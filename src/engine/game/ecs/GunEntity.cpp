@@ -1,9 +1,9 @@
-#include "GunEntity.h"
-#include "../ecs/Component.h"
-#include "../core/managers/ResourceManager.h"
-#include "../ecs/components/StaticMeshComponent.h"
-#include "../ecs/components/Transform.h"
-#include "../ecs/components/GunComponent.h"
+#include "../src/engine/game/ecs/GunEntity.h"
+#include "../../ecs/Component.h"
+#include "../../core/managers/ResourceManager.h"
+#include "../../ecs/components/StaticMeshComponent.h"
+#include "../../ecs/components/Transform.h"
+#include "../../ecs/components/GunComponent.h"
 
 GunEntity::GunEntity(World &world, const std::string &modelName) : Entity(world) {
     auto& transform = addComponent<Transform>(glm::vec3(0.0f, 0.0f, 0.0f),

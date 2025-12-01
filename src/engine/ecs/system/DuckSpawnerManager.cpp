@@ -1,8 +1,8 @@
 #include "DuckSpawnerManager.h"
-#include "../game/GameUtils.h"
-#include "../core/managers/GameStateManager.h"
-#include "../core/managers/AudioManager.h"
-#include "../game/DuckFactory.h"
+#include "../src/engine/game/GameUtils.h"
+#include "../src/engine/core/managers/GameStateManager.h"
+#include "../src/engine/core/managers/AudioManager.h"
+#include "../src/engine/game/DuckFactory.h"
 
 #include <iostream>
 
