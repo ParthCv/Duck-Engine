@@ -230,6 +230,14 @@ void UIManager::update(float deltaTime) {
     updateButtons();
     updateSliders();
     updateCrosshairPosition();
+
+    if (showGameplayHUD && worldContext) {
+        // Update score text
+        setElementText("score_text", "SCORE: " + formatScore(worldContext->getScore()));
+
+        // Update round text
+        setElementText("round_text", "ROUND: " + std::to_string(worldContext->getCurrentRound()));
+    }
 }
 
 void UIManager::updateButtons() {

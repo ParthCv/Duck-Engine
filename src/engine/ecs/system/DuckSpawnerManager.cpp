@@ -3,6 +3,7 @@
 #include "../src/engine/ecs/Component.h"
 #include "../src/engine/ecs/components/GameRoundComponent.h"
 #include "../src/engine/game/DuckFactory.h"
+#include "../src/engine/core/managers/AudioManager.h"
 
 DuckSpawnerManager::DuckSpawnerManager(World& world)
     : world(world)
@@ -70,4 +71,5 @@ void DuckSpawnerManager::spawnDuck() {
     // Create duck using DuckFactory
     // DuckFactory handles all component setup including random flight direction
     Entity* newDuck = DuckFactory::createDuck(world, spawnPos, speed);
+    AudioManager::Get().PlaySound("flapping", 0.5f);
 }

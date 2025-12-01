@@ -2,6 +2,7 @@
 #include "../src/engine/ecs/World.h"
 #include "../../../ecs/components/GameRoundComponent.h"
 #include "../src/engine/game/EventQueue.h"
+#include "../src/engine/core/managers/AudioManager.h"
 
 void GameRoundSystem::update(World& world, float deltaTime) {
     auto gameEntities = world.EntityManager.GetEntitiesWith<GameRoundComponent, AmmoComponent, ScoreComponent, DuckUIStateComponent>();
@@ -21,8 +22,10 @@ void GameRoundSystem::checkRoundCompletion(World& world, Entity& gameEntity) {
     
     if (roundComp.isRoundComplete()) {
         if (roundComp.hasRoundFailed()) {
+            AudioManager::Get().PlaySound("lose", 1.0f);
             endGame(gameEntity, world, false);
         } else {
+            AudioManager::Get().PlaySound("win", 1.0f);
             startNextRound(gameEntity, world);
         }
     }
