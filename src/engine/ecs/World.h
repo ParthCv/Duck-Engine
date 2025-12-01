@@ -7,6 +7,10 @@
 #include "../system/DebugRenderSystem.h"
 #include "../system/CollisionSystem.h"
 #include "../system/DuckSpawnerManager.h"
+#include "../system/MovementSystem.h"
+#include "../system/BoundsSystem.h"
+#include "../system/LifecycleSystem.h"
+#include "../system/GunSystem.h"
 
 class DuckSpawnerManager;
 
@@ -23,6 +27,10 @@ public:
     CollisionSystem* collisionSystem = nullptr;
     DebugRenderSystem debugRenderSystem;
     DuckSpawnerManager* duckSpawnerManager;
+    MovementSystem movementSystem;
+    BoundsSystem boundsSystem;
+    LifecycleSystem lifecycleSystem;
+    GunSystem gunSystem;
 
     World();
 

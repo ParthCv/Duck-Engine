@@ -6,6 +6,7 @@
 #include "Component.h"
 #include "../core/managers/GameStateManager.h"
 #include "../game/DuckEntity.h"
+#include "../game/DuckFactory.h"
 #include "../game/GunEntity.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
@@ -45,34 +46,9 @@ void World::update(float deltaTime)
 
     // Recoil on input (Update numbers to liking)
     if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-        gunRecoilOffset = 0.2f;  // Move back
-        gunRecoilPitch = 0.1f;   // Rotate up
-    }
-
-    // --- FPS GUN UPDATE LOGIC ---
-    if (gunEntity && camera) {
-        auto& transform = gunEntity->getComponent<Transform>();
-
-        // 1. POSITION: Lock to camera with offset + Recoil Kickback
-        // Recoil moves the gun opposite to the camera front vector
-        glm::vec3 kickback = -camera->front * gunRecoilOffset;
-
-        // Base Offset: Right: +0.25f, Down: -0.25f, Forward: +0.5f
-        glm::vec3 offset = (camera->right * 0.25f) + (camera->up * -0.25f) + (camera->front * 0.5f);
-
-        transform.position = camera->position + offset + kickback;
-
-        // 2. ROTATION: Lock to camera orientation + Recoil Pitch
-        // Construct a rotation matrix from the camera's basis vectors
-        glm::mat3 camRotation(camera->right, camera->up, -camera->front);
-        glm::quat orientation = glm::quat_cast(camRotation);
-
-        // Apply muzzle climb (rotate around camera right axis)
-        glm::quat recoilRot = glm::angleAxis(gunRecoilPitch, camera->right);
-        orientation = recoilRot * orientation;
-        orientation = orientation * glm::angleAxis(glm::radians(180.0f), glm::vec3(0, 1, 0));
-
-        transform.rotation = orientation;
+        if (gunEntity) {
+            gunSystem.applyRecoil(*gunEntity);
+        }
     }
 
     // if (lightManager.getDirectionalLightCount() > 0) {
@@ -83,6 +59,11 @@ void World::update(float deltaTime)
     //     glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
     //     dirLight.direction = glm::vec3(rotation * glm::vec4(dirLight.direction, 0.0f));
     // }
+
+    movementSystem.update(*this, deltaTime);
+    boundsSystem.update(*this, deltaTime);
+    lifecycleSystem.update(*this, deltaTime);
+    gunSystem.update(*this, *camera, deltaTime);
 
     EntityManager.Update(deltaTime);
     duckSpawnerManager->Update(deltaTime);
@@ -97,14 +78,8 @@ void World::beginPlay()
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
-    // Store the gun entity pointer in the class member 'gunEntity'
+    // Create the gun entity (GunSystem will handle positioning and rotation)
     gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
-
-    // Initial position setup (First frame)
-    glm::vec3 gunPos{camPos.x, camPos.y - 0.2f, camPos.z - 0.4f};
-    glm::vec3 gunRot{0.f, 3.14159f, 0.f};
-    gunEntity->getComponent<Transform>().SetPosition(gunPos);
-    gunEntity->getComponent<Transform>().SetRotation(gunRot);
 
     EnvironmentGenerator envGenerator{*this, EntityManager};
     envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));

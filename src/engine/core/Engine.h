@@ -15,6 +15,9 @@
 #include "../utils/LoadingScreen.h"
 
 
+#include "../system/DebugRenderSystem.h"
+#include "../system/RenderingSystem.h"
+
 class Engine {
 public:
     World world;
@@ -39,6 +42,7 @@ public:
     UIManager uiManager;
     UIStateManager stateManager;
     DebugRenderSystem debugSystem;
+    RenderingSystem renderingSystem;
 
 private:
     GLFWwindow* window = nullptr;

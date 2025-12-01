@@ -2,10 +2,12 @@
 
 #include <iostream>
 #include <ostream>
-#include "../src/engine/ecs/Component.h"
-
-struct StaticMeshComponent;
-class Entity;
+#include "../ecs/Component.h"
+#include "../system/TransformSystem.h"
+#include "../ecs/components/Transform.h"
+#include "../core/model/StaticMesh.h"
+#include "../ecs/components/StaticMeshComponent.h"
+#include "../ecs/Entity.h"
 
 ShadowMap::ShadowMap() : depthMapFBO(0), shadowTexture(0) {
 }
@@ -89,8 +91,8 @@ void ShadowMap::renderScene(World& world) {
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
 
-            // Getting the Model.
-            glm::mat4 model = staticMeshComponent.getTransformMatrix();
+            auto& transform = entity->getComponent<Transform>();
+            glm::mat4 model = TransformSystem::getTransformMatrix(transform);
 
             simpleDepthShader.setMat4("model", model);
 

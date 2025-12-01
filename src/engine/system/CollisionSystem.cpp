@@ -17,11 +17,20 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
     for (auto* entity : entities) {
         if (!entity->getIsActive()) continue;
 
+        // Skip dead entities (they shouldn't block raycasts)
+        if (entity->hasComponent<HealthComponent>()) {
+            auto& health = entity->getComponent<HealthComponent>();
+            if (health.isDead) continue;
+        }
+
         auto& transform = entity->getComponent<Transform>();
         auto& collider = entity->getComponent<BoxCollider>();
 
-        glm::vec3 aabbMin = collider.GetMin(transform);
-        glm::vec3 aabbMax = collider.GetMax(transform);
+        glm::vec3 scaledSize = collider.size * transform.scale;
+        glm::vec3 halfSize = scaledSize * 0.5f;
+        glm::vec3 worldCenter = transform.position + collider.center;
+        glm::vec3 aabbMin = worldCenter - halfSize;
+        glm::vec3 aabbMax = worldCenter + halfSize;
 
         Physics::RaycastHit hit = Physics::raycastAABB(
             origin, direction, aabbMin, aabbMax
@@ -81,11 +90,20 @@ std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
     for (auto* entity : entities) {
         if (!entity->getIsActive()) continue;
 
+        // Skip dead entities (they shouldn't be included in area queries)
+        if (entity->hasComponent<HealthComponent>()) {
+            auto& health = entity->getComponent<HealthComponent>();
+            if (health.isDead) continue;
+        }
+
         auto& transform = entity->getComponent<Transform>();
         auto& collider = entity->getComponent<BoxCollider>();
 
-        glm::vec3 aabbMin = collider.GetMin(transform);
-        glm::vec3 aabbMax = collider.GetMax(transform);
+        glm::vec3 scaledSize = collider.size * transform.scale;
+        glm::vec3 halfSize = scaledSize * 0.5f;
+        glm::vec3 worldCenter = transform.position + collider.center;
+        glm::vec3 aabbMin = worldCenter - halfSize;
+        glm::vec3 aabbMax = worldCenter + halfSize;
 
         if (aabbMin.x <= max.x && aabbMax.x >= min.x &&
             aabbMin.y <= max.y && aabbMax.y >= min.y &&
