@@ -5,7 +5,7 @@
 #include "../../ecs/World.h"
 #include "../../ecs/Component.h"
 #include "../../utils/InputUtils.h"
-#include "../../system/CollisionSystem.h"
+#include "../../ecs/system/CollisionSystem.h"
 #include "InputManager.h"
 #include "AudioManager.h"
 #include "GameStateManager.h"
@@ -227,6 +227,12 @@ void UIStateManager::updatePlaying(float deltaTime) {
         ) {
             AudioManager::Get().PlaySound("shoot", 0.5f);
 
+            // Apply recoil to all gun entities
+            auto gunEntities = worldContext->EntityManager.GetEntitiesWith<GunComponent, Transform>();
+            for (auto* gunEntity : gunEntities) {
+                GunSystem::applyRecoil(*gunEntity);
+            }
+
             // FPS STYLE: Raycast ALWAYS goes straight forward from camera
             glm::vec3 rayDir = cameraFwd;
 
@@ -252,7 +258,7 @@ void UIStateManager::updatePlaying(float deltaTime) {
                     std::cout << "MISS!" << std::endl;
                 }
             }
-            GameStateManager::get().decrementBullet();
+            GameStateManager::get().shootBullet();
         }
     }
 }

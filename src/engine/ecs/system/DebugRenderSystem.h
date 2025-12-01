@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../renderer/Shader.h"
+#include "../src/engine/renderer/Shader.h"
 
 class EntityManager;
 class Shader;

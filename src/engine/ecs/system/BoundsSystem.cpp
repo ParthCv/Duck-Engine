@@ -1,9 +1,9 @@
 #include "BoundsSystem.h"
-#include "../ecs/World.h"
-#include "../ecs/Entity.h"
-#include "../ecs/components/Transform.h"
-#include "../ecs/components/BoundsComponent.h"
-#include "../core/managers/GameStateManager.h"
+#include "../src/engine/ecs/World.h"
+#include "../src/engine/ecs/Entity.h"
+#include "../src/engine/ecs/components/Transform.h"
+#include "../src/engine/ecs/components/BoundsComponent.h"
+#include "../src/engine/core/managers/GameStateManager.h"
 
 void BoundsSystem::update(World& world, float deltaTime) {
     for (auto& entity : world.EntityManager.GetEntities()) {
@@ -12,7 +12,7 @@ void BoundsSystem::update(World& world, float deltaTime) {
             auto& bounds = entity->getComponent<BoundsComponent>();
 
             if (glm::distance(transform.position, bounds.spawnPosition) > bounds.escapeDistance) {
-                GameStateManager::get().incrementDucksEscaped();
+                GameStateManager::get().duckEscaped();
                 entity->destroy();
             }
         }

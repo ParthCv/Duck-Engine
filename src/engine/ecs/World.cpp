@@ -4,13 +4,13 @@
 #include <ctime>
 
 #include "Component.h"
+#include "../core/managers/GameStateManager.h"
 #include "../game/DuckFactory.h"
-#include "../game/GunEntity.h"
+#include "../game/ecs/GunEntity.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
-#include "../system/CollisionSystem.h"
+#include "../ecs/system/CollisionSystem.h"
 #include "../game/EnvironmentGenerator.h"
-#include "../core/managers/InputManager.h"
 
 World::World()
 {
@@ -28,6 +28,8 @@ World::World()
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
     duckSpawnerManager = new DuckSpawnerManager(*this);
+
+    GameStateManager::get().resetDuckStates();  // Initialize Duck State array
 }
 
 void World::update(float deltaTime)
@@ -39,13 +41,6 @@ void World::update(float deltaTime)
     float recoverySpeed = 10.0f;
     gunRecoilOffset = glm::mix(gunRecoilOffset, 0.0f, deltaTime * recoverySpeed);
     gunRecoilPitch  = glm::mix(gunRecoilPitch, 0.0f, deltaTime * recoverySpeed);
-
-    // Recoil on input (Update numbers to liking)
-    if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-        if (gunEntity) {
-            gunSystem.applyRecoil(*gunEntity);
-        }
-    }
 
     // if (lightManager.getDirectionalLightCount() > 0) {
     //     auto& dirLight = lightManager.getDirectionalLight(0);

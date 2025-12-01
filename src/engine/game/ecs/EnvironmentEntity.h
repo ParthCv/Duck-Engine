@@ -1,5 +1,5 @@
 #pragma once
-#include "../ecs/Entity.h"
+#include "../../ecs/Entity.h"
 #include "glm/vec3.hpp"
 #include <string>
 

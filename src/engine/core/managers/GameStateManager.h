@@ -1,22 +1,75 @@
 #pragma once
+#include <cmath>
+
+#include "AudioManager.h"
+#include "../../game/EventQueue.h"
+
+enum class DuckState {
+    NOT_SPAWNED,
+    SPAWNED,
+    HIT,
+    ESCAPED
+};
 
 class GameStateManager {
     static GameStateManager* instance;
 
-    int round = 1;              // Start at round 1
+    int round = 1;
     int score = 0;
     int maxNumOfBullets = 10;
     int numOfBullets = 10;
-    int maxNumOfDucks = 10;     // Num of ducks per round
-    int numOfDucks = 10;        // Ducks left to spawn during a round
-    int numOfDucksEscaped = 0;  // Ducks we did not shoot and disappeared
+    int maxNumOfDucks = 10;
+
+    // Two separate counters for UI tracking
+    int duckSpawnIndex = 0;     // Next slot to mark as SPAWNED (0-9)
+    int duckResolveIndex = 0;   // Next slot to mark as HIT/ESCAPED (0-9)
+
+    int numOfDucksEscaped = 0;
+    int numOfDucksEscapedAllowed = 3;
+
+    DuckState duckStates[10] = {};
 
     int basePointsPerDuck = 25;
     float initialSpeed = 0.5;
-    const float duckSpeedMultiplier = 1.1f; // Increases per round
-    const float scoreMultiplier = 1.1f; // Increases per round
+    const float duckSpeedMultiplier = 1.1f;
+    const float scoreMultiplier = 1.1f;
 
-    // EventQueue if time permits
+    EventQueue events;
+
+    // Private mutators
+    void incrementRound() {
+        round++;
+    }
+
+    void setRound(int r) {
+        round = r;
+    }
+
+    void addScore(int points) {
+        score += points;
+    }
+
+    void setScore(int s) {
+        score = s;
+    }
+
+    void decrementBullet() {
+        if (numOfBullets > 0) {
+            numOfBullets--;
+        }
+    }
+
+    void setBullets(int bullets) {
+        numOfBullets = bullets;
+    }
+
+    void incrementDucksEscaped() {
+        numOfDucksEscaped++;
+    }
+
+    void setDucksEscaped(int escaped) {
+        numOfDucksEscaped = escaped;
+    }
 
 public:
     static GameStateManager& get() {
@@ -25,49 +78,126 @@ public:
         return *instance;
     }
 
-    // === Round Management ===
-    void incrementRound() {
-        round++;
+    // Getters
+    int getRound() const { return round; }
+    int getScore() const { return score; }
+    int getNumOfBullets() const { return numOfBullets; }
+    int getMaxNumOfBullets() const { return maxNumOfBullets; }
+    int getMaxNumOfDucks() const { return maxNumOfDucks; }
+    int getNumOfDucksEscaped() const { return numOfDucksEscaped; }
+    int getDuckSpawnIndex() const { return duckSpawnIndex; }
+    int getDuckResolveIndex() const { return duckResolveIndex; }
+
+    bool hasBulletsRemaining() const { return numOfBullets > 0; }
+
+    // Can we spawn more ducks this round?
+    bool canSpawnMoreDucks() const {
+        return duckSpawnIndex < maxNumOfDucks;
     }
 
-    void resetRound() {
-        round = 1;
+    // Is the round over? (all ducks spawned AND all resolved)
+    bool isRoundComplete() const {
+        return duckSpawnIndex >= maxNumOfDucks && duckResolveIndex >= maxNumOfDucks;
     }
 
-    int getRound() const {
-        return round;
+    bool isRoundFailed() const {
+        return isRoundComplete() && numOfDucksEscaped > numOfDucksEscapedAllowed;
     }
 
-    // === Score Management ===
-    void addScore(int points) {
-        score += points;
+    float getDuckSpeedBasedOnRound() const {
+        return initialSpeed * std::pow(duckSpeedMultiplier, round - 1);
     }
 
-    void resetScore() {
-        score = 0;
-    }
+    EventQueue& getEvents() { return events; }
+    void clearEvents() { events.clear(); }
 
-    int getScore() const {
-        return score;
-    }
+    // === High-Level Actions ===
 
-    // === Bullet Management ===
-    void decrementBullet() {
-        if (numOfBullets > 0) {
-            numOfBullets--;
+    void shootBullet() {
+        if (hasBulletsRemaining()) {
+            decrementBullet();
+            events.emit(BulletFiredEvent{numOfBullets});
         }
     }
 
-    void resetBullets() {
-        numOfBullets = maxNumOfBullets;
+    /**
+     * Call when spawning a duck
+     * Marks the next UI slot as SPAWNED and increments the spawn counter
+     */
+    void spawnDuck() {
+        if (canSpawnMoreDucks()) {
+            duckStates[duckSpawnIndex] = DuckState::SPAWNED;
+            duckSpawnIndex++;
+        }
     }
 
-    int getNumOfBullets() const {
-        return numOfBullets;
+    /**
+     * Call when a duck is hit
+     * Marks the next unresolved UI slot as HIT
+     */
+    void hitDuck() {
+        if (duckResolveIndex < maxNumOfDucks) {
+            int points = static_cast<int>(basePointsPerDuck * std::pow(scoreMultiplier, round - 1));
+            addScore(points);
+
+            duckStates[duckResolveIndex] = DuckState::HIT;
+
+            events.emit(DuckShotEvent{duckResolveIndex, points});
+
+            duckResolveIndex++;
+        }
     }
 
-    int getMaxNumOfBullets() const {
-        return maxNumOfBullets;
+    /**
+     * Call when a duck escapes
+     * Marks the next unresolved UI slot as ESCAPED
+     */
+    void duckEscaped() {
+        if (duckResolveIndex < maxNumOfDucks) {
+            incrementDucksEscaped();
+
+            if (numOfDucksEscaped >= numOfDucksEscapedAllowed) {
+                resetGame();
+            }
+
+            duckStates[duckResolveIndex] = DuckState::ESCAPED;
+            AudioManager::Get().PlaySound("flapping", 1.0f);
+            events.emit(DuckEscapedEvent{duckResolveIndex});
+
+            duckResolveIndex++;
+        }
+    }
+
+    void startNextRound() {
+        incrementRound();
+        setBullets(maxNumOfBullets);
+        setDucksEscaped(0);
+        duckSpawnIndex = 0;
+        duckResolveIndex = 0;
+        resetDuckStates();
+        AudioManager::Get().PlaySound("win", 0.8f);
+        events.emit(RoundStartEvent{round, maxNumOfDucks});
+    }
+
+    void resetGame() {
+        setRound(1);
+        setScore(0);
+        setBullets(maxNumOfBullets);
+        setDucksEscaped(0);
+        duckSpawnIndex = 0;
+        duckResolveIndex = 0;
+        resetDuckStates();
+        AudioManager::Get().PlaySound("lose", 0.8f);
+        events.emit(GameOverEvent{false, 0, 0});
+        events.emit(StartGameEvent{});
+    }
+
+    void endGameVictory() {
+        events.emit(GameOverEvent{true, score, round});
+    }
+
+    void endGameDefeat() {
+        events.emit(GameOverEvent{false, score, round});
     }
 
     void setMaxNumOfBullets(int max) {
@@ -77,97 +207,20 @@ public:
         }
     }
 
-    bool hasBulletsRemaining() const {
-        return numOfBullets > 0;
-    }
-
-    // === Duck Management ===
-
-    int getNumOfDucks() const {
-        return numOfDucks;
-    }
-
-    void decrementNumOfDucks() {
-        if (numOfDucks > 0) {
-            numOfDucks--;
-        }
-    }
-
-    void incrementDucksEscaped() {
-        numOfDucksEscaped++;
-        decrementNumOfDucks();
-    }
-
-    void resetDucks() {
-        numOfDucks = maxNumOfDucks;
-        numOfDucksEscaped = 0;
-    }
-
-    int getMaxNumOfDucks() const {
-        return maxNumOfDucks;
-    }
-
     void setMaxNumOfDucks(int max) {
         maxNumOfDucks = max;
-        if (numOfDucks > max) {
-            numOfDucks = max;
+    }
+
+    DuckState getDuckStateAtIndex(int index) const {
+        if (index >= 0 && index < maxNumOfDucks) {
+            return duckStates[index];
         }
+        return DuckState::NOT_SPAWNED;
     }
 
-    int getNumOfDucksEscaped() const {
-        return numOfDucksEscaped;
-    }
-
-    bool areDucksRemaining() const {
-        return numOfDucks > 0;
-    }
-
-    void hitDuck() {
-        addScore(static_cast<int>(basePointsPerDuck * scoreMultiplier * round));
-        decrementNumOfDucks();
-    }
-
-    void shootBullet() {
-        if (hasBulletsRemaining()) {
-            decrementBullet();
+    void resetDuckStates() {
+        for (int i = 0; i < maxNumOfDucks; i++) {
+            duckStates[i] = DuckState::NOT_SPAWNED;
         }
-    }
-
-    void duckEscaped() {
-        incrementDucksEscaped();
-    }
-
-    float getDuckSpeedBasedOnRound() {
-        return initialSpeed * duckSpeedMultiplier * round;
-    }
-
-    void startNextRound() {
-        incrementRound();
-        resetBullets();
-        resetDucks();
-    }
-
-    void resetGame() {
-        resetRound();
-        resetScore();
-        resetBullets();
-        resetDucks();
-    }
-
-    // === Game state queries ===
-    bool isRoundComplete() const {
-        return numOfDucks <= 0;
-    }
-
-    /**
-     * Returns whether we failed a round.
-     *
-     * We fail a round if we hit less than 7 ducks.
-     * Ensure we call this after the last duck has either been shot or escaped
-     * @return
-     */
-    bool isRoundFailed() const {
-        return numOfDucks == 0 &&
-            numOfDucksEscaped <= 3;  // We don't hit at least 7
     }
 };

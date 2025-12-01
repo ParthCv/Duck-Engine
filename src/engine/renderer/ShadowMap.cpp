@@ -2,8 +2,7 @@
 
 #include <iostream>
 #include <ostream>
-#include "../ecs/Component.h"
-#include "../system/TransformSystem.h"
+#include "../ecs/system/TransformSystem.h"
 #include "../ecs/components/Transform.h"
 #include "../core/model/StaticMesh.h"
 #include "../ecs/components/StaticMeshComponent.h"

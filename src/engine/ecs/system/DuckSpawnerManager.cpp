@@ -1,8 +1,8 @@
 #include "DuckSpawnerManager.h"
-#include "../game/GameUtils.h"
-#include "../core/managers/GameStateManager.h"
-#include "../core/managers/AudioManager.h"
-#include "../game/DuckFactory.h"
+#include "../src/engine/game/GameUtils.h"
+#include "../src/engine/core/managers/GameStateManager.h"
+#include "../src/engine/core/managers/AudioManager.h"
+#include "../src/engine/game/DuckFactory.h"
 
 #include <iostream>
 
@@ -15,13 +15,12 @@ DuckSpawnerManager::DuckSpawnerManager(World &InWorld) :
 void DuckSpawnerManager::Update(float deltaTime) {
     accumulatedTime += deltaTime;
     if (static_cast<int>(accumulatedTime) % static_cast<int>(spawnInterval) == 0 &&
-        !bSpawned && GameStateManager::get().getNumOfDucks() > 0)
+        !bSpawned && GameStateManager::get().canSpawnMoreDucks())
     {
         std::cout << static_cast<int>(accumulatedTime) << "\n";
         SpawnDuck();
         bSpawned = true;
         // numberOfDucksToSpawn--;
-        GameStateManager::get().decrementNumOfDucks();
     }
 
     if (static_cast<int>(accumulatedTime) % static_cast<int>(spawnInterval) != 0) {
@@ -30,7 +29,11 @@ void DuckSpawnerManager::Update(float deltaTime) {
 
     // if (numberOfDucksToSpawn <= 0) {
     if (GameStateManager::get().isRoundComplete()) {
-        ResetRound();
+        if (GameStateManager::get().isRoundFailed()) {
+            GameStateManager::get().resetGame();
+        } else {
+            ResetRound();
+        }
     }
 }
 
@@ -47,6 +50,11 @@ void DuckSpawnerManager::SpawnDuck()
     // TODO: Half-ring Solution
     int randomIndex = rand() % spawnPositions.size();
     DuckFactory::createDuck(*world, spawnPositions[randomIndex], GameStateManager::get().getDuckSpeedBasedOnRound());
+
+    auto& state = GameStateManager::get();
+
+    state.spawnDuck();  // Just marks UI slot as spawned
+    AudioManager::Get().PlaySound("quack", 1.0f);
 }
 
 void DuckSpawnerManager::ResetRound() {

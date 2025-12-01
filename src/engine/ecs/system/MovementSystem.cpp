@@ -1,8 +1,8 @@
 #include "MovementSystem.h"
-#include "../ecs/World.h"
-#include "../ecs/Entity.h"
-#include "../ecs/components/Transform.h"
-#include "../ecs/components/Velocity.h"
+#include "../src/engine/ecs/World.h"
+#include "../src/engine/ecs/Entity.h"
+#include "../src/engine/ecs/components/Transform.h"
+#include "../src/engine/ecs/components/Velocity.h"
 
 void MovementSystem::update(World& world, float deltaTime) {
     for (auto& entity : world.EntityManager.GetEntities()) {

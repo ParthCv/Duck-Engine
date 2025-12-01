@@ -15,8 +15,8 @@
 #include "../utils/LoadingScreen.h"
 
 
-#include "../system/DebugRenderSystem.h"
-#include "../system/RenderingSystem.h"
+#include "../ecs/system/DebugRenderSystem.h"
+#include "../src/engine/ecs/system/RenderingSystem.h"
 
 class Engine {
 public:
