@@ -1,11 +1,6 @@
-//
-// Created by User on 11/25/2025.
-//
-
-#ifndef DUCKENGINE_DUCKSPAWNERMANAGER_H
-#define DUCKENGINE_DUCKSPAWNERMANAGER_H
-#include "../ecs/World.h"
-#include "../ecs/Entity.h"
+#pragma once
+#include "../src/engine/ecs/World.h"
+#include "../src/engine/ecs/Entity.h"
 
 class World;
 
@@ -37,6 +32,3 @@ public:
 
     void SetDucksPerRound(int num);
 };
-
-
-#endif //DUCKENGINE_DUCKSPAWNERMANAGER_H

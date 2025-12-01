@@ -1,11 +1,10 @@
 #include "Engine.h"
 #include <iostream>
-#include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
-#include "../system/DebugRenderSystem.h"
+#include "../src/engine/ecs/system/DebugRenderSystem.h"
 
 #include "managers/AudioManager.h"
-#include "managers/GameStateManager.h"
+#include "managers/UIStateManager.h"
 #include "managers/InputManager.h"
 
 struct StaticMeshComponent;
@@ -272,18 +271,9 @@ void Engine::update(float deltaTime) {
     // Update UI (Always needed)
     uiManager.update(deltaTime);
 
-    // Update world (Physics, Entities, Lights, Spawning)
-    // ONLY update the world simulation if we are in the PLAYING state.
     if (stateManager.getCurrentState() == GameState::PLAYING) {
         world.update(deltaTime);
     }
-
-    // static float garbageTimer = 0.0f;
-    // garbageTimer += deltaTime;
-    // if (garbageTimer >= 5.0f) {
-    //     ResourceManager::Get().CollectGarbage();
-    //     garbageTimer = 0.0f;
-    // }
 }
 
 void Engine::render() {
@@ -403,45 +393,7 @@ void Engine::onResize(int width, int height) {
 }
 
 void Engine::renderEntities() {
-    basicShader.use();
-
-    glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = camera.getProjectionMatrix();
-
-    basicShader.setMat4("view", view);
-    basicShader.setMat4("projection", projection);
-
-    // TODO: store a list of renderable entities to iterate instead
-    // Draw each entity
-    std::unordered_map<Material*, std::vector<StaticMeshComponent*>> materialBatches;
-
-    for (auto& entity : world.EntityManager.GetEntities())
-    {
-        if (entity == nullptr) continue;
-        if (entity->hasComponent<StaticMeshComponent>())
-        {
-            auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
-            Material* mat = staticMeshComponent.material ? staticMeshComponent.material.get() : &cubeMaterial;
-            materialBatches[mat].push_back(&staticMeshComponent);
-        }
-    }
-
-    // Render batched by material
-    for (auto& [material, components] : materialBatches)
-    {
-        material->bind(basicShader);
-
-        for (auto* comp : components)
-        {
-            glm::mat4 model = comp->getTransformMatrix();
-            basicShader.setMat4("model", model);
-
-            comp->Mesh->bind();
-            comp->Mesh->draw();
-        }
-    }
-
-    glBindVertexArray(0);
+    renderingSystem.renderEntities(world, basicShader, camera, cubeMaterial);
 }
 
 void Engine::setupQuad() {

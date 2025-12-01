@@ -11,9 +11,12 @@
 #include "../renderer/Skybox.h"
 #include "../renderer/ShadowMap.h"
 #include "managers/UIManager.h"
-#include "managers/GameStateManager.h"
+#include "managers/UIStateManager.h"
 #include "../utils/LoadingScreen.h"
 
+
+#include "../ecs/system/DebugRenderSystem.h"
+#include "../src/engine/ecs/system/RenderingSystem.h"
 
 class Engine {
 public:
@@ -37,8 +40,9 @@ public:
     void renderQuad() const;
 
     UIManager uiManager;
-    GameStateManager stateManager;
+    UIStateManager stateManager;
     DebugRenderSystem debugSystem;
+    RenderingSystem renderingSystem;
 
 private:
     GLFWwindow* window = nullptr;

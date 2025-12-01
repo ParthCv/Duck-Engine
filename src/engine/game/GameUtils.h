@@ -1,6 +1,4 @@
-
-#ifndef DUCKENGINE_GAMEUTILS_H
-#define DUCKENGINE_GAMEUTILS_H
+#pragma once
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -64,5 +62,3 @@ inline std::vector<glm::vec3> GenerateHalfRingPoints(glm::vec3 center, float rad
     }
     return ringPoints;
 }
-
-#endif //DUCKENGINE_GAMEUTILS_H

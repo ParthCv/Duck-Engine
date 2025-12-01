@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include <ostream>
-#include "../src/engine/ecs/Component.h"
-
-struct StaticMeshComponent;
-class Entity;
+#include "../ecs/system/TransformSystem.h"
+#include "../ecs/components/Transform.h"
+#include "../core/model/StaticMesh.h"
+#include "../ecs/components/StaticMeshComponent.h"
+#include "../ecs/Entity.h"
 
 ShadowMap::ShadowMap() : depthMapFBO(0), shadowTexture(0) {
 }
@@ -51,12 +52,11 @@ bool ShadowMap::initialize(LightManager& lightManager) {
 void ShadowMap::updateLightSpaceTransform(LightManager& lightManager) {
     // Directional light position is the opposite it's direction * scalar
     glm::vec3 directionalLightPosition;
-    if (lightManager.getDirectionalLightCount() > 1) {
+    if (lightManager.getDirectionalLightCount() >= 1) {
         directionalLightPosition = glm::normalize(lightManager.getDirectionalLight(0).direction) * -directionLightPositionScalar;
     } else {
-        directionalLightPosition = glm::normalize(glm::vec3(-1.0f, 2.0f, -1.0f));
+        directionalLightPosition = glm::normalize(glm::vec3(-1.0f, 2.0f, -1.0f)) * -directionLightPositionScalar;
     }
-
     lightView = glm::lookAt(
        directionalLightPosition,
        lookAtOrigin,
@@ -90,8 +90,8 @@ void ShadowMap::renderScene(World& world) {
         {
             auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
 
-            // Getting the Model.
-            glm::mat4 model = staticMeshComponent.getTransformMatrix();
+            auto& transform = entity->getComponent<Transform>();
+            glm::mat4 model = TransformSystem::getTransformMatrix(transform);
 
             simpleDepthShader.setMat4("model", model);
 

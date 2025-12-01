@@ -1,9 +1,8 @@
 #include "DebugRenderSystem.h"
 
 #include "EntityManager.h"
-#include "../ecs/Entity.h"
-#include "../ecs/Component.h"
-#include "../debug/DebugRenderer.h"
+#include "../src/engine/ecs/Component.h"
+#include "../src/engine/debug/DebugRenderer.h"
 
 void DebugRenderSystem::init() {
     DebugRenderer::getInstance().init();
@@ -25,11 +24,14 @@ void DebugRenderSystem::drawColliders(EntityManager& entityManager, Shader& debu
         auto& drawable = entity->getComponent<DebugDrawable>();
 
         if (!drawable.drawCollider) continue;
+
+        // Apply transform scale to match actual collision size
+        glm::vec3 scaledSize = collider.size * transform.scale;
+
         DebugRenderer::getInstance().drawBox(
             debugShader,
             transform.position + collider.center,
-            // arbitrary value to make the hitbox larger
-            collider.size * 1.1f,
+            scaledSize,
             drawable.colliderColor
         );
     }

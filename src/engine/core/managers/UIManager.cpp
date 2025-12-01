@@ -1,9 +1,10 @@
 #include <iostream>
 #include <algorithm>
 #include "UIManager.h"
-#include "GameStateManager.h"
+#include "UIStateManager.h"
 #include "InputManager.h"
 #include "AudioManager.h"
+#include "GameStateManager.h"
 
 
 UIManager::UIManager()
@@ -48,9 +49,9 @@ void UIManager::initialize(int width, int height) {
         std::cerr << "[UIManager] Failed to load sprite atlas" << std::endl;
     }
 
-    for (auto & duckState : duckStates) {
-        duckState = DuckState::NOT_SPAWNED  ;
-    }
+    // for (auto & duckState : duckStates) {
+    //     duckState = DuckState::NOT_SPAWNED  ;
+    // }
 
     std::cout << "[UIManager] Initialized successfully!" << std::endl;
 }
@@ -70,12 +71,12 @@ void UIManager::renderDuckStatusBar() {
     );
 
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < GameStateManager::get().getMaxNumOfDucks(); i++) {
         int duckX = panelX + 10 + (i * spacing);
         int duckY = panelY + (panelHeight - duckSize) / 2;
 
         SpriteCoords sprite;
-        switch (duckStates[i]) {
+        switch (GameStateManager::get().getDuckStateAtIndex(i)) {
             case DuckState::NOT_SPAWNED:
                 sprite = sprite_duck_not_spawned;
                 break;
@@ -128,10 +129,10 @@ void UIManager::renderAmmoBar() {
     int bulletStartY = panelY + panelHeight - bulletSize - 10;
 
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < GameStateManager::get().getMaxNumOfBullets(); i++) {
         int bulletX = panelX + 10 + (i * spacing);
 
-        if (i < currentAmmo) {
+        if (i < GameStateManager::get().getNumOfBullets()) {
             renderSprite(
                 glm::vec2(bulletX, bulletStartY),
                 glm::vec2(bulletSize, bulletSize),
@@ -142,6 +143,91 @@ void UIManager::renderAmmoBar() {
         }
     }
 }
+
+void UIManager::renderScore() {
+    // Score panel dimensions
+    int panelWidth = 250;
+    int panelHeight = 80;
+
+    // Position at top-left
+    int panelX = 20;
+    int panelY = 20;
+
+    // Dark background panel
+    renderQuad(
+        glm::vec2(panelX, panelY),
+        glm::vec2(panelWidth, panelHeight),
+        glm::vec4(0.0f, 0.0f, 0.0f, 0.4f)
+    );
+
+    // "SCORE" label
+    float labelScale = 24.0f / 30.0f;
+    font.renderText(
+        "SCORE",
+        panelX + 10,
+        panelY + 10,
+        labelScale,
+        glm::vec4(0.7f, 0.7f, 0.7f, 1.0f),
+        windowWidth,
+        windowHeight
+    );
+
+    // Score value (larger, gold color)
+    float scoreScale = 36.0f / 30.0f;
+    std::string scoreText = formatScore(GameStateManager::get().getScore());
+    font.renderText(
+        scoreText,
+        panelX + 10,
+        panelY + 40,
+        scoreScale,
+        glm::vec4(1.0f, 0.84f, 0.0f, 1.0f), // Gold
+        windowWidth,
+        windowHeight
+    );
+}
+
+void UIManager::renderRound() {
+    // Round panel dimensions
+    int panelWidth = 200;
+    int panelHeight = 80;
+
+    // Position at top-right
+    int panelX = windowWidth - panelWidth - 20;
+    int panelY = 20;
+
+    // Dark background panel
+    renderQuad(
+        glm::vec2(panelX, panelY),
+        glm::vec2(panelWidth, panelHeight),
+        glm::vec4(0.0f, 0.0f, 0.0f, 0.4f)
+    );
+
+    // "ROUND" label
+    float labelScale = 24.0f / 30.0f;
+    font.renderText(
+        "ROUND",
+        panelX + 10,
+        panelY + 10,
+        labelScale,
+        glm::vec4(0.7f, 0.7f, 0.7f, 1.0f),
+        windowWidth,
+        windowHeight
+    );
+
+    // Round value (larger, white)
+    float roundScale = 36.0f / 30.0f;
+    std::string roundText = std::to_string(GameStateManager::get().getRound());
+    font.renderText(
+        roundText,
+        panelX + 10,
+        panelY + 40,
+        roundScale,
+        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+        windowWidth,
+        windowHeight
+    );
+}
+
 void UIManager::setupRenderingResources() {
     // Setup quad for rendering rectangles/buttons
     float quadVertices[] = {
@@ -188,12 +274,12 @@ void UIManager::renderLoadingScreen() {
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
-
-void UIManager::resetDuckStates() {
-    for (auto & duckState : duckStates) {
-        duckState = DuckState::NOT_SPAWNED;
-    }
-}
+//
+// void UIManager::resetDuckStates() {
+//     for (auto & duckState : duckStates) {
+//         duckState = DuckState::NOT_SPAWNED;
+//     }
+// }
 
 std::string UIManager::formatScore(int score) {
     // Clamp to 4 digits max (0-9999)
@@ -304,6 +390,8 @@ void UIManager::render() {
     if (showGameplayHUD) {
         renderDuckStatusBar();
         renderAmmoBar();
+        renderScore();
+        renderRound();
     }
 
     // Render sliders
@@ -741,7 +829,7 @@ void UIManager::shutdown() {
 }
 
 // === State-specific UI Setup ===
-void UIManager::setupMenuUI(GameStateManager* stateManager, std::function<void()> onQuit) {
+void UIManager::setupMenuUI(UIStateManager* stateManager, std::function<void()> onQuit) {
     clearMenuUI();
 
     std::cout << "[UIManager] Setting up MENU UI" << std::endl;
@@ -818,28 +906,28 @@ void UIManager::setupPlayingUI() {
     crosshair.position = glm::vec2(0, 0);
     activeCrosshairIndex = addCrosshair(crosshair);
 
-    // Score text (top-left)
-    UIText scoreText;
-    scoreText.id = "score_text";
-    scoreText.text = "SCORE: " + formatScore(currentScore);
-    scoreText.position = glm::vec2(20, 20);
-    scoreText.fontSize = 36.0f;
-    scoreText.anchor = UIAnchor::TOP_LEFT;
-    scoreText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    addText(scoreText);
-
-    // Round text (top-right)
-    UIText roundText;
-    roundText.id = "round_text";
-    roundText.text = "ROUND: " + std::to_string(currentRound);
-    roundText.position = glm::vec2(20, 20);
-    roundText.fontSize = 36.0f;
-    roundText.anchor = UIAnchor::TOP_RIGHT;
-    roundText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    addText(roundText);
+    // // Score text (top-left)
+    // UIText scoreText;
+    // scoreText.id = "score_text";
+    // scoreText.text = "SCORE: " + formatScore(GameStateManager::get().getScore());
+    // scoreText.position = glm::vec2(20, 20);
+    // scoreText.fontSize = 36.0f;
+    // scoreText.anchor = UIAnchor::TOP_LEFT;
+    // scoreText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    // addText(scoreText);
+    //
+    // // Round text (top-right)
+    // UIText roundText;
+    // roundText.id = "round_text";
+    // roundText.text = "ROUND: " + std::to_string(GameStateManager::get().getRound());
+    // roundText.position = glm::vec2(20, 20);
+    // roundText.fontSize = 36.0f;
+    // roundText.anchor = UIAnchor::TOP_RIGHT;
+    // roundText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    // addText(roundText);
 }
 
-void UIManager::setupPausedUI(GameStateManager* stateManager) {
+void UIManager::setupPausedUI(UIStateManager* stateManager) {
     std::cout << "[UIManager] Setting up PAUSED UI" << std::endl;
 
     // Semi-transparent overlay
@@ -890,7 +978,7 @@ void UIManager::setupPausedUI(GameStateManager* stateManager) {
     addButton(menuButton);
 }
 
-void UIManager::setupGameOverUI(GameStateManager* stateManager) {
+void UIManager::setupGameOverUI(UIStateManager* stateManager) {
     clearGameOverUI();
 
     std::cout << "[UIManager] Setting up GAME OVER UI" << std::endl;
@@ -944,7 +1032,7 @@ void UIManager::setupGameOverUI(GameStateManager* stateManager) {
     addButton(menuButton);
 }
 
-void UIManager::setupOptionsUI(GameStateManager* stateManager) {
+void UIManager::setupOptionsUI(UIStateManager* stateManager) {
     clearAll();
 
     std::cout << "[UIManager] Setting up OPTIONS UI" << std::endl;

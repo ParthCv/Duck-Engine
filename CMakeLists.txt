@@ -22,19 +22,23 @@ add_executable(DuckEngine
         src/engine/ecs/Component.h
         src/engine/ecs/World.cpp
         src/engine/ecs/World.h
-        src/engine/system/EntityManager.cpp
-        src/engine/system/EntityManager.h
+        src/engine/ecs/system/EntityManager.cpp
+        src/engine/ecs/system/EntityManager.h
         src/engine/debug/DebugRenderer.cpp
         src/engine/physics/RaycastUtils.h
         src/engine/physics/RaycastUtils.cpp
-        src/engine/system/CollisionSystem.h
-        src/engine/system/CollisionSystem.cpp
-        src/engine/system/DebugRenderSystem.h
-        src/engine/system/DebugRenderSystem.cpp
-        src/engine/game/DuckEntity.cpp
-        src/engine/game/DuckEntity.h
+        src/engine/ecs/system/CollisionSystem.h
+        src/engine/ecs/system/CollisionSystem.cpp
+        src/engine/ecs/system/DebugRenderSystem.h
+        src/engine/ecs/system/DebugRenderSystem.cpp
+        src/engine/ecs/system/TransformSystem.cpp
+        src/engine/ecs/system/RenderingSystem.cpp
+        src/engine/ecs/system/MovementSystem.cpp
+        src/engine/ecs/system/BoundsSystem.cpp
+        src/engine/ecs/system/LifecycleSystem.cpp
+        src/engine/game/DuckFactory.cpp
         src/engine/core/managers/InputManager.cpp
-        src/engine/core/managers/GameStateManager.cpp
+        src/engine/core/managers/UIStateManager.cpp
         src/engine/core/model/ImportedModel.cpp
         src/engine/core/model/ImportedModel.h
         src/engine/core/model/StaticMesh.cpp
@@ -46,21 +50,23 @@ add_executable(DuckEngine
         src/engine/core/managers/ResourceManager.cpp
         src/engine/core/managers/ResourceManager.h
         dependencies/OpenAL/libs/Win64/dr_wav.h
-        src/engine/system/DuckSpawnerManager.cpp
-        src/engine/system/DuckSpawnerManager.h
+        src/engine/ecs/system/DuckSpawnerManager.cpp
+        src/engine/ecs/system/DuckSpawnerManager.h
         src/engine/core/managers/AudioManager.h
         src/engine/core/managers/AudioManager.cpp
         dependencies/OpenAL/libs/Win64/dr_wav.h
-        src/engine/system/DuckSpawnerManager.cpp
-        src/engine/system/DuckSpawnerManager.h
-        src/engine/game/DuckGameState.h
-        src/engine/game/DuckGameState.cpp
-        src/engine/game/EnvironmentEntity.cpp
-        src/engine/game/EnvironmentEntity.h
+        src/engine/ecs/system/DuckSpawnerManager.cpp
+        src/engine/ecs/system/DuckSpawnerManager.h
+        src/engine/core/managers/GameStateManager.h
+        src/engine/core/managers/GameStateManager.cpp
+        src/engine/game/ecs/EnvironmentEntity.cpp
+        src/engine/game/ecs/EnvironmentEntity.h
         src/engine/game/EnvironmentGenerator.cpp
         src/engine/game/EnvironmentGenerator.h
-        src/engine/game/GunEntity.cpp
-        src/engine/game/GunEntity.h
+        src/engine/game/ecs/GunEntity.cpp
+        src/engine/game/ecs/GunEntity.h
+        src/engine/ecs/system/GunSystem.h
+        src/engine/ecs/system/GunSystem.cpp
 )
 
 
