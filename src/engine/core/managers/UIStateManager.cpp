@@ -227,6 +227,12 @@ void UIStateManager::updatePlaying(float deltaTime) {
         ) {
             AudioManager::Get().PlaySound("shoot", 0.5f);
 
+            // Apply recoil to all gun entities
+            auto gunEntities = worldContext->EntityManager.GetEntitiesWith<GunComponent, Transform>();
+            for (auto* gunEntity : gunEntities) {
+                GunSystem::applyRecoil(*gunEntity);
+            }
+
             // FPS STYLE: Raycast ALWAYS goes straight forward from camera
             glm::vec3 rayDir = cameraFwd;
 
