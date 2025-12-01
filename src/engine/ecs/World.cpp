@@ -5,7 +5,6 @@
 
 #include "Component.h"
 #include "../core/managers/GameStateManager.h"
-#include "../game/DuckEntity.h"
 #include "../game/DuckFactory.h"
 #include "../game/GunEntity.h"
 #include "../renderer/Camera.h"

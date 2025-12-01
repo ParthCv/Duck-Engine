@@ -132,14 +132,14 @@ public:
      * Call when a duck is hit
      * Marks the next unresolved UI slot as HIT
      */
-    void hitDuck(float x, float y) {
+    void hitDuck() {
         if (duckResolveIndex < maxNumOfDucks) {
             int points = static_cast<int>(basePointsPerDuck * std::pow(scoreMultiplier, round - 1));
             addScore(points);
 
             duckStates[duckResolveIndex] = DuckState::HIT;
 
-            events.emit(DuckShotEvent{duckResolveIndex, x, y, points});
+            events.emit(DuckShotEvent{duckResolveIndex, points});
 
             duckResolveIndex++;
         }
@@ -149,13 +149,13 @@ public:
      * Call when a duck escapes
      * Marks the next unresolved UI slot as ESCAPED
      */
-    void duckEscaped(float x, float y) {
+    void duckEscaped() {
         if (duckResolveIndex < maxNumOfDucks) {
             incrementDucksEscaped();
 
             duckStates[duckResolveIndex] = DuckState::ESCAPED;
 
-            events.emit(DuckEscapedEvent{duckResolveIndex, x, y});
+            events.emit(DuckEscapedEvent{duckResolveIndex});
 
             duckResolveIndex++;
         }

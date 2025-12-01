@@ -29,13 +29,11 @@
 
 struct DuckShotEvent {
     int duckId;
-    float x, y;
     int pointsAwarded;
 };
 
 struct DuckEscapedEvent {
     int duckId;
-    float x, y;
 };
 
 struct BulletFiredEvent {

@@ -12,7 +12,7 @@ void BoundsSystem::update(World& world, float deltaTime) {
             auto& bounds = entity->getComponent<BoundsComponent>();
 
             if (glm::distance(transform.position, bounds.spawnPosition) > bounds.escapeDistance) {
-                GameStateManager::get().incrementDucksEscaped();
+                GameStateManager::get().duckEscaped();
                 entity->destroy();
             }
         }
