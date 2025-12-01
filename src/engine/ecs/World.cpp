@@ -43,13 +43,6 @@ void World::update(float deltaTime)
     gunRecoilOffset = glm::mix(gunRecoilOffset, 0.0f, deltaTime * recoverySpeed);
     gunRecoilPitch  = glm::mix(gunRecoilPitch, 0.0f, deltaTime * recoverySpeed);
 
-    // Recoil on input (Update numbers to liking)
-    if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-        if (gunEntity) {
-            gunSystem.applyRecoil(*gunEntity);
-        }
-    }
-
     // if (lightManager.getDirectionalLightCount() > 0) {
     //     auto& dirLight = lightManager.getDirectionalLight(0);
     //
