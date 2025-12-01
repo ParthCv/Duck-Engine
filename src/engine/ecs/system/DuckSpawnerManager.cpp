@@ -1,69 +1,73 @@
 #include "DuckSpawnerManager.h"
-#include "../src/engine/game/GameUtils.h"
-#include "../src/engine/core/managers/GameStateManager.h"
-#include "../src/engine/core/managers/AudioManager.h"
+#include "../src/engine/ecs/World.h"
+#include "../src/engine/ecs/Component.h"
+#include "../src/engine/ecs/components/GameRoundComponent.h"
 #include "../src/engine/game/DuckFactory.h"
 
-#include <iostream>
-
-DuckSpawnerManager::DuckSpawnerManager(World &InWorld) :
-    world(&InWorld)
+DuckSpawnerManager::DuckSpawnerManager(World& world)
+    : world(world)
 {
-    spawnPositions = GenerateHalfRingPoints(glm::vec3(0,0,0), 15, 5);
 }
 
 void DuckSpawnerManager::Update(float deltaTime) {
-    accumulatedTime += deltaTime;
-    if (static_cast<int>(accumulatedTime) % static_cast<int>(spawnInterval) == 0 &&
-        !bSpawned && GameStateManager::get().canSpawnMoreDucks())
-    {
-        std::cout << static_cast<int>(accumulatedTime) << "\n";
-        SpawnDuck();
-        bSpawned = true;
-        // numberOfDucksToSpawn--;
+    // Get the game entity that holds round state
+    auto gameEntities = world.EntityManager.GetEntitiesWith<GameRoundComponent, DuckUIStateComponent>();
+
+    if (gameEntities.empty()) {
+        return;  // No game entity exists yet
     }
 
-    if (static_cast<int>(accumulatedTime) % static_cast<int>(spawnInterval) != 0) {
-        bSpawned = false;
+    Entity* gameEntity = gameEntities[0];
+    auto& roundComp = gameEntity->getComponent<GameRoundComponent>();
+    auto& uiState = gameEntity->getComponent<DuckUIStateComponent>();
+
+    if (roundComp.ducksSpawned >= roundComp.maxDucksPerRound) {
+        return;  // All ducks for this round have been spawned
     }
 
-    // if (numberOfDucksToSpawn <= 0) {
-    if (GameStateManager::get().isRoundComplete()) {
-        if (GameStateManager::get().isRoundFailed()) {
-            GameStateManager::get().resetGame();
-        } else {
-            ResetRound();
+    // Update spawn timer
+    spawnTimer += deltaTime;
+
+    if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0.0f;
+        spawnDuck();
+
+        // Update game state - mark duck as spawned in UI
+        if (roundComp.ducksSpawned < roundComp.maxDucksPerRound) {
+            uiState.states[roundComp.ducksSpawned] = DuckState::SPAWNED;
+            roundComp.ducksSpawned++;
         }
     }
 }
 
-void DuckSpawnerManager::SpawnDuck()
-{
-    // TODO: Invert the Camera's current position and normalize to get the forward vector in local space.
-    // glm::vec3 directionVector = glm::normalize(-world->camera->position) * distanceFromCamera;
-    // glm::vec3 cameraPositionOffset = world->camera->position + directionVector;
-    // world->EntityManager.CreateDuckEntity(*world, cameraPositionOffset);
+void DuckSpawnerManager::spawnDuck() {
+    // Get camera vectors for positioning
+    glm::vec3 cameraFwd = world.camera->front;
+    glm::vec3 cameraRight = world.camera->right;
+    glm::vec3 cameraUp = world.camera->up;
 
-    // glm::vec3 initialForwardVector = glm::vec3(0.0f, 0.0f, 1.0f);
-    // glm::vec3 currentForwardVector = world.camera
+    // Determine spawn side: 50% Left (-1), 50% Right (+1) relative to camera
+    bool spawnLeft = (rand() % 2) == 0;
+    float sideMultiplier = spawnLeft ? -1.0f : 1.0f;
 
-    // TODO: Half-ring Solution
-    int randomIndex = rand() % spawnPositions.size();
-    DuckFactory::createDuck(*world, spawnPositions[randomIndex], GameStateManager::get().getDuckSpeedBasedOnRound());
+    float distForward = 15.0f;  // Distance in front of camera
+    float distSide = 35.0f;     // How far to the left/right
+    float randUp = 0.0f + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 6.0f;
 
-    auto& state = GameStateManager::get();
+    // Position = CameraPos + (Forward * depth) + (Right * side) + (Up * height)
+    glm::vec3 spawnPos = world.camera->position
+                       + (cameraFwd * distForward)
+                       + (cameraRight * (distSide * sideMultiplier))
+                       + (cameraUp * randUp);
 
-    state.spawnDuck();  // Just marks UI slot as spawned
-    AudioManager::Get().PlaySound("quack", 1.0f);
-}
+    // Get duck speed based on current round
+    auto gameEntities = world.EntityManager.GetEntitiesWith<GameRoundComponent>();
+    if (gameEntities.empty()) return;
 
-void DuckSpawnerManager::ResetRound() {
-    // numberOfDucksToSpawn = ducksPerRound;
-    GameStateManager::get().startNextRound();
-    // AudioManager::Get().PlaySound("win", 0.5f);
-}
+    auto& roundComp = gameEntities[0]->getComponent<GameRoundComponent>();
+    float speed = roundComp.getDuckSpeed();
 
-void DuckSpawnerManager::SetDucksPerRound(int num) {
-    // ducksPerRound = num;
-    GameStateManager::get().setMaxNumOfDucks(num);
+    // Create duck using DuckFactory
+    // DuckFactory handles all component setup including random flight direction
+    Entity* newDuck = DuckFactory::createDuck(world, spawnPos, speed);
 }

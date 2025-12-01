@@ -5,7 +5,7 @@
 #include "../src/engine/ecs/components/Velocity.h"
 #include "../src/engine/ecs/components/HealthComponent.h"
 #include "../src/engine/ecs/components/StaticMeshComponent.h"
-#include "../src/engine/core/managers/GameStateManager.h"
+#include "../components/GameRoundComponent.h"
 #include "../src/engine/core/managers/AudioManager.h"
 #include "../src/engine/core/managers/ResourceManager.h"
 #include <iostream>
@@ -50,7 +50,11 @@ void LifecycleSystem::killDuck(Entity& entity) {
 
     health.isDead = true;
     AudioManager::Get().PlaySound("quack");
-    GameStateManager::get().hitDuck();
+
+    // === UPDATE GAME STATE USING COMPONENTS ===
+    // NOTE: Game state update is now handled by ShootingSystem
+    // We don't need to update it here - just handle the visual/audio effects
+
     std::cout << "Duck Died" << std::endl;
 
     if (entity.hasComponent<Velocity>()) {

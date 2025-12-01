@@ -8,7 +8,6 @@
 #include "../../ecs/system/CollisionSystem.h"
 #include "InputManager.h"
 #include "AudioManager.h"
-#include "GameStateManager.h"
 
 UIStateManager::UIStateManager()
     : currentState(GameState::MENU)
@@ -109,7 +108,6 @@ void UIStateManager::resumeGame() {
 void UIStateManager::restartGame() {
     std::cout << "[UIStateManager] restarting game..." << std::endl;
     setState(GameState::PLAYING);
-    // Note: Actual game reset logic should be handled by GameManager
 }
 
 void UIStateManager::returnToMenu() {
@@ -144,123 +142,16 @@ void UIStateManager::updateMenu(float deltaTime) {
 }
 
 void UIStateManager::updatePlaying(float deltaTime) {
-    // Guard against null world or camera
-    // if (!worldContext) {
-    //     return;
-    // }
+    if (!worldContext || !worldContext->camera) {
+        return;
+    }
 
-        // --- 1. HANDLE CAMERA ROTATION (FPS STYLE) ---
     glm::vec2 mouseDelta = InputManager::getMouseDelta();
-    // Only rotate if there was movement
     if (glm::length(mouseDelta) > 0.001f) {
         worldContext->camera->processMouseMovement(mouseDelta.x, mouseDelta.y);
     }
 
-    // --- 2. RETRIEVE UPDATED CAMERA VECTORS ---
-    glm::vec3 cameraFwd   = worldContext->camera->front;
-    glm::vec3 cameraRight = worldContext->camera->right;
-    glm::vec3 cameraUp    = worldContext->camera->up;
-
-    // Reconstruct Camera Rotation Quaternion (Used to align ducks)
-    glm::mat3 camRotMat(cameraRight, cameraUp, -cameraFwd);
-    glm::quat camRot = glm::quat_cast(camRotMat);
-
-    // --- 3. DUCK SPAWNING LOGIC ---
-    static float spawnTimer = 0.0f;
-    const float SPAWN_INTERVAL = 2.0f;
-
-    // spawnTimer += deltaTime;
-    // if (spawnTimer >= SPAWN_INTERVAL) {
-    //     spawnTimer = 0.0f;
-    //
-    //     // Determine spawn side: 50% Left (-1), 50% Right (+1) relative to camera
-    //     bool spawnLeft = (rand() % 2) == 0;
-    //     float sideMultiplier = spawnLeft ? -1.0f : 1.0f;
-    //
-    //     float distForward = 15.0f;  // Distance in front of camera
-    //     float distSide = 35.0f;     // How far to the left/right
-    //     float randUp = 0.0f + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 6.0f;
-    //
-    //     // Position = CameraPos + (Forward * depth) + (Right * side) + (Up * height)
-    //     glm::vec3 spawnPos = worldContext->camera->position
-    //                        + (cameraFwd * distForward)
-    //                        + (cameraRight * (distSide * sideMultiplier))
-    //                        + (cameraUp * randUp);
-    //
-    //     // Spawn the duck
-    //     DuckEntity& newDuck = worldContext->EntityManager.CreateDuckEntity(*worldContext, spawnPos);
-    //     GameStateManager::get().decrementNumOfDucks();
-    //     if (newDuck.hasComponent<Velocity>() && newDuck.hasComponent<Transform>()) {
-    //         //float speed = 2.0f;
-    //         float speed = GameStateManager::get().getDuckSpeedBasedOnRound();
-    //
-    //         newDuck.getComponent<Transform>().rotation = camRot;
-    //
-    //         if (!spawnLeft) {
-    //              newDuck.getComponent<Transform>().WorldRotate(180.0f, glm::vec3(0,1,0));
-    //         }
-    //
-    //         newDuck.getComponent<Velocity>().setVelocity(glm::vec3(1.0f, 0.0f, 0.0f), speed);
-    //     }
-    // }
-
-    // Update all entities in the world
-    worldContext->EntityManager.Update(deltaTime);
-
-    // Handle Player Shooting/Raycasting
-    auto raySourceEntities = worldContext->EntityManager.GetEntitiesWith<RaycastSource, Transform>();
-
-    if (!raySourceEntities.empty()) {
-        Entity* playerEntity = raySourceEntities[0];
-        auto& transform = playerEntity->getComponent<Transform>();
-        auto& raySource = playerEntity->getComponent<RaycastSource>();
-
-        // Offset weapon position
-        transform.position = worldContext->camera->position
-                           + (cameraFwd * 0.5f)
-                           - (cameraUp * 0.2f);
-
-        // Check Input
-        if (
-            InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) &&
-            GameStateManager::get().hasBulletsRemaining()
-        ) {
-            AudioManager::Get().PlaySound("shoot", 0.5f);
-
-            // Apply recoil to all gun entities
-            auto gunEntities = worldContext->EntityManager.GetEntitiesWith<GunComponent, Transform>();
-            for (auto* gunEntity : gunEntities) {
-                GunSystem::applyRecoil(*gunEntity);
-            }
-
-            // FPS STYLE: Raycast ALWAYS goes straight forward from camera
-            glm::vec3 rayDir = cameraFwd;
-
-            raySource.direction = rayDir;
-            raySource.drawRay = true;
-
-            if (worldContext->collisionSystem) {
-                // Capture the result
-                auto result = worldContext->collisionSystem->RaycastFromEntity(worldContext->EntityManager, *playerEntity);
-
-                // Print the hit entity
-                if (result.hit && result.hitEntity) {
-
-
-                    if (result.hitEntity->hasComponent<HealthComponent>()) {
-
-                        worldContext->lifecycleSystem.killDuck(*result.hitEntity);
-                        } else {
-                            std::cout << "Hit something, but it wasn't a duck" << std::endl;
-                        }
-
-                } else {
-                    std::cout << "MISS!" << std::endl;
-                }
-            }
-            GameStateManager::get().shootBullet();
-        }
-    }
+    worldContext->update(deltaTime);
 }
 
 void UIStateManager::updatePaused(float deltaTime) {

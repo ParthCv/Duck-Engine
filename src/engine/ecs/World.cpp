@@ -4,15 +4,15 @@
 #include <ctime>
 
 #include "Component.h"
-#include "../core/managers/GameStateManager.h"
 #include "../game/DuckFactory.h"
 #include "../game/ecs/GunEntity.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
 #include "../ecs/system/CollisionSystem.h"
 #include "../game/EnvironmentGenerator.h"
+#include "components/GameRoundComponent.h"
 
-World::World()
+World::World(): cachedGameEntity(nullptr)
 {
     // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists
     // before meshes are loaded.
@@ -28,8 +28,6 @@ World::World()
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
     duckSpawnerManager = new DuckSpawnerManager(*this);
-
-    GameStateManager::get().resetDuckStates();  // Initialize Duck State array
 }
 
 void World::update(float deltaTime)
@@ -42,19 +40,13 @@ void World::update(float deltaTime)
     gunRecoilOffset = glm::mix(gunRecoilOffset, 0.0f, deltaTime * recoverySpeed);
     gunRecoilPitch  = glm::mix(gunRecoilPitch, 0.0f, deltaTime * recoverySpeed);
 
-    // if (lightManager.getDirectionalLightCount() > 0) {
-    //     auto& dirLight = lightManager.getDirectionalLight(0);
-    //
-    //     // Rotate around Y axis
-    //     float angle = deltaTime * 0.2f; // Rotation speed
-    //     glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
-    //     dirLight.direction = glm::vec3(rotation * glm::vec4(dirLight.direction, 0.0f));
-    // }
-
     movementSystem.update(*this, deltaTime);
     boundsSystem.update(*this, deltaTime);
     lifecycleSystem.update(*this, deltaTime);
     gunSystem.update(*this, *camera, deltaTime);
+
+    shootingSystem.update(*this, deltaTime);
+    gameRoundSystem.update(*this, deltaTime);
 
     EntityManager.Update(deltaTime);
     duckSpawnerManager->Update(deltaTime);
@@ -62,24 +54,38 @@ void World::update(float deltaTime)
 
 void World::beginPlay()
 {
-    // Create a player entity to act as the source for raycasting
+    // === CREATE GAME STATE ENTITY ===
+    // This entity holds all game state as components
+    Entity& gameEntity = EntityManager.CreateEntity(*this);
+    gameEntity.addComponent<GameRoundComponent>();
+    gameEntity.addComponent<AmmoComponent>();
+    gameEntity.addComponent<ScoreComponent>();
+    gameEntity.addComponent<DuckUIStateComponent>();
+
+    // Initialize duck UI state
+    auto& uiState = gameEntity.getComponent<DuckUIStateComponent>();
+    uiState.resetStates();
+
+    // Cache the game entity for helper functions
+    cachedGameEntity = &gameEntity;
+
+    // === CREATE PLAYER ENTITY ===
     Entity& PlayerEntity = EntityManager.CreateEntity(*this);
-
     glm::vec3 camPos = camera->position;
-
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
-    // Create the gun entity (GunSystem will handle positioning and rotation)
-    gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
-
-    EnvironmentGenerator envGenerator{*this, EntityManager};
-    envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));
-
-    // Add raycast source component
+    // Add raycast source component for shooting
     auto& raySource = PlayerEntity.addComponent<RaycastSource>();
     raySource.maxDistance = 100.0f;
     raySource.drawRay = true;
     raySource.direction = glm::vec3(0.0f, 0.0f, -1.0f);
+
+    // === CREATE GUN ENTITY ===
+    gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
+
+    // === GENERATE ENVIRONMENT ===
+    EnvironmentGenerator envGenerator{*this, EntityManager};
+    envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));
 
     EntityManager.BeginPlay();
 }
@@ -135,4 +141,55 @@ void World::addLightsToWorld() {
 
 void World::cleanUp()
 {
+}
+
+Entity* World::getGameEntity() {
+    // Use cached game entity if available
+    if (cachedGameEntity && cachedGameEntity->hasComponent<GameRoundComponent>()) {
+        return cachedGameEntity;
+    }
+
+    // Otherwise query for it
+    auto gameEntities = EntityManager.GetEntitiesWith<GameRoundComponent>();
+    if (!gameEntities.empty()) {
+        cachedGameEntity = gameEntities[0];
+        return cachedGameEntity;
+    }
+
+    return nullptr;
+}
+
+int World::getCurrentRound() const {
+    if (cachedGameEntity && cachedGameEntity->hasComponent<GameRoundComponent>()) {
+        return cachedGameEntity->getComponent<GameRoundComponent>().currentRound;
+    }
+    return 1;
+}
+
+int World::getScore() const {
+    if (cachedGameEntity && cachedGameEntity->hasComponent<ScoreComponent>()) {
+        return cachedGameEntity->getComponent<ScoreComponent>().totalScore;
+    }
+    return 0;
+}
+
+int World::getBullets() const {
+    if (cachedGameEntity && cachedGameEntity->hasComponent<AmmoComponent>()) {
+        return cachedGameEntity->getComponent<AmmoComponent>().current;
+    }
+    return 0;
+}
+
+int World::getMaxBullets() const {
+    if (cachedGameEntity && cachedGameEntity->hasComponent<AmmoComponent>()) {
+        return cachedGameEntity->getComponent<AmmoComponent>().max;
+    }
+    return 10;
+}
+
+bool World::hasBullets() const {
+    if (cachedGameEntity && cachedGameEntity->hasComponent<AmmoComponent>()) {
+        return cachedGameEntity->getComponent<AmmoComponent>().hasAmmo();
+    }
+    return false;
 }

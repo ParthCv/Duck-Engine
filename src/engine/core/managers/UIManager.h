@@ -10,6 +10,8 @@
 
 // Forward declarations
 class UIStateManager;
+class World;
+enum class DuckState;
 
 // UI Element Types
 enum class UIElementType {
@@ -206,20 +208,7 @@ public:
 
     void renderLoadingScreen();
 
-    // enum class DuckState {
-    //     NOT_SPAWNED,
-    //     SPAWNED,
-    //     HIT,
-    //     ESCAPED
-    // };
-    //
-    // DuckState duckStates[10];
-    //
-    // int currentAmmo = 10;
-    // int currentScore = 0;
-    // int currentRound = 1;
-
-    // void resetDuckStates();
+    void resetDuckStates();
 
     void renderDuckStatusBar();
 
@@ -229,15 +218,9 @@ public:
 
     void renderRound();
 
-    // void setDuckState(int duckIndex, DuckState state) {duckStates[duckIndex] = state;}
+    // ADD THIS METHOD
+    void setWorldContext(World* world) { worldContext = world; }
 
-    // void setAmmo(int ammo) { currentAmmo = glm::clamp(ammo, 0, 10); }
-    //
-    // void setScore(int score) { currentScore = score; }
-    //
-    // void setRound(int round) { currentRound = round; }
-    //
-    // void addScore(int points) { currentScore += points; }
 private:
     // OpenGL rendering setup
     Shader uiShader;
@@ -266,6 +249,8 @@ private:
 
     // Flag to control HUD rendering
     bool showGameplayHUD;
+
+    World* worldContext;
 
     struct SpriteCoords {
         int x, y, w, h;

@@ -4,7 +4,8 @@
 #include "UIStateManager.h"
 #include "InputManager.h"
 #include "AudioManager.h"
-#include "GameStateManager.h"
+#include "../src/engine/ecs/components/GameRoundComponent.h"
+#include "../src/engine/ecs/World.h"
 
 
 UIManager::UIManager()
@@ -16,7 +17,8 @@ UIManager::UIManager()
     , windowHeight(1080)
     , debugMode(false)
     , activeCrosshairIndex(-1)
-    , showGameplayHUD(false) // Default to hidden
+    , showGameplayHUD(false)
+    , worldContext(nullptr)
 {
 }
 
@@ -49,14 +51,20 @@ void UIManager::initialize(int width, int height) {
         std::cerr << "[UIManager] Failed to load sprite atlas" << std::endl;
     }
 
-    // for (auto & duckState : duckStates) {
-    //     duckState = DuckState::NOT_SPAWNED  ;
-    // }
+    // Duck states now managed by GameRoundComponent in World
 
     std::cout << "[UIManager] Initialized successfully!" << std::endl;
 }
 
 void UIManager::renderDuckStatusBar() {
+    if (!worldContext) return;  // Guard
+
+    // Get duck states from World
+    auto gameEntities = worldContext->EntityManager.GetEntitiesWith<DuckUIStateComponent>();
+    if (gameEntities.empty()) return;
+
+    auto& uiState = gameEntities[0]->getComponent<DuckUIStateComponent>();
+
     int duckSize = 72;
     int spacing = 80;
     int panelWidth = 10 * spacing + 20;
@@ -71,12 +79,12 @@ void UIManager::renderDuckStatusBar() {
     );
 
 
-    for (int i = 0; i < GameStateManager::get().getMaxNumOfDucks(); i++) {
+    for (int i = 0; i < 10; i++) {
         int duckX = panelX + 10 + (i * spacing);
         int duckY = panelY + (panelHeight - duckSize) / 2;
 
         SpriteCoords sprite;
-        switch (GameStateManager::get().getDuckStateAtIndex(i)) {
+        switch (uiState.states[i]) {  // UPDATED - from component
             case DuckState::NOT_SPAWNED:
                 sprite = sprite_duck_not_spawned;
                 break;
@@ -101,6 +109,11 @@ void UIManager::renderDuckStatusBar() {
 }
 
 void UIManager::renderAmmoBar() {
+    if (!worldContext) return;  // Guard
+
+    // Get ammo from World
+    int currentAmmo = worldContext->getBullets();  // UPDATED - from World helper
+
     int bulletSize = 24;
     int spacing = 30;
     int panelWidth = 10 * spacing + 40;
@@ -129,10 +142,10 @@ void UIManager::renderAmmoBar() {
     int bulletStartY = panelY + panelHeight - bulletSize - 10;
 
 
-    for (int i = 0; i < GameStateManager::get().getMaxNumOfBullets(); i++) {
+    for (int i = 0; i < 10; i++) {
         int bulletX = panelX + 10 + (i * spacing);
 
-        if (i < GameStateManager::get().getNumOfBullets()) {
+        if (i < currentAmmo) {
             renderSprite(
                 glm::vec2(bulletX, bulletStartY),
                 glm::vec2(bulletSize, bulletSize),
@@ -142,90 +155,6 @@ void UIManager::renderAmmoBar() {
             );
         }
     }
-}
-
-void UIManager::renderScore() {
-    // Score panel dimensions
-    int panelWidth = 250;
-    int panelHeight = 80;
-
-    // Position at top-left
-    int panelX = 20;
-    int panelY = 20;
-
-    // Dark background panel
-    renderQuad(
-        glm::vec2(panelX, panelY),
-        glm::vec2(panelWidth, panelHeight),
-        glm::vec4(0.0f, 0.0f, 0.0f, 0.4f)
-    );
-
-    // "SCORE" label
-    float labelScale = 24.0f / 30.0f;
-    font.renderText(
-        "SCORE",
-        panelX + 10,
-        panelY + 10,
-        labelScale,
-        glm::vec4(0.7f, 0.7f, 0.7f, 1.0f),
-        windowWidth,
-        windowHeight
-    );
-
-    // Score value (larger, gold color)
-    float scoreScale = 36.0f / 30.0f;
-    std::string scoreText = formatScore(GameStateManager::get().getScore());
-    font.renderText(
-        scoreText,
-        panelX + 10,
-        panelY + 40,
-        scoreScale,
-        glm::vec4(1.0f, 0.84f, 0.0f, 1.0f), // Gold
-        windowWidth,
-        windowHeight
-    );
-}
-
-void UIManager::renderRound() {
-    // Round panel dimensions
-    int panelWidth = 200;
-    int panelHeight = 80;
-
-    // Position at top-right
-    int panelX = windowWidth - panelWidth - 20;
-    int panelY = 20;
-
-    // Dark background panel
-    renderQuad(
-        glm::vec2(panelX, panelY),
-        glm::vec2(panelWidth, panelHeight),
-        glm::vec4(0.0f, 0.0f, 0.0f, 0.4f)
-    );
-
-    // "ROUND" label
-    float labelScale = 24.0f / 30.0f;
-    font.renderText(
-        "ROUND",
-        panelX + 10,
-        panelY + 10,
-        labelScale,
-        glm::vec4(0.7f, 0.7f, 0.7f, 1.0f),
-        windowWidth,
-        windowHeight
-    );
-
-    // Round value (larger, white)
-    float roundScale = 36.0f / 30.0f;
-    std::string roundText = std::to_string(GameStateManager::get().getRound());
-    font.renderText(
-        roundText,
-        panelX + 10,
-        panelY + 40,
-        roundScale,
-        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-        windowWidth,
-        windowHeight
-    );
 }
 
 void UIManager::setupRenderingResources() {
@@ -274,12 +203,15 @@ void UIManager::renderLoadingScreen() {
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
-//
-// void UIManager::resetDuckStates() {
-//     for (auto & duckState : duckStates) {
-//         duckState = DuckState::NOT_SPAWNED;
-//     }
-// }
+
+void UIManager::resetDuckStates() {
+    if (!worldContext) return;
+
+    auto gameEntities = worldContext->EntityManager.GetEntitiesWith<DuckUIStateComponent>();
+    if (!gameEntities.empty()) {
+        gameEntities[0]->getComponent<DuckUIStateComponent>().resetStates();
+    }
+}
 
 std::string UIManager::formatScore(int score) {
     // Clamp to 4 digits max (0-9999)
@@ -390,8 +322,6 @@ void UIManager::render() {
     if (showGameplayHUD) {
         renderDuckStatusBar();
         renderAmmoBar();
-        renderScore();
-        renderRound();
     }
 
     // Render sliders
@@ -906,25 +836,27 @@ void UIManager::setupPlayingUI() {
     crosshair.position = glm::vec2(0, 0);
     activeCrosshairIndex = addCrosshair(crosshair);
 
-    // // Score text (top-left)
-    // UIText scoreText;
-    // scoreText.id = "score_text";
-    // scoreText.text = "SCORE: " + formatScore(GameStateManager::get().getScore());
-    // scoreText.position = glm::vec2(20, 20);
-    // scoreText.fontSize = 36.0f;
-    // scoreText.anchor = UIAnchor::TOP_LEFT;
-    // scoreText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    // addText(scoreText);
-    //
-    // // Round text (top-right)
-    // UIText roundText;
-    // roundText.id = "round_text";
-    // roundText.text = "ROUND: " + std::to_string(GameStateManager::get().getRound());
-    // roundText.position = glm::vec2(20, 20);
-    // roundText.fontSize = 36.0f;
-    // roundText.anchor = UIAnchor::TOP_RIGHT;
-    // roundText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    // addText(roundText);
+    // Score text (top-left)
+    UIText scoreText;
+    scoreText.id = "score_text";
+    int currentScore = worldContext ? worldContext->getScore() : 0;  // UPDATED
+    scoreText.text = "SCORE: " + formatScore(currentScore);
+    scoreText.position = glm::vec2(20, 20);
+    scoreText.fontSize = 36.0f;
+    scoreText.anchor = UIAnchor::TOP_LEFT;
+    scoreText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    addText(scoreText);
+
+    // Round text (top-right)
+    UIText roundText;
+    roundText.id = "round_text";
+    int currentRound = worldContext ? worldContext->getCurrentRound() : 1;  // UPDATED
+    roundText.text = "ROUND: " + std::to_string(currentRound);
+    roundText.position = glm::vec2(20, 20);
+    roundText.fontSize = 36.0f;
+    roundText.anchor = UIAnchor::TOP_RIGHT;
+    roundText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    addText(roundText);
 }
 
 void UIManager::setupPausedUI(UIStateManager* stateManager) {

@@ -207,6 +207,7 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
     InputManager::initialize(window);
     AudioManager::Get().Init();
     stateManager.setWorldContext(&world);
+    uiManager.setWorldContext(&world);
 
     return true;
 }
@@ -270,10 +271,6 @@ void Engine::update(float deltaTime) {
 
     // Update UI (Always needed)
     uiManager.update(deltaTime);
-
-    if (stateManager.getCurrentState() == GameState::PLAYING) {
-        world.update(deltaTime);
-    }
 }
 
 void Engine::render() {

@@ -57,16 +57,16 @@ add_executable(DuckEngine
         dependencies/OpenAL/libs/Win64/dr_wav.h
         src/engine/ecs/system/DuckSpawnerManager.cpp
         src/engine/ecs/system/DuckSpawnerManager.h
-        src/engine/core/managers/GameStateManager.h
-        src/engine/core/managers/GameStateManager.cpp
         src/engine/game/ecs/EnvironmentEntity.cpp
         src/engine/game/ecs/EnvironmentEntity.h
         src/engine/game/EnvironmentGenerator.cpp
         src/engine/game/EnvironmentGenerator.h
         src/engine/game/ecs/GunEntity.cpp
         src/engine/game/ecs/GunEntity.h
-        src/engine/ecs/system/GunSystem.h
-        src/engine/ecs/system/GunSystem.cpp
+        src/engine/game/ecs/systems/GunSystem.h
+        src/engine/game/ecs/systems/GunSystem.cpp
+        src/engine/game/ecs/systems/GameRoundSystem.cpp
+        src/engine/game/ecs/systems/ShootingSystem.cpp
 )
 
 
