@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "glm/vec3.hpp"
-#include "../game/DuckEntity.h"
 #include "../ecs/Entity.h"
 
 class EntityManager {
@@ -16,11 +15,6 @@ public:
     std::vector<std::unique_ptr<Entity>>& GetEntities();
 
     Entity& CreateEntity(World& InWorld);
-
-    DuckEntity& CreateDuckEntity(World& InWorld);
-
-    DuckEntity& CreateDuckEntity(World& InWorld, glm::vec3& InPosition);
-    DuckEntity& CreateDuckEntityWithVelocity(World& InWorld, glm::vec3& InPosition, float speed);
 
     Entity& CreateDeferredEntity(World& InWorld);
 

@@ -6,7 +6,6 @@
 #include "../../ecs/Component.h"
 #include "../../utils/InputUtils.h"
 #include "../../system/CollisionSystem.h"
-#include "../../game/DuckEntity.h"
 #include "InputManager.h"
 #include "AudioManager.h"
 #include "GameStateManager.h"
@@ -241,10 +240,10 @@ void UIStateManager::updatePlaying(float deltaTime) {
                 // Print the hit entity
                 if (result.hit && result.hitEntity) {
 
-                        DuckEntity* hitDuck = dynamic_cast<DuckEntity*>(result.hitEntity);
 
-                        if (hitDuck) {
-                            hitDuck->KillDuck();
+                    if (result.hitEntity->hasComponent<HealthComponent>()) {
+
+                        worldContext->lifecycleSystem.killDuck(*result.hitEntity);
                         } else {
                             std::cout << "Hit something, but it wasn't a duck" << std::endl;
                         }
