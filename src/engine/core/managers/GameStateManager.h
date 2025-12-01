@@ -1,5 +1,7 @@
 #pragma once
 #include <cmath>
+
+#include "AudioManager.h"
 #include "../../game/EventQueue.h"
 
 enum class DuckState {
@@ -23,6 +25,7 @@ class GameStateManager {
     int duckResolveIndex = 0;   // Next slot to mark as HIT/ESCAPED (0-9)
 
     int numOfDucksEscaped = 0;
+    int numOfDucksEscapedAllowed = 3;
 
     DuckState duckStates[10] = {};
 
@@ -98,7 +101,7 @@ public:
     }
 
     bool isRoundFailed() const {
-        return isRoundComplete() && numOfDucksEscaped > 3;
+        return isRoundComplete() && numOfDucksEscaped > numOfDucksEscapedAllowed;
     }
 
     float getDuckSpeedBasedOnRound() const {
@@ -153,8 +156,12 @@ public:
         if (duckResolveIndex < maxNumOfDucks) {
             incrementDucksEscaped();
 
-            duckStates[duckResolveIndex] = DuckState::ESCAPED;
+            if (numOfDucksEscaped >= numOfDucksEscapedAllowed) {
+                resetGame();
+            }
 
+            duckStates[duckResolveIndex] = DuckState::ESCAPED;
+            AudioManager::Get().PlaySound("flapping", 1.0f);
             events.emit(DuckEscapedEvent{duckResolveIndex});
 
             duckResolveIndex++;
@@ -168,6 +175,7 @@ public:
         duckSpawnIndex = 0;
         duckResolveIndex = 0;
         resetDuckStates();
+        AudioManager::Get().PlaySound("win", 0.8f);
         events.emit(RoundStartEvent{round, maxNumOfDucks});
     }
 
@@ -179,6 +187,7 @@ public:
         duckSpawnIndex = 0;
         duckResolveIndex = 0;
         resetDuckStates();
+        AudioManager::Get().PlaySound("lose", 0.8f);
         events.emit(GameOverEvent{false, 0, 0});
         events.emit(StartGameEvent{});
     }

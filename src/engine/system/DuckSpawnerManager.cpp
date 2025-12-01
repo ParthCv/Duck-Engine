@@ -54,6 +54,7 @@ void DuckSpawnerManager::SpawnDuck()
     auto& state = GameStateManager::get();
 
     state.spawnDuck();  // Just marks UI slot as spawned
+    AudioManager::Get().PlaySound("quack", 1.0f);
 }
 
 void DuckSpawnerManager::ResetRound() {
