@@ -1,20 +1,20 @@
 #include "BoundsSystem.h"
 #include "../ecs/World.h"
-#include "../ecs/Entity.h"
+#include "../ecs/ECS.h"
 #include "../ecs/components/Transform.h"
 #include "../ecs/components/BoundsComponent.h"
 #include "../core/managers/GameStateManager.h"
 
 void BoundsSystem::update(World& world, float deltaTime) {
-    for (auto& entity : world.EntityManager.GetEntities()) {
-        if (entity->hasComponent<Transform>() && entity->hasComponent<BoundsComponent>()) {
-            auto& transform = entity->getComponent<Transform>();
-            auto& bounds = entity->getComponent<BoundsComponent>();
+    for (EntityID eid : world.registry.getEntitiesWith<BoundsComponent>()) {
+        if (!world.registry.hasComponent<Transform>(eid)) continue;
 
-            if (glm::distance(transform.position, bounds.spawnPosition) > bounds.escapeDistance) {
-                GameStateManager::get().duckEscaped();
-                entity->destroy();
-            }
+        auto& transform = world.registry.getComponent<Transform>(eid);
+        auto& bounds = world.registry.getComponent<BoundsComponent>(eid);
+
+        if (glm::distance(transform.position, bounds.spawnPosition) > bounds.escapeDistance) {
+            GameStateManager::get().duckEscaped();
+            world.registry.destroyEntity(eid);
         }
     }
 }

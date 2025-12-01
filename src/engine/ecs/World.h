@@ -11,6 +11,7 @@
 #include "../system/BoundsSystem.h"
 #include "../system/LifecycleSystem.h"
 #include "../system/GunSystem.h"
+#include "ECS.h"
 
 class DuckSpawnerManager;
 
@@ -31,6 +32,8 @@ public:
     BoundsSystem boundsSystem;
     LifecycleSystem lifecycleSystem;
     GunSystem gunSystem;
+
+    Registry registry;
 
     World();
 

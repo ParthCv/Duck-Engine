@@ -1,6 +1,6 @@
 #include "GunSystem.h"
 #include "../ecs/World.h"
-#include "../ecs/Entity.h"
+#include "../ecs/ECS.h"
 #include "../ecs/components/Transform.h"
 #include "../ecs/components/GunComponent.h"
 #include "../renderer/Camera.h"
@@ -8,11 +8,11 @@
 
 void GunSystem::update(World& world, Camera& camera, float deltaTime) {
     // Get all entities with Gun and Transform components
-    auto gunEntities = world.EntityManager.GetEntitiesWith<GunComponent, Transform>();
+    auto gunEntities = world.registry.getEntitiesWith<GunComponent>();
 
-    for (auto* entity : gunEntities) {
-        auto& gun = entity->getComponent<GunComponent>();
-        auto& transform = entity->getComponent<Transform>();
+    for (EntityID eid : gunEntities) {
+        auto& gun = world.registry.getComponent<GunComponent>(eid);
+        auto& transform = world.registry.getComponent<Transform>(eid);
 
         // --- RECOIL RECOVERY ---
         // Lerp recoil values back to 0 over time
@@ -44,10 +44,10 @@ void GunSystem::update(World& world, Camera& camera, float deltaTime) {
     }
 }
 
-void GunSystem::applyRecoil(Entity& gunEntity) {
-    if (!gunEntity.hasComponent<GunComponent>()) return;
+void GunSystem::applyRecoil(World& world, EntityID gunEid) {
+    if (!world.registry.hasComponent<GunComponent>(gunEid)) return;
 
-    auto& gun = gunEntity.getComponent<GunComponent>();
+    auto& gun = world.registry.getComponent<GunComponent>(gunEid);
     gun.recoilOffset = gun.recoilOffsetAmount;
     gun.recoilPitch = gun.recoilPitchAmount;
 }

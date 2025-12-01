@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include "../Entity.h"
+#include "../ECS.h"
 
 struct RaycastSource {
     glm::vec3 direction{0.0f, 0.0f, -1.0f};
@@ -12,5 +12,5 @@ struct RaycastSource {
     glm::vec3 lastHitPoint{};
 
     // ECS Pattern: Store the hit entity here so systems can process it later
-    Entity* hitEntity = nullptr;
+    EntityID hitEntity = -1;
 };

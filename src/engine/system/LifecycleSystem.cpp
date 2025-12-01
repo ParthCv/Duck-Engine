@@ -1,6 +1,5 @@
 #include "LifecycleSystem.h"
 #include "../ecs/World.h"
-#include "../ecs/Entity.h"
 #include "../ecs/components/Transform.h"
 #include "../ecs/components/Velocity.h"
 #include "../ecs/components/HealthComponent.h"
@@ -11,41 +10,41 @@
 #include <iostream>
 
 void LifecycleSystem::update(World& world, float deltaTime) {
-    for (auto& entity : world.EntityManager.GetEntities()) {
-        if (entity->hasComponent<HealthComponent>() && entity->hasComponent<Transform>()) {
-            auto& health = entity->getComponent<HealthComponent>();
-            auto& transform = entity->getComponent<Transform>();
+    for (EntityID eid : world.registry.getEntitiesWith<HealthComponent>()) {
+        if (!world.registry.hasComponent<Transform>(eid)) continue;
 
-            if (health.isDead) {
-                health.timeSinceDeath += deltaTime;
+        auto& health = world.registry.getComponent<HealthComponent>(eid);
+        auto& transform = world.registry.getComponent<Transform>(eid);
 
-                // Wait for the "pause" to finish, then start falling
-                if (health.timeSinceDeath > health.pauseAfterKillDuration && !health.isFalling) {
-                    health.isFalling = true;
+        if (health.isDead) {
+            health.timeSinceDeath += deltaTime;
 
-                    if(entity->hasComponent<Velocity>()) {
-                        auto& velocity = entity->getComponent<Velocity>();
+            // Wait for the "pause" to finish, then start falling
+            if (health.timeSinceDeath > health.pauseAfterKillDuration && !health.isFalling) {
+                health.isFalling = true;
 
-                        // FIX: Simplified Falling Logic
-                        // Since MovementSystem is now World Space, we just set direction to World Down.
-                        velocity.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
-                        velocity.Speed = 50.0f; // Set a fast fall speed
-                    }
+                if(world.registry.hasComponent<Velocity>(eid)) {
+                    auto& velocity = world.registry.getComponent<Velocity>(eid);
+
+                    // FIX: Simplified Falling Logic
+                    // Since MovementSystem is now World Space, we just set direction to World Down.
+                    velocity.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
+                    velocity.Speed = 50.0f; // Set a fast fall speed
                 }
             }
+        }
 
-            // Destroy if below the death plane
-            if (transform.position.y < health.DeathPlaneYBound) {
-                entity->destroy();
-            }
+        // Destroy if below the death plane
+        if (transform.position.y < health.DeathPlaneYBound) {
+            world.registry.destroyEntity(eid);
         }
     }
 }
 
-void LifecycleSystem::killDuck(Entity& entity) {
-    if (!entity.hasComponent<HealthComponent>()) return;
+void LifecycleSystem::killDuck(World& world, EntityID eid) {
+    if (!world.registry.hasComponent<HealthComponent>(eid)) return;
 
-    auto& health = entity.getComponent<HealthComponent>();
+    auto& health = world.registry.getComponent<HealthComponent>(eid);
     if (health.isDead) return;
 
     health.isDead = true;
@@ -53,8 +52,8 @@ void LifecycleSystem::killDuck(Entity& entity) {
     GameStateManager::get().hitDuck();
     std::cout << "Duck Died" << std::endl;
 
-    if (entity.hasComponent<Velocity>()) {
-        auto& velocity = entity.getComponent<Velocity>();
+    if (world.registry.hasComponent<Velocity>(eid)) {
+        auto& velocity = world.registry.getComponent<Velocity>(eid);
         // Stop the bird mid-air
         velocity.Direction = glm::vec3(0.0f);
         velocity.Speed = 0.0f;
@@ -63,9 +62,9 @@ void LifecycleSystem::killDuck(Entity& entity) {
     // Keep the rotation as-is so the duck doesn't visually "jump" when killed
     // The duck will fall in whatever orientation it had when shot (more natural)
 
-    if (entity.hasComponent<StaticMeshComponent>() && entity.hasComponent<Transform>()) {
-        auto& mesh = entity.getComponent<StaticMeshComponent>();
-        auto& transform = entity.getComponent<Transform>();
+    if (world.registry.hasComponent<StaticMeshComponent>(eid) && world.registry.hasComponent<Transform>(eid)) {
+        auto& mesh = world.registry.getComponent<StaticMeshComponent>(eid);
+        auto& transform = world.registry.getComponent<Transform>(eid);
 
         mesh.Mesh = ResourceManager::Get().GetStaticMesh("turkey.obj");
         mesh.material = ResourceManager::Get().GetMaterial("turkey");

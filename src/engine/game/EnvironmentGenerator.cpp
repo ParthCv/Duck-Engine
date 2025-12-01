@@ -1,7 +1,9 @@
 #include "EnvironmentGenerator.h"
-#include "EnvironmentEntity.h"
 #include "../system/EntityManager.h"
 #include "GameUtils.h"
+#include "../ecs/World.h"
+#include "../ecs/Component.h"
+#include "../core/managers/ResourceManager.h"
 
 EnvironmentGenerator::EnvironmentGenerator(World& world, EntityManager& entityManager,
                                            const std::map<std::string, float>& modelNamesWithWeights)
@@ -30,7 +32,15 @@ int EnvironmentGenerator::generate(float startingRadius, int startingDensity, in
         std::vector<glm::vec3> ringPoints = GenerateRingPoints(center, currentRadius, (i + 1) * startingDensity, 1.f, 0.f);
         for (auto& pos : ringPoints) {
             const std::string& randomModelName = modelNames[weightedDist(gen)];
-            entityManager.CreateEntityOfType<EnvironmentEntity>(world, pos, randomModelName);
+
+            EntityID eid = world.registry.createEntity();
+            world.registry.addComponent(eid, Transform{pos});
+
+            StaticMeshComponent staticMeshComponent;
+            staticMeshComponent.Mesh = ResourceManager::Get().GetStaticMesh(randomModelName);
+            staticMeshComponent.material = ResourceManager::Get().GetMaterial("env");
+            world.registry.addComponent(eid, staticMeshComponent);
+
             ++spawnedNumEntities;
         }
         currentRadius += spaceBetweenRings;

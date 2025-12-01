@@ -1,6 +1,5 @@
 #include "Engine.h"
 #include <iostream>
-#include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/Component.h"
 #include "../system/DebugRenderSystem.h"
 
@@ -351,7 +350,7 @@ void Engine::render() {
         physicsDebugShader.use();
         physicsDebugShader.setMat4("view", camera.getViewMatrix());
         physicsDebugShader.setMat4("projection", camera.getProjectionMatrix());
-        debugSystem.render(world.EntityManager, physicsDebugShader);
+        debugSystem.render(world, physicsDebugShader);
     }
 
     // Handle UI last

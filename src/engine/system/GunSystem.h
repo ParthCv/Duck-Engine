@@ -1,4 +1,5 @@
 #pragma once
+#include "../ecs/ECS.h"
 
 class World;
 class Camera;
@@ -9,5 +10,5 @@ public:
     static void update(World& world, Camera& camera, float deltaTime);
 
     // Apply recoil to a specific gun (call this when shooting)
-    static void applyRecoil(class Entity& gunEntity);
+    static void applyRecoil(World& world, EntityID gunEntity);
 };

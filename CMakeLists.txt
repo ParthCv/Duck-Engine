@@ -16,8 +16,6 @@ add_executable(DuckEngine
         src/engine/renderer/Material.cpp
         src/engine/renderer/Cubemap.cpp
         src/engine/renderer/Skybox.cpp
-        src/engine/ecs/Entity.cpp
-        src/engine/ecs/Entity.h
         src/engine/ecs/ComponentType.h
         src/engine/ecs/Component.h
         src/engine/ecs/World.cpp
@@ -59,14 +57,11 @@ add_executable(DuckEngine
         src/engine/system/DuckSpawnerManager.h
         src/engine/core/managers/GameStateManager.h
         src/engine/core/managers/GameStateManager.cpp
-        src/engine/game/EnvironmentEntity.cpp
-        src/engine/game/EnvironmentEntity.h
         src/engine/game/EnvironmentGenerator.cpp
         src/engine/game/EnvironmentGenerator.h
-        src/engine/game/GunEntity.cpp
-        src/engine/game/GunEntity.h
         src/engine/system/GunSystem.h
         src/engine/system/GunSystem.cpp
+        src/engine/ecs/ECS.h
 )
 
 

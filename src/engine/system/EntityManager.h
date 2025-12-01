@@ -3,7 +3,9 @@
 #include <vector>
 
 #include "glm/vec3.hpp"
-#include "../ecs/Entity.h"
+#include "../ecs/ECS.h"
+
+class World;
 
 class EntityManager {
 
@@ -12,11 +14,11 @@ public:
 
     void BeginPlay();
 
-    std::vector<std::unique_ptr<Entity>>& GetEntities();
+    std::vector<EntityID>& GetEntities(World& InWorld);
 
-    Entity& CreateEntity(World& InWorld);
+    EntityID CreateEntity(World& InWorld);
 
-    Entity& CreateDeferredEntity(World& InWorld);
+    //Entity& CreateDeferredEntity(World& InWorld);
 
     void SynchronizeEntities();
 
@@ -25,39 +27,39 @@ public:
     void CleanupInactiveEntities();
 
     template<typename... Components>
-    std::vector<Entity*> GetEntitiesWith();
+    std::vector<EntityID> GetEntitiesWith(World& InWorld);
 
-    template <typename T, typename... Args>
-    T& CreateEntityOfType(World& InWorld, Args&&... ConstructorArgs);
+//    template <typename T, typename... Args>
+//    T& CreateEntityOfType(World& InWorld, Args&&... ConstructorArgs);
 
 private:
-    std::vector<std::unique_ptr<Entity>> Entities;
+    // std::vector<std::unique_ptr<Entity>> Entities;
 
-    std::vector<std::unique_ptr<Entity>> DeferredEntities;
+    //std::vector<std::unique_ptr<Entity>> DeferredEntities;
 };
 
-template<typename... Components>
-std::vector<Entity*> EntityManager::GetEntitiesWith() {
-    std::vector<Entity*> result;
+//template<typename... Components>
+//std::vector<Entity*> EntityManager::GetEntitiesWith() {
+//    std::vector<Entity*> result;
+//
+//    for (auto& entity : Entities) {
+//        if (!entity) continue;
+//        if (!entity->getIsActive()) continue;
+//
+//        if ((entity->template hasComponent<Components>() && ...)) {
+//            result.push_back(entity.get());
+//        }
+//    }
+//
+//    return result;
+//}
 
-    for (auto& entity : Entities) {
-        if (!entity) continue;
-        if (!entity->getIsActive()) continue;
-
-        if ((entity->template hasComponent<Components>() && ...)) {
-            result.push_back(entity.get());
-        }
-    }
-
-    return result;
-}
-
-template <typename T, typename... Args>
-T& EntityManager::CreateEntityOfType(World& InWorld, Args&&... ConstructorArgs)
-{
-    static_assert(std::is_base_of<Entity, T>::value, "T must derive from Entity class");
-    std::unique_ptr<T> NewEntity = std::make_unique<T>(InWorld, std::forward<Args>(ConstructorArgs)...);
-    T* EntityPtr = NewEntity.get(); // must cache this before calling std::move() if we want to return it
-    Entities.emplace_back(std::move(NewEntity)); // unique_ptr<T> automatically converts to unique_ptr<Entity>
-    return *EntityPtr;
-}
+//template <typename T, typename... Args>
+//T& EntityManager::CreateEntityOfType(World& InWorld, Args&&... ConstructorArgs)
+//{
+//    static_assert(std::is_base_of<Entity, T>::value, "T must derive from Entity class");
+//    std::unique_ptr<T> NewEntity = std::make_unique<T>(InWorld, std::forward<Args>(ConstructorArgs)...);
+//    T* EntityPtr = NewEntity.get(); // must cache this before calling std::move() if we want to return it
+//    Entities.emplace_back(std::move(NewEntity)); // unique_ptr<T> automatically converts to unique_ptr<Entity>
+//    return *EntityPtr;
+//}

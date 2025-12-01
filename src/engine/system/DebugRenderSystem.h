@@ -4,13 +4,14 @@
 
 class EntityManager;
 class Shader;
+class World;
 
 class DebugRenderSystem {
 
 public:
     static void init();
-    void render(EntityManager& entityManager, Shader& debugShader);
-    static void drawColliders(EntityManager& entityManager, Shader& debugShader);
-    static void drawRaycasts(EntityManager& entityManager, Shader& debugShader);
+    void render(World& world, Shader& debugShader);
+    static void drawColliders(World& world, Shader& debugShader);
+    static void drawRaycasts(World& world, Shader& debugShader);
     static void cleanup();
 };

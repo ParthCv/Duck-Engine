@@ -6,19 +6,19 @@
 #include "Component.h"
 #include "../core/managers/GameStateManager.h"
 #include "../game/DuckFactory.h"
-#include "../game/GunEntity.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
 #include "../system/CollisionSystem.h"
 #include "../game/EnvironmentGenerator.h"
 #include "../core/managers/InputManager.h"
+#include "../core/managers/ResourceManager.h"
 
 World::World()
 {
     // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists
     // before meshes are loaded.
 
-    std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
+    std::cout << "Entity Length: "<< registry.getAllEntities().size() << std::endl;
     collisionSystem = new CollisionSystem();
 
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -57,30 +57,43 @@ void World::update(float deltaTime)
     lifecycleSystem.update(*this, deltaTime);
     gunSystem.update(*this, *camera, deltaTime);
 
-    EntityManager.Update(deltaTime);
+    //EntityManager.Update(deltaTime);
     duckSpawnerManager->Update(deltaTime);
 }
 
 void World::beginPlay()
 {
-    // Create a player entity to act as the source for raycasting
-    Entity& PlayerEntity = EntityManager.CreateEntity(*this);
+    EntityID duck = registry.createEntity();
+    EntityID player = registry.createEntity();
+
+    registry.addComponent(duck, Transform{{0, 0, 0}});
+    registry.addComponent(duck, Velocity{{1, 0, 0}, 5.0f});
+    registry.addComponent(player, Transform{{10, 0, 0}});
 
     glm::vec3 camPos = camera->position;
 
-    PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
+    // Create a player entity to act as the source for raycasting
+    EntityID playerEid = registry.createEntity();
+    registry.addComponent(playerEid, Transform{camPos, glm::vec3(0.0f), glm::vec3(1.0f)});
 
     // Create the gun entity (GunSystem will handle positioning and rotation)
-    gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
+    EntityID gunEid = registry.createEntity();
+    Transform gunTransform;
+    gunTransform.scale = glm::vec3{1.f, 1.f, 1.f};
+    registry.addComponent(gunEid, gunTransform);
+    StaticMeshComponent gunStaticMeshComponent;
+    gunStaticMeshComponent.Mesh = ResourceManager::Get().GetStaticMesh("rifle.obj");
+    registry.addComponent(gunEid, gunStaticMeshComponent);
 
     EnvironmentGenerator envGenerator{*this, EntityManager};
     envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));
 
     // Add raycast source component
-    auto& raySource = PlayerEntity.addComponent<RaycastSource>();
+    RaycastSource raySource;
     raySource.maxDistance = 100.0f;
     raySource.drawRay = true;
     raySource.direction = glm::vec3(0.0f, 0.0f, -1.0f);
+    registry.addComponent(playerEid, raySource);
 
     EntityManager.BeginPlay();
 }

@@ -1,6 +1,5 @@
 #include "DuckFactory.h"
 #include "../ecs/World.h"
-#include "../ecs/Entity.h"
 #include "../ecs/Component.h"
 #include "../system/TransformSystem.h"
 #include "../core/managers/ResourceManager.h"
@@ -15,36 +14,39 @@
 #include "../ecs/components/ScoreValueComponent.h"
 #include <cstdlib>
 
-Entity* DuckFactory::createDuck(World& world, const glm::vec3& position, float speed) {
-    auto& entity = world.EntityManager.CreateEntity(world);
+EntityID DuckFactory::createDuck(World& world, const glm::vec3& position, float speed) {
+    EntityID eid = world.registry.createEntity();
 
     // Add components
-    auto& transform = entity.addComponent<Transform>();
+    Transform transform;
     transform.position = position;
     transform.scale = glm::vec3(10.0f);
+    world.registry.addComponent(eid, transform);
 
-    auto& velocity = entity.addComponent<Velocity>();
+    Velocity velocity;
     velocity.Speed = speed;
+    world.registry.addComponent(eid, velocity);
 
-    auto& staticMesh = entity.addComponent<StaticMeshComponent>();
-    staticMesh.Mesh = ResourceManager::Get().GetStaticMesh("duck.obj");
-    staticMesh.material = ResourceManager::Get().GetMaterial("duck");
+    StaticMeshComponent staticMeshComponent;
+    staticMeshComponent.Mesh = ResourceManager::Get().GetStaticMesh("duck.obj");
+    staticMeshComponent.material = ResourceManager::Get().GetMaterial("duck");
+    world.registry.addComponent(eid, staticMeshComponent);
 
-    auto& collider = entity.addComponent<BoxCollider>();
-    collider.size = staticMesh.Mesh->getSize(); // Store unscaled size (CollisionSystem will apply transform.scale)
-    collider.center = staticMesh.Mesh->getCenter();
+    BoxCollider collider;
+    collider.size = staticMeshComponent.Mesh->getSize(); // Store unscaled size (CollisionSystem will apply transform.scale)
+    collider.center = staticMeshComponent.Mesh->getCenter();
+    collider.center.y += (collider.size.y * transform.scale.y) / 2.0f; // Adjust center offset based on unscaled size
+    world.registry.addComponent(eid, collider);
 
-    // Adjust center offset based on unscaled size
-    collider.center.y += (collider.size.y * transform.scale.y) / 2.0f;
+    world.registry.addComponent(eid, DebugDrawable{});
+    world.registry.addComponent(eid, DuckComponent{});
+    world.registry.addComponent(eid, HealthComponent{});
 
-    entity.addComponent<DebugDrawable>();
-    entity.addComponent<DuckComponent>();
-    entity.addComponent<HealthComponent>();
-    
-    auto& bounds = entity.addComponent<BoundsComponent>();
+    BoundsComponent bounds;
     bounds.spawnPosition = position;
+    world.registry.addComponent(eid, bounds);
 
-    entity.addComponent<ScoreValueComponent>();
+    world.registry.addComponent(eid, ScoreValueComponent{});
 
     // Set random flight path
     TransformSystem::LocalRotate(transform, -45.0f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -53,5 +55,5 @@ Entity* DuckFactory::createDuck(World& world, const glm::vec3& position, float s
     velocity.Direction = rotation * glm::vec3(0.0f, 0.0f, 10.0f);
 
 
-    return &entity;
+    return eid;
 }

@@ -205,15 +205,14 @@ void UIStateManager::updatePlaying(float deltaTime) {
     // }
 
     // Update all entities in the world
-    worldContext->EntityManager.Update(deltaTime);
 
     // Handle Player Shooting/Raycasting
-    auto raySourceEntities = worldContext->EntityManager.GetEntitiesWith<RaycastSource, Transform>();
+    auto raySourceEntities = worldContext->registry.getEntitiesWith<RaycastSource>();
 
     if (!raySourceEntities.empty()) {
-        Entity* playerEntity = raySourceEntities[0];
-        auto& transform = playerEntity->getComponent<Transform>();
-        auto& raySource = playerEntity->getComponent<RaycastSource>();
+        EntityID playerEid = raySourceEntities[0];
+        auto& transform = worldContext->registry.getComponent<Transform>(playerEid);
+        auto& raySource = worldContext->registry.getComponent<RaycastSource>(playerEid);
 
         // Offset weapon position
         transform.position = worldContext->camera->position
@@ -228,9 +227,9 @@ void UIStateManager::updatePlaying(float deltaTime) {
             AudioManager::Get().PlaySound("shoot", 0.5f);
 
             // Apply recoil to all gun entities
-            auto gunEntities = worldContext->EntityManager.GetEntitiesWith<GunComponent, Transform>();
-            for (auto* gunEntity : gunEntities) {
-                GunSystem::applyRecoil(*gunEntity);
+            auto gunEntities = worldContext->registry.getEntitiesWith<GunComponent>();
+            for (EntityID gunEid : gunEntities) {
+                GunSystem::applyRecoil(*worldContext, gunEid);
             }
 
             // FPS STYLE: Raycast ALWAYS goes straight forward from camera
@@ -241,15 +240,15 @@ void UIStateManager::updatePlaying(float deltaTime) {
 
             if (worldContext->collisionSystem) {
                 // Capture the result
-                auto result = worldContext->collisionSystem->RaycastFromEntity(worldContext->EntityManager, *playerEntity);
+                auto result = worldContext->collisionSystem->RaycastFromEntity(*worldContext, playerEid);
 
                 // Print the hit entity
                 if (result.hit && result.hitEntity) {
 
 
-                    if (result.hitEntity->hasComponent<HealthComponent>()) {
+                    if (worldContext->registry.hasComponent<HealthComponent>(result.hitEntity)) {
 
-                        worldContext->lifecycleSystem.killDuck(*result.hitEntity);
+                        worldContext->lifecycleSystem.killDuck(*worldContext, result.hitEntity);
                         } else {
                             std::cout << "Hit something, but it wasn't a duck" << std::endl;
                         }

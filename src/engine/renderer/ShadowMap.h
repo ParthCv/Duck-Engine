@@ -9,8 +9,6 @@
 
 #include "Shader.h"
 
-class Entity;
-
 class ShadowMap {
 public:
     ShadowMap();

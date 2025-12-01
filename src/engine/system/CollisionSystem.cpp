@@ -1,10 +1,10 @@
 #include "CollisionSystem.h"
 #include "../ecs/Component.h"
 #include "../physics/RaycastUtils.h"
-#include "../system/EntityManager.h"
+#include "../ecs/World.h"
 
 CollisionSystem::RaycastResult CollisionSystem::Raycast(
-    EntityManager& entityManager,
+    World& world,
     const glm::vec3& origin,
     const glm::vec3& direction,
     float maxDistance)
@@ -12,19 +12,18 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
     RaycastResult result;
     float closestDistance = maxDistance;
 
-    auto entities = entityManager.GetEntitiesWith<Transform, BoxCollider>();
-
-    for (auto* entity : entities) {
-        if (!entity->getIsActive()) continue;
+    for (EntityID eid : world.registry.getEntitiesWith<BoxCollider>()) {
+        // TODO
+        // if (!entity->getIsActive()) continue;
 
         // Skip dead entities (they shouldn't block raycasts)
-        if (entity->hasComponent<HealthComponent>()) {
-            auto& health = entity->getComponent<HealthComponent>();
+        if (world.registry.hasComponent<HealthComponent>(eid)) {
+            auto& health = world.registry.getComponent<HealthComponent>(eid);
             if (health.isDead) continue;
         }
 
-        auto& transform = entity->getComponent<Transform>();
-        auto& collider = entity->getComponent<BoxCollider>();
+        auto& transform = world.registry.getComponent<Transform>(eid);
+        auto& collider = world.registry.getComponent<BoxCollider>(eid);
 
         glm::vec3 scaledSize = collider.size * transform.scale;
         glm::vec3 halfSize = scaledSize * 0.5f;
@@ -38,7 +37,7 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
 
         if (hit.hit && hit.distance < closestDistance) {
             result.hit = true;
-            result.hitEntity = entity;
+            result.hitEntity = eid;
             result.hitInfo = hit;
             closestDistance = hit.distance;
         }
@@ -47,20 +46,18 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
     return result;
 }
 
-CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(
-    EntityManager& entityManager,
-    Entity& entity)
+CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(World& world, EntityID eid)
 {
-    if (!entity.hasComponent<Transform>() ||
-        !entity.hasComponent<RaycastSource>()) {
+    if (!world.registry.hasComponent<Transform>(eid) ||
+        !world.registry.hasComponent<RaycastSource>(eid)) {
         return {};
     }
 
-    auto& transform = entity.getComponent<Transform>();
-    auto& raycastSource = entity.getComponent<RaycastSource>();
+    auto& transform = world.registry.getComponent<Transform>(eid);
+    auto& raycastSource = world.registry.getComponent<RaycastSource>(eid);
 
     auto result = Raycast(
-        entityManager,
+        world,
         transform.position,
         raycastSource.direction,
         raycastSource.maxDistance
@@ -73,31 +70,31 @@ CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(
         raycastSource.lastHitPoint = result.hitInfo.point;
         raycastSource.hitEntity = result.hitEntity; // Store the Duck/Entity hit
     } else {
-        raycastSource.hitEntity = nullptr; // Clear it on miss
+        raycastSource.hitEntity = -1; // Clear it on miss
     }
 
     return result;
 }
 
-std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
-    EntityManager& entityManager,
+std::vector<EntityID> CollisionSystem::GetEntitiesInBox(
+    World& world,
     const glm::vec3& min,
     const glm::vec3& max)
 {
-    std::vector<Entity*> results;
-    auto entities = entityManager.GetEntitiesWith<Transform, BoxCollider>();
+    std::vector<EntityID> results;
 
-    for (auto* entity : entities) {
-        if (!entity->getIsActive()) continue;
+    for (EntityID eid : world.registry.getEntitiesWith<BoxCollider>()) {
+        // TODO
+        //if (!entity->getIsActive()) continue;
 
         // Skip dead entities (they shouldn't be included in area queries)
-        if (entity->hasComponent<HealthComponent>()) {
-            auto& health = entity->getComponent<HealthComponent>();
+        if (world.registry.hasComponent<HealthComponent>(eid)) {
+            auto& health = world.registry.getComponent<HealthComponent>(eid);
             if (health.isDead) continue;
         }
 
-        auto& transform = entity->getComponent<Transform>();
-        auto& collider = entity->getComponent<BoxCollider>();
+        auto& transform = world.registry.getComponent<Transform>(eid);
+        auto& collider = world.registry.getComponent<BoxCollider>(eid);
 
         glm::vec3 scaledSize = collider.size * transform.scale;
         glm::vec3 halfSize = scaledSize * 0.5f;
@@ -108,7 +105,7 @@ std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
         if (aabbMin.x <= max.x && aabbMax.x >= min.x &&
             aabbMin.y <= max.y && aabbMax.y >= min.y &&
             aabbMin.z <= max.z && aabbMax.z >= min.z) {
-            results.push_back(entity);
+            results.push_back(eid);
         }
     }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "../ecs/World.h"
-#include "../ecs/Entity.h"
+#include "../ecs/ECS.h"
 
 class World;
 

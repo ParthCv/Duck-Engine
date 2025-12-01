@@ -1,6 +1,6 @@
 #include "RenderingSystem.h"
+#include "../ecs/ECS.h"
 #include "../ecs/World.h"
-#include "../ecs/Entity.h"
 #include "../ecs/components/Transform.h"
 #include "../ecs/components/StaticMeshComponent.h"
 #include "../renderer/Shader.h"
@@ -21,28 +21,27 @@ void RenderingSystem::renderEntities(World& world, Shader& shader, Camera& camer
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
 
-    std::unordered_map<Material*, std::vector<Entity*>> materialBatches;
+    std::unordered_map<Material*, std::vector<EntityID>> materialBatches;
 
-    for (auto& entity : world.EntityManager.GetEntities()) {
-        if (entity == nullptr) continue;
-        if (entity->hasComponent<StaticMeshComponent>() && entity->hasComponent<Transform>()) {
-            auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
-            if (!staticMeshComponent.bIsVisible) continue;
+    for (EntityID eid : world.registry.getEntitiesWith<StaticMeshComponent>()) {
+        if (!world.registry.hasComponent<Transform>(eid)) continue;
 
-            Material* mat = staticMeshComponent.material ? staticMeshComponent.material.get() : &defaultMaterial;
-            materialBatches[mat].push_back(entity.get());
-        }
+        auto& staticMeshComponent = world.registry.getComponent<StaticMeshComponent>(eid);
+        if (!staticMeshComponent.bIsVisible) continue;
+
+        Material* mat = staticMeshComponent.material ? staticMeshComponent.material.get() : &defaultMaterial;
+        materialBatches[mat].push_back(eid);
     }
 
     for (auto& [material, entities] : materialBatches) {
         material->bind(shader);
 
-        for (auto* entity : entities) {
-            auto& transform = entity->getComponent<Transform>();
+        for (EntityID eid : entities) {
+            auto& transform = world.registry.getComponent<Transform>(eid);
             glm::mat4 model = TransformSystem::getTransformMatrix(transform);
             shader.setMat4("model", model);
 
-            auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
+            auto& staticMeshComponent = world.registry.getComponent<StaticMeshComponent>(eid);
             staticMeshComponent.Mesh->bind();
             staticMeshComponent.Mesh->draw();
         }

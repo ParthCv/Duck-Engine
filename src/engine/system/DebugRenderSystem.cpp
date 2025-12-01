@@ -1,7 +1,8 @@
 #include "DebugRenderSystem.h"
 
 #include "EntityManager.h"
-#include "../ecs/Entity.h"
+#include "../ecs/ECS.h"
+#include "../ecs/World.h"
 #include "../ecs/Component.h"
 #include "../debug/DebugRenderer.h"
 
@@ -9,20 +10,22 @@ void DebugRenderSystem::init() {
     DebugRenderer::getInstance().init();
 }
 
-void DebugRenderSystem::render(EntityManager& entityManager, Shader& debugShader) {
-    drawColliders(entityManager, debugShader);
-    drawRaycasts(entityManager, debugShader);
+void DebugRenderSystem::render(World& world, Shader& debugShader) {
+    drawColliders(world, debugShader);
+    drawRaycasts(world, debugShader);
 }
 
-void DebugRenderSystem::drawColliders(EntityManager& entityManager, Shader& debugShader) {
-    auto entities = entityManager.GetEntitiesWith<Transform, BoxCollider, DebugDrawable>();
+void DebugRenderSystem::drawColliders(World& world, Shader& debugShader) {
+    for (EntityID eid : world.registry.getEntitiesWith<DebugDrawable>()) {
+        if (!world.registry.hasComponent<Transform>(eid)
+                || !world.registry.hasComponent<BoxCollider>(eid)) continue;
 
-    for (auto* entity : entities) {
-        if (!entity->getIsActive()) continue;
+        // TODO
+        //if (!entity->getIsActive()) continue;
 
-        auto& transform = entity->getComponent<Transform>();
-        auto& collider = entity->getComponent<BoxCollider>();
-        auto& drawable = entity->getComponent<DebugDrawable>();
+        auto& transform = world.registry.getComponent<Transform>(eid);
+        auto& collider = world.registry.getComponent<BoxCollider>(eid);
+        auto& drawable = world.registry.getComponent<DebugDrawable>(eid);
 
         if (!drawable.drawCollider) continue;
 
@@ -38,14 +41,13 @@ void DebugRenderSystem::drawColliders(EntityManager& entityManager, Shader& debu
     }
 }
 
-void DebugRenderSystem::drawRaycasts(EntityManager& entityManager, Shader& debugShader) {
-    auto entities = entityManager.GetEntitiesWith<Transform, RaycastSource>();
+void DebugRenderSystem::drawRaycasts(World& world, Shader& debugShader) {
+    for (EntityID eid : world.registry.getEntitiesWith<RaycastSource>()) {
+        // TODO
+        // if (!entity->getIsActive()) continue;
 
-    for (auto* entity : entities) {
-        if (!entity->getIsActive()) continue;
-
-        auto& transform = entity->getComponent<Transform>();
-        auto& raycastSource = entity->getComponent<RaycastSource>();
+        auto& transform = world.registry.getComponent<Transform>(eid);
+        auto& raycastSource = world.registry.getComponent<RaycastSource>(eid);
 
         if (!raycastSource.drawRay) continue;
 

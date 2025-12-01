@@ -7,7 +7,6 @@
 #include "../ecs/components/Transform.h"
 #include "../core/model/StaticMesh.h"
 #include "../ecs/components/StaticMeshComponent.h"
-#include "../ecs/Entity.h"
 
 ShadowMap::ShadowMap() : depthMapFBO(0), shadowTexture(0) {
 }
@@ -85,20 +84,17 @@ void ShadowMap::render(World& world) {
 }
 
 void ShadowMap::renderScene(World& world) {
-    for (auto& entity : world.EntityManager.GetEntities())
+    for (EntityID eid : world.registry.getEntitiesWith<StaticMeshComponent>())
     {
-        if (entity->hasComponent<StaticMeshComponent>())
-        {
-            auto& staticMeshComponent = entity->getComponent<StaticMeshComponent>();
+        auto& staticMeshComponent = world.registry.getComponent<StaticMeshComponent>(eid);
 
-            auto& transform = entity->getComponent<Transform>();
-            glm::mat4 model = TransformSystem::getTransformMatrix(transform);
+        auto& transform = world.registry.getComponent<Transform>(eid);
+        glm::mat4 model = TransformSystem::getTransformMatrix(transform);
 
-            simpleDepthShader.setMat4("model", model);
+        simpleDepthShader.setMat4("model", model);
 
-            staticMeshComponent.Mesh->bind();
-            staticMeshComponent.Mesh->draw();
-        }
+        staticMeshComponent.Mesh->bind();
+        staticMeshComponent.Mesh->draw();
     }
 }
 
