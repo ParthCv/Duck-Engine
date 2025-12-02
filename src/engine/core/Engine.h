@@ -88,5 +88,6 @@ private:
 
     void renderEntities();
     void handleStateChange(GameState oldState, GameState newState);
+    void processGameEvents();
 
 };
