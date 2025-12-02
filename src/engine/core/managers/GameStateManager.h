@@ -188,6 +188,20 @@ public:
         events.emit(StartGameEvent{});
     }
 
+    /**
+     * Resets game state without sound effects or events
+     * Used when returning to menu or cleaning up
+     */
+    void resetGameState() {
+        setRound(1);
+        setScore(0);
+        setBullets(maxNumOfBullets);
+        setDucksEscaped(0);
+        duckSpawnIndex = 0;
+        duckResolveIndex = 0;
+        resetDuckStates();
+    }
+
     void endGameVictory() {
         events.emit(GameOverEvent{true, score, round});
     }

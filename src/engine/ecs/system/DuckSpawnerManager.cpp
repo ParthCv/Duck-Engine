@@ -30,7 +30,7 @@ void DuckSpawnerManager::Update(float deltaTime) {
     // if (numberOfDucksToSpawn <= 0) {
     if (GameStateManager::get().isRoundComplete()) {
         if (GameStateManager::get().isRoundFailed()) {
-            GameStateManager::get().resetGame();
+            GameStateManager::get().endGameDefeat();
         } else {
             ResetRound();
         }

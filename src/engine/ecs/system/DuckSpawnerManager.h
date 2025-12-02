@@ -31,4 +31,9 @@ public:
     void ResetRound();
 
     void SetDucksPerRound(int num);
+
+    void Reset() {
+        accumulatedTime = 0.0f;
+        bSpawned = false;
+    }
 };

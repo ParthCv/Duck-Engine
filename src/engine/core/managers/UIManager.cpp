@@ -983,6 +983,10 @@ void UIManager::setupGameOverUI(UIStateManager* stateManager) {
 
     std::cout << "[UIManager] Setting up GAME OVER UI" << std::endl;
 
+    // Get actual score from GameStateManager
+    int actualScore = GameStateManager::get().getScore();
+    int roundReached = GameStateManager::get().getRound();
+
     // Game Over title
     UIText gameOverTitle;
     gameOverTitle.id = "gameover_title";
@@ -996,7 +1000,7 @@ void UIManager::setupGameOverUI(UIStateManager* stateManager) {
     // Final score
     UIText finalScore;
     finalScore.id = "gameover_score";
-    finalScore.text = "FINAL SCORE: 0";
+    finalScore.text = "FINAL SCORE: " + std::to_string(actualScore);
     finalScore.position = glm::vec2(0, -50);
     finalScore.fontSize = 48.0f;
     finalScore.anchor = UIAnchor::CENTER;

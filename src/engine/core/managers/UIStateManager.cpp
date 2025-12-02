@@ -108,8 +108,12 @@ void UIStateManager::resumeGame() {
 
 void UIStateManager::restartGame() {
     std::cout << "[UIStateManager] restarting game..." << std::endl;
+
+    // Reset game state to initial values
+    GameStateManager::get().resetGameState();
+
+    // Transition back to playing state
     setState(GameState::PLAYING);
-    // Note: Actual game reset logic should be handled by GameManager
 }
 
 void UIStateManager::returnToMenu() {

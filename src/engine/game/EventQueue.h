@@ -55,7 +55,7 @@ struct StartGameEvent { };
 
 class EventQueue {
     template<typename T>
-    std::vector<T>& getQueue() {
+    static std::vector<T>& getQueue() {
         static std::vector<T> queue;
         return queue;
     }
@@ -69,6 +69,11 @@ public:
     template<typename T>
     const std::vector<T>& get() const {
         return getQueue<T>();
+    }
+
+    template<typename T>
+    bool hasEvents() const {
+        return !getQueue<T>().empty();
     }
 
     void clear() {
