@@ -37,7 +37,14 @@ uniform MaterialData material;
 void main() {
     gPosition = vec4(FragPos, 1.0);
 
-    gNormal = vec4(normalize(Normal), 1.0);
+    vec3 normal;
+    if (material.hasNormalMap) {
+        normal = texture(material.normalMap, TexCoords).rgb;
+    } else {
+        normal = normalize(Normal);
+    }
+    gNormal = vec4(normal, 1.0);
+
 
     vec3 albedo;
     if (material.hasAlbedoMap) {

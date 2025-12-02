@@ -1,5 +1,7 @@
 #include "Material.h"
 
+#include <iostream>
+
 Material::Material() = default;
 Material::~Material() = default;
 
@@ -83,20 +85,16 @@ void Material::bind(Shader &shader, unsigned int startUnit) {
         albedoMap->bind();
         shader.setInt("material.albedoMap", unit);
         shader.setBool("material.hasAlbedoMap", true);
-    } else {
-        shader.setBool("material.hasAlbedoMap", false);
-        shader.setVec3("material.albedo", albedoValue);
+        std::cout << "Albedo: unit=" << unit << " id=" << albedoMap->id << std::endl;
     }
     unit++;
 
-    // Normal
     if (normalMap) {
         normalMap->textureUnit = unit;
         normalMap->bind();
         shader.setInt("material.normalMap", unit);
         shader.setBool("material.hasNormalMap", true);
-    } else {
-        shader.setBool("material.hasNormalMap", false);
+        std::cout << "Normal: unit=" << unit << " id=" << normalMap->id << std::endl;  // ADD THIS
     }
     unit++;
 

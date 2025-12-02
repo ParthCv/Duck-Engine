@@ -159,6 +159,8 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
     floorMaterial.loadNormalMap("../assets/textures/pbr_ground/normals.png");
     floorMaterial.loadRoughnessMap("../assets/textures/pbr_ground/roughness.png");
 
+    floorMaterial.setMetallic(0.0f);
+
     updateLoadingScreen();
     cubeMaterial.setMetallic(1.0f);      // Non-metallic
     cubeMaterial.setRoughness(0.1f);     // Mid-rough
