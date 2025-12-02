@@ -10,4 +10,6 @@ public:
 
     // Apply recoil to a specific gun (call this when shooting)
     static void applyRecoil(class Entity& gunEntity);
+
+    static void fire(World& world, Entity& gunEntity, Entity& sourceEntity, const Camera& camera);
 };
