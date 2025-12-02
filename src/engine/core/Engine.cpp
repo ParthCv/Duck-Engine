@@ -6,6 +6,9 @@
 #include "managers/AudioManager.h"
 #include "managers/UIStateManager.h"
 #include "managers/InputManager.h"
+#include "managers/GameStateManager.h"
+#include "../game/EventQueue.h"
+#include "../ecs/components/DuckComponent.h"
 
 struct StaticMeshComponent;
 
@@ -274,6 +277,9 @@ void Engine::update(float deltaTime) {
     if (stateManager.getCurrentState() == GameState::PLAYING) {
         world.update(deltaTime);
     }
+
+    // Process game events (e.g., GameOverEvent)
+    processGameEvents();
 }
 
 void Engine::render() {
@@ -425,6 +431,61 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
     std::cout << "[Engine] State changed from " << stateManager.getStateString()
               << " to new state" << std::endl;
 
+    // Handle cleanup when returning to menu from gameplay states
+    if (newState == GameState::MENU && (oldState == GameState::PLAYING || oldState == GameState::PAUSED || oldState == GameState::GAME_OVER)) {
+        std::cout << "[Engine] Cleaning up game state and entities..." << std::endl;
+
+        // Reset game state (score, round, bullets, etc.) without sound effects
+        GameStateManager::get().resetGameState();
+
+        // Destroy only duck entities (keep player, gun, environment)
+        auto duckEntities = world.EntityManager.GetEntitiesWith<DuckComponent>();
+        for (auto* entity : duckEntities) {
+            if (entity && entity->getIsActive()) {
+                entity->destroy();
+            }
+        }
+
+        // Clean up the inactive duck entities
+        world.EntityManager.CleanupInactiveEntities();
+
+        // Reset the duck spawner manager timer
+        if (world.duckSpawnerManager) {
+            world.duckSpawnerManager->Reset();
+        }
+
+        // Clear any pending events
+        GameStateManager::get().clearEvents();
+
+        std::cout << "[Engine] Game cleanup complete" << std::endl;
+    }
+
+    // Handle cleanup when restarting from game over
+    if (newState == GameState::PLAYING && oldState == GameState::GAME_OVER) {
+        std::cout << "[Engine] Restarting game - cleaning up entities..." << std::endl;
+
+        // Destroy only duck entities from the previous game
+        auto duckEntities = world.EntityManager.GetEntitiesWith<DuckComponent>();
+        for (auto* entity : duckEntities) {
+            if (entity && entity->getIsActive()) {
+                entity->destroy();
+            }
+        }
+
+        // Clean up the inactive duck entities
+        world.EntityManager.CleanupInactiveEntities();
+
+        // Reset the duck spawner manager timer
+        if (world.duckSpawnerManager) {
+            world.duckSpawnerManager->Reset();
+        }
+
+        // Clear any pending events
+        GameStateManager::get().clearEvents();
+
+        std::cout << "[Engine] Restart cleanup complete" << std::endl;
+    }
+
     if (newState == GameState::PLAYING) {
         // Lock and hide the cursor for active 3D gameplay
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -474,6 +535,22 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
         case GameState::OPTIONS:
             uiManager.setupOptionsUI(&stateManager);
             break;
+    }
+}
+
+void Engine::processGameEvents() {
+    auto& events = GameStateManager::get().getEvents();
+    const auto& gameOverEvents = events.get<GameOverEvent>();
+
+    // Check if a GameOverEvent was emitted
+    if (!gameOverEvents.empty()) {
+        const auto& event = gameOverEvents.front();
+
+        // Only transition to GAME_OVER if not already there
+        if (stateManager.getCurrentState() != GameState::GAME_OVER) {
+            std::cout << "[Engine] Game Over detected - transitioning to GAME_OVER state" << std::endl;
+            stateManager.setState(GameState::GAME_OVER);
+        }
     }
 }
 

@@ -156,10 +156,6 @@ public:
         if (duckResolveIndex < maxNumOfDucks) {
             incrementDucksEscaped();
 
-            if (numOfDucksEscaped >= numOfDucksEscapedAllowed) {
-                resetGame();
-            }
-
             duckStates[duckResolveIndex] = DuckState::ESCAPED;
             AudioManager::Get().PlaySound("flapping", 1.0f);
             events.emit(DuckEscapedEvent{duckResolveIndex});
@@ -190,6 +186,20 @@ public:
         AudioManager::Get().PlaySound("lose", 0.8f);
         events.emit(GameOverEvent{false, 0, 0});
         events.emit(StartGameEvent{});
+    }
+
+    /**
+     * Resets game state without sound effects or events
+     * Used when returning to menu or cleaning up
+     */
+    void resetGameState() {
+        setRound(1);
+        setScore(0);
+        setBullets(maxNumOfBullets);
+        setDucksEscaped(0);
+        duckSpawnIndex = 0;
+        duckResolveIndex = 0;
+        resetDuckStates();
     }
 
     void endGameVictory() {

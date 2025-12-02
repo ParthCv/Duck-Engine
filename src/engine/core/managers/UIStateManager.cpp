@@ -108,8 +108,12 @@ void UIStateManager::resumeGame() {
 
 void UIStateManager::restartGame() {
     std::cout << "[UIStateManager] restarting game..." << std::endl;
+
+    // Reset game state to initial values
+    GameStateManager::get().resetGameState();
+
+    // Transition back to playing state
     setState(GameState::PLAYING);
-    // Note: Actual game reset logic should be handled by GameManager
 }
 
 void UIStateManager::returnToMenu() {
@@ -221,44 +225,14 @@ void UIStateManager::updatePlaying(float deltaTime) {
                            - (cameraUp * 0.2f);
 
         // Check Input
-        if (
-            InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) &&
-            GameStateManager::get().hasBulletsRemaining()
-        ) {
-            AudioManager::Get().PlaySound("shoot", 0.5f);
+        if (InputManager::isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            auto gunEntities = worldContext->EntityManager.GetEntitiesWith<GunComponent>();
 
-            // Apply recoil to all gun entities
-            auto gunEntities = worldContext->EntityManager.GetEntitiesWith<GunComponent, Transform>();
-            for (auto* gunEntity : gunEntities) {
-                GunSystem::applyRecoil(*gunEntity);
+            if (!gunEntities.empty()) {
+                Entity* playerGun = gunEntities[0];
+
+                GunSystem::fire(*worldContext, *playerGun, *playerEntity, *worldContext->camera);
             }
-
-            // FPS STYLE: Raycast ALWAYS goes straight forward from camera
-            glm::vec3 rayDir = cameraFwd;
-
-            raySource.direction = rayDir;
-            raySource.drawRay = true;
-
-            if (worldContext->collisionSystem) {
-                // Capture the result
-                auto result = worldContext->collisionSystem->RaycastFromEntity(worldContext->EntityManager, *playerEntity);
-
-                // Print the hit entity
-                if (result.hit && result.hitEntity) {
-
-
-                    if (result.hitEntity->hasComponent<HealthComponent>()) {
-
-                        worldContext->lifecycleSystem.killDuck(*result.hitEntity);
-                        } else {
-                            std::cout << "Hit something, but it wasn't a duck" << std::endl;
-                        }
-
-                } else {
-                    std::cout << "MISS!" << std::endl;
-                }
-            }
-            GameStateManager::get().shootBullet();
         }
     }
 }
