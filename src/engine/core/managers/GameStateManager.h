@@ -156,10 +156,6 @@ public:
         if (duckResolveIndex < maxNumOfDucks) {
             incrementDucksEscaped();
 
-            if (numOfDucksEscaped >= numOfDucksEscapedAllowed) {
-                resetGame();
-            }
-
             duckStates[duckResolveIndex] = DuckState::ESCAPED;
             AudioManager::Get().PlaySound("flapping", 1.0f);
             events.emit(DuckEscapedEvent{duckResolveIndex});

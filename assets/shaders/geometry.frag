@@ -70,7 +70,7 @@ void main() {
         }
 
         if (material.hasRoughnessMap) {
-            roughness = texture(material.metallicMap, TexCoords).x;
+            roughness = texture(material.roughnessMap, TexCoords).x;
         } else {
             roughness = material.roughness;
         }
