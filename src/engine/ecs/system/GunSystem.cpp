@@ -3,8 +3,16 @@
 #include "../src/engine/ecs/Entity.h"
 #include "../src/engine/ecs/components/Transform.h"
 #include "../src/engine/ecs/components/GunComponent.h"
+#include "../src/engine/ecs/components/RaycastSource.h"
+#include "../src/engine/ecs/components/HealthComponent.h"
 #include "../src/engine/renderer/Camera.h"
 #include "glm/gtc/quaternion.hpp"
+#include "../../core/managers/GameStateManager.h"
+#include "../../core/managers/AudioManager.h"
+#include "../../ecs/system/CollisionSystem.h"
+
+struct HealthComponent;
+struct RaycastSource;
 
 void GunSystem::update(World& world, Camera& camera, float deltaTime) {
     // Get all entities with Gun and Transform components
@@ -50,4 +58,34 @@ void GunSystem::applyRecoil(Entity& gunEntity) {
     auto& gun = gunEntity.getComponent<GunComponent>();
     gun.recoilOffset = gun.recoilOffsetAmount;
     gun.recoilPitch = gun.recoilPitchAmount;
+}
+
+void GunSystem::fire(World& world, Entity& gunEntity, Entity& sourceEntity, const Camera& camera) {
+
+    if (!GameStateManager::get().hasBulletsRemaining()) {
+        AudioManager::Get().PlaySound("no-ammo", 0.5f);
+        return;
+    }
+
+    GameStateManager::get().shootBullet();
+    AudioManager::Get().PlaySound("shoot", 0.5f);
+
+    applyRecoil(gunEntity);
+
+    if (sourceEntity.hasComponent<RaycastSource>()) {
+        auto& raySource = sourceEntity.getComponent<RaycastSource>();
+
+        raySource.direction = camera.front;
+        raySource.drawRay = true;
+
+        if (world.collisionSystem) {
+            auto result = world.collisionSystem->RaycastFromEntity(world.EntityManager, sourceEntity);
+
+            if (result.hit && result.hitEntity) {
+                if (result.hitEntity->hasComponent<HealthComponent>()) {
+                    world.lifecycleSystem.killDuck(*result.hitEntity);
+                }
+            }
+        }
+    }
 }
