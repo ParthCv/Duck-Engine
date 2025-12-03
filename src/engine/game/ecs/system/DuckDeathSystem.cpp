@@ -29,9 +29,6 @@ void DuckDeathSystem::update(World& world, float deltaTime) {
             // Update game state (score, UI, etc.)
             GameStateSystem::hitDuck(*gameState);
         }
-        if (health.timeSinceDeath > 0) {
-            std::cout << "Duck death" << std::endl;
-        }
     }
 }
 
