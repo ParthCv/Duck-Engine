@@ -22,11 +22,15 @@ void DuckDeathSystem::update(World& world, float deltaTime) {
         auto& health = duck->getComponent<HealthComponent>();
 
         // If the duck just died, apply death effects
-        if (health.isDead && health.timeSinceDeath < 0.01f) {
+        if (health.isDead && !health.isCooked) {
+            health.isCooked = true;
             handleDuckDeath(*duck);
 
             // Update game state (score, UI, etc.)
             GameStateSystem::hitDuck(*gameState);
+        }
+        if (health.timeSinceDeath > 0) {
+            std::cout << "Duck death" << std::endl;
         }
     }
 }

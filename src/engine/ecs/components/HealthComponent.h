@@ -2,6 +2,7 @@
 
 struct HealthComponent {
     bool isDead = false;
+    bool isCooked = false;
     bool isFalling = false;
     float timeSinceDeath = 0.0f;
     float pauseAfterKillDuration = 0.8f;
