@@ -38,7 +38,7 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
 
         if (hit.hit && hit.distance < closestDistance) {
             result.hit = true;
-            result.hitEntity = entity;
+            result.hitEntityID = entity->getID();
             result.hitInfo = hit;
             closestDistance = hit.distance;
         }
@@ -71,9 +71,9 @@ CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(
 
     if (result.hit) {
         raycastSource.lastHitPoint = result.hitInfo.point;
-        raycastSource.hitEntity = result.hitEntity; // Store the Duck/Entity hit
+        raycastSource.hitEntityID = result.hitEntityID; // Store the Duck/Entity ID hit
     } else {
-        raycastSource.hitEntity = nullptr; // Clear it on miss
+        raycastSource.hitEntityID = INVALID_ENTITY_ID; // Clear it on miss
     }
 
     return result;

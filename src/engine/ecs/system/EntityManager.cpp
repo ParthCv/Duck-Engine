@@ -19,6 +19,21 @@ std::vector<std::unique_ptr<Entity>>& EntityManager::GetEntities()
     return Entities;
 }
 
+Entity* EntityManager::GetEntityByID(EntityID id)
+{
+    if (id == INVALID_ENTITY_ID) {
+        return nullptr;
+    }
+
+    for (auto& entity : Entities) {
+        if (entity && entity->getID() == id) {
+            return entity.get();
+        }
+    }
+
+    return nullptr;
+}
+
 Entity& EntityManager::CreateEntity(World& InWorld)
 {
     Entities.emplace_back(std::make_unique<Entity>(InWorld));

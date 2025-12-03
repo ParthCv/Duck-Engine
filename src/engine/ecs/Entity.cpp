@@ -6,6 +6,10 @@ Entity::~Entity() {
 
 Entity::Entity(World& InWorld) : world(nullptr)
 {
+    // Generate unique entity ID
+    static EntityID nextID = 1;
+    entityID = nextID++;
+
     world = &InWorld;
 }
 

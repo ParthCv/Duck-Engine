@@ -81,9 +81,10 @@ void GunSystem::fire(World& world, Entity& gunEntity, Entity& sourceEntity, cons
         if (world.collisionSystem) {
             auto result = world.collisionSystem->RaycastFromEntity(world.EntityManager, sourceEntity);
 
-            if (result.hit && result.hitEntity) {
-                if (result.hitEntity->hasComponent<HealthComponent>()) {
-                    world.lifecycleSystem.killDuck(*result.hitEntity);
+            if (result.hit && result.hitEntityID != INVALID_ENTITY_ID) {
+                Entity* hitEntity = world.EntityManager.GetEntityByID(result.hitEntityID);
+                if (hitEntity && hitEntity->hasComponent<HealthComponent>()) {
+                    world.lifecycleSystem.killDuck(*hitEntity);
                 }
             }
         }

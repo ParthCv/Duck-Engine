@@ -2,11 +2,20 @@
 #include <array>
 #include <bitset>
 #include <cstddef>
+#include <cstdint>
 
 #include "ComponentType.h"
 
 
 class World;
+
+/*
+ * Entity ID type for safe entity references.
+ * 0 is reserved as an invalid ID.
+ */
+using EntityID = std::uint64_t;
+constexpr EntityID INVALID_ENTITY_ID = 0;
+
 /*
  * Define the maximum amount of components an Entity can have.
  */
@@ -31,6 +40,8 @@ class Entity
 ComponentArray ComponentArray{};
 ComponentBitSet ComponentBitSet{};
 
+EntityID entityID = INVALID_ENTITY_ID;
+
 public:
     virtual ~Entity();
 
@@ -38,6 +49,11 @@ public:
     bool bIsActive = true;
 
     Entity(World& InWorld);
+
+    /*
+     * Get the unique ID for this entity.
+     */
+    EntityID getID() const { return entityID; }
 
     virtual void update(float deltaTime);
 

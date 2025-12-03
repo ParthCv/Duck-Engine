@@ -1,5 +1,6 @@
 #pragma once
 #include "../src/engine/physics/RaycastUtils.h"
+#include "../Entity.h"
 #include <vector>
 #include <cfloat>
 
@@ -10,7 +11,7 @@ class CollisionSystem {
 public:
     struct RaycastResult {
         bool hit = false;
-        Entity* hitEntity = nullptr;
+        EntityID hitEntityID = INVALID_ENTITY_ID;
         Physics::RaycastHit hitInfo;
     };
 
