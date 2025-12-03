@@ -21,7 +21,6 @@ void LifecycleSystem::update(World& world, float deltaTime) {
                     if(entity->hasComponent<Velocity>()) {
                         auto& velocity = entity->getComponent<Velocity>();
 
-                        // FIX: Simplified Falling Logic
                         // Since MovementSystem is now World Space, we just set direction to World Down.
                         velocity.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
                         velocity.Speed = 50.0f; // Set a fast fall speed
@@ -53,6 +52,4 @@ void LifecycleSystem::killEntity(Entity& entity) {
         velocity.Speed = 0.0f;
     }
 
-    // Keep the rotation as-is so the entity doesn't visually "jump" when killed
-    // Game-specific systems (like DuckDeathSystem) should handle visual transformations
 }

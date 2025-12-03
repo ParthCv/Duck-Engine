@@ -14,10 +14,6 @@ public:
 
     float distanceFromCamera = 5;
 
-    // int numberOfDucksToSpawn = 5;
-    //
-    // int ducksPerRound = 5;
-
     float accumulatedTime = 0.0f;
 
     std::vector<glm::vec3> spawnPositions;

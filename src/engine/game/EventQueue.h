@@ -4,29 +4,6 @@
 #pragma once
 #include <vector>
 
-// struct DuckShotEvent {
-//     int duck; float x, y;
-// };
-// struct DuckEscapedEvent {
-//     int duck;
-// };
-// struct ResetDucksEvent { };
-// struct BulletFiredEvent {
-//     int remainingBullets;
-// };
-// struct ResetBulletsEvent { };
-// struct LevelCompleteEvent {
-//     int nextLevel;
-// };
-// struct StartNextRoundEvent { };
-// struct GameOverEvent {
-//     bool won;
-// };
-// struct StartGameEvent { };
-// struct UpdateScoreEvent {
-//     int newScore;
-// };
-
 struct DuckShotEvent {
     int duckId;
     int pointsAwarded;

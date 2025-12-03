@@ -15,9 +15,7 @@
 
 World::World()
 {
-    // Note: Entity creation moved to beginPlay() to ensure OpenGL context exists
     // before meshes are loaded.
-
     std::cout << "Entity Length: "<< EntityManager.GetEntities().size() << std::endl;
     collisionSystem = new CollisionSystem();
 
@@ -29,8 +27,6 @@ World::World()
     std::cout << "Point lights: " << lightManager.getPointLightCount() << std::endl;
 
     duckSpawnerManager = new DuckSpawnerManager(*this);
-
-    // Duck states will be initialized when gameStateEntity is created in beginPlay()
 }
 
 void World::update(float deltaTime)
@@ -62,10 +58,10 @@ void World::beginPlay()
 
     PlayerEntity.addComponent<Transform>(camPos, glm::vec3(0.0f), glm::vec3(1.0f));
 
-    // Create the gun entity (GunSystem will handle positioning and rotation)
+    // Create the gun entity
     gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
 
-    // This gameStateEntity stores the game state in components - following ECS principles now
+    // This gameStateEntity stores the game state in components
     gameStateEntity = &EntityManager.CreateEntity(*this);
     gameStateEntity->addComponent<GameRoundComponent>();
     gameStateEntity->addComponent<AmmoComponent>();

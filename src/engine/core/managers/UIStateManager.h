@@ -4,12 +4,12 @@
 
 class World;
 
-// Possible game states for Duck Hunt (TBD)
+// Possible game states for Duck Hunt
 enum class GameState {
     MENU,               // Main menu
     PLAYING,            // Active gameplay
     PAUSED,             // Game paused
-    ROUND_TRANSITION,   // Between rounds? Multiple rounds per game?
+    ROUND_TRANSITION,   // Between rounds
     GAME_OVER,          // All rounds complete or failed
     OPTIONS             // Settings menu (volume)
 };

@@ -4,7 +4,7 @@
 #include "glm/fwd.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp> // for glm::value_ptr if you need it
+#include <glm/gtc/type_ptr.hpp>
 #include "../ecs/World.h"
 
 #include "Shader.h"

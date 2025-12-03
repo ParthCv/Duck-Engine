@@ -51,10 +51,6 @@ void UIManager::initialize(int width, int height) {
         std::cerr << "[UIManager] Failed to load sprite atlas" << std::endl;
     }
 
-    // for (auto & duckState : duckStates) {
-    //     duckState = DuckState::NOT_SPAWNED  ;
-    // }
-
     std::cout << "[UIManager] Initialized successfully!" << std::endl;
 }
 
@@ -286,12 +282,6 @@ void UIManager::renderLoadingScreen() {
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
-//
-// void UIManager::resetDuckStates() {
-//     for (auto & duckState : duckStates) {
-//         duckState = DuckState::NOT_SPAWNED;
-//     }
-// }
 
 std::string UIManager::formatScore(int score) {
     // Clamp to 4 digits max (0-9999)
@@ -918,25 +908,6 @@ void UIManager::setupPlayingUI() {
     crosshair.position = glm::vec2(0, 0);
     activeCrosshairIndex = addCrosshair(crosshair);
 
-    // // Score text (top-left)
-    // UIText scoreText;
-    // scoreText.id = "score_text";
-    // scoreText.text = "SCORE: " + formatScore(GameStateManager::get().getScore());
-    // scoreText.position = glm::vec2(20, 20);
-    // scoreText.fontSize = 36.0f;
-    // scoreText.anchor = UIAnchor::TOP_LEFT;
-    // scoreText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    // addText(scoreText);
-    //
-    // // Round text (top-right)
-    // UIText roundText;
-    // roundText.id = "round_text";
-    // roundText.text = "ROUND: " + std::to_string(GameStateManager::get().getRound());
-    // roundText.position = glm::vec2(20, 20);
-    // roundText.fontSize = 36.0f;
-    // roundText.anchor = UIAnchor::TOP_RIGHT;
-    // roundText.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    // addText(roundText);
 }
 
 void UIManager::setupPausedUI(UIStateManager* stateManager) {

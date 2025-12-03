@@ -158,7 +158,6 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
     floorMaterial.loadAlbedoMap("../assets/textures/pbr_ground/albedo.png");
-    // floorMaterial.loadAOMap("../assets/textures/pbr_ground/ao.png");
     floorMaterial.loadNormalMap("../assets/textures/pbr_ground/normals.png");
     floorMaterial.loadRoughnessMap("../assets/textures/pbr_ground/roughness.png");
 
@@ -205,7 +204,7 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
     world.camera = &camera;
     world.beginPlay();
 
-    // Set game state entity for UI manager (ECS-based state access)
+    // Set game state entity for UI manager
     uiManager.setGameStateEntity(world.getGameStateEntity());
 
     updateLoadingScreen();
@@ -268,20 +267,20 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
-    // Update input first (Always needed for UI navigation)
+    // Update input first
     InputManager::update();
 
-    // Update game state (Handles camera inputs when playing, UI logic, Etc)
+    // Update game state
     stateManager.update(deltaTime);
 
-    // Update UI (Always needed)
+    // Update UI
     uiManager.update(deltaTime);
 
     if (stateManager.getCurrentState() == GameState::PLAYING) {
         world.update(deltaTime);
     }
 
-    // Process game events (e.g., GameOverEvent)
+    // Process game events
     processGameEvents();
 }
 
@@ -438,7 +437,7 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
     if (newState == GameState::MENU && (oldState == GameState::PLAYING || oldState == GameState::PAUSED || oldState == GameState::GAME_OVER)) {
         std::cout << "[Engine] Cleaning up game state and entities..." << std::endl;
 
-        // Reset game state (score, round, bullets, etc.) without sound effects
+        // Reset game state
         Entity* gameState = world.getGameStateEntity();
         if (gameState) {
             GameStateSystem::resetGameState(*gameState);

@@ -66,7 +66,6 @@ CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(
         raycastSource.maxDistance
     );
 
-    // ECS Pattern: Update the component data with the result
     raycastSource.lastHit = result.hit;
 
     if (result.hit) {
@@ -90,7 +89,7 @@ std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
     for (auto* entity : entities) {
         if (!entity->getIsActive()) continue;
 
-        // Skip dead entities (they shouldn't be included in area queries)
+        // Skip dead entities
         if (entity->hasComponent<HealthComponent>()) {
             auto& health = entity->getComponent<HealthComponent>();
             if (health.isDead) continue;

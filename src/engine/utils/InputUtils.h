@@ -13,7 +13,6 @@ public:
     }
 
     // Create a ray from camera through mouse position into world space
-    // Useful for 3D picking/shooting in Duck Hunt
     static glm::vec3 screenToWorldRay(glm::vec2 screenPos, int screenWidth, int screenHeight,
                                        const Camera& camera) {
         // Convert to NDC
@@ -36,25 +35,6 @@ public:
         return glm::normalize(rayDirection);
     }
 
-    // Check if a ray intersects with a sphere (useful for duck hit detection)
-    // Returns true if hit, and sets hitDistance to the distance along the ray
-    static bool raySphereIntersection(glm::vec3 rayOrigin, glm::vec3 rayDirection,
-                                      glm::vec3 sphereCenter, float sphereRadius,
-                                      float& hitDistance) {
-        glm::vec3 oc = rayOrigin - sphereCenter;
-        float a = glm::dot(rayDirection, rayDirection);
-        float b = 2.0f * glm::dot(oc, rayDirection);
-        float c = glm::dot(oc, oc) - sphereRadius * sphereRadius;
-        float discriminant = b * b - 4 * a * c;
-
-        if (discriminant < 0) {
-            return false; // No intersection
-        }
-
-        // Calculate nearest intersection point
-        hitDistance = (-b - glm::sqrt(discriminant)) / (2.0f * a);
-        return hitDistance > 0; // Only count hits in front of camera
-    }
 
     // Check if a point is within a 2D rectangle (useful for UI buttons)
     static bool pointInRect(glm::vec2 point, glm::vec2 rectPos, glm::vec2 rectSize) {

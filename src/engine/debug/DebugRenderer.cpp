@@ -95,8 +95,6 @@ void DebugRenderer::drawBox(Shader debugShader, const glm::vec3& position, const
     model = glm::translate(model, position);
     model = glm::scale(model, size);
 
-    // We use the engine's default basic shader for now
-    // TODO: Write wireframe debug shader
     debugShader.setMat4("model", model);
 
     glBindVertexArray(cubeVAO);
@@ -126,8 +124,6 @@ void DebugRenderer::drawLine(Shader debugShader, const glm::vec3& start, const g
 
     auto lineModel = glm::mat4(1.0f);
 
-    // We use the engine's default basic shader for now
-    // TODO: Write wireframe debug shader
     debugShader.setMat4("model", lineModel);
 
     glBindVertexArray(lineVAO);

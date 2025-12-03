@@ -2,7 +2,6 @@
 #include <cstring>
 #include <iostream>
 
-// Initialize static members
 GLFWwindow* InputManager::windowPtr = nullptr;
 glm::vec2 InputManager::mousePosition = glm::vec2(0.0f);
 glm::vec2 InputManager::mousePreviousPosition = glm::vec2(0.0f);
@@ -33,7 +32,7 @@ void InputManager::initialize(GLFWwindow* window) {
     mousePosition = glm::vec2(static_cast<float>(xpos), static_cast<float>(ypos));
     mousePreviousPosition = mousePosition;
 
-    // Still set window size callback (this usually works)
+    // Still set window size callback
     glfwSetWindowSizeCallback(window, windowSizeCallback);
 
     std::cout << "[InputManager] Initialized successfully (using direct polling)!" << std::endl;
@@ -49,8 +48,6 @@ void InputManager::update() {
     std::memcpy(mouseButtonsPrevious, mouseButtons, sizeof(mouseButtons));
     std::memcpy(keysPrevious, keys, sizeof(keys));
     mousePreviousPosition = mousePosition;
-
-    // === POLL ALL INPUT DIRECTLY ===
 
     // Poll commonly used keys
     keys[GLFW_KEY_SPACE] = (glfwGetKey(windowPtr, GLFW_KEY_SPACE) == GLFW_PRESS);
@@ -180,7 +177,7 @@ int InputManager::getWindowHeight() {
     return windowHeight;
 }
 
-// Only the window size callback (this one usually works)
+// Only the window size callback
 void InputManager::windowSizeCallback(GLFWwindow* window, int width, int height) {
     windowWidth = width;
     windowHeight = height;

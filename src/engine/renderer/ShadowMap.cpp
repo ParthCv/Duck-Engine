@@ -76,9 +76,7 @@ void ShadowMap::render(World& world) {
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    // glCullFace(GL_FRONT); // Cull backfaces to offset peter-panning
     renderScene(world);
-    // glCullFace(GL_BACK);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

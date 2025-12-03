@@ -21,11 +21,11 @@ void DuckDeathSystem::update(World& world, float deltaTime) {
     for (auto* duck : ducks) {
         auto& health = duck->getComponent<HealthComponent>();
 
-        // If the duck just died (timeSinceDeath is very small), apply death effects
+        // If the duck just died, apply death effects
         if (health.isDead && health.timeSinceDeath < 0.01f) {
             handleDuckDeath(*duck);
 
-            // Update game state (score, UI, etc.) using ECS
+            // Update game state (score, UI, etc.)
             GameStateSystem::hitDuck(*gameState);
         }
     }

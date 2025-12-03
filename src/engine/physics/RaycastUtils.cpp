@@ -17,7 +17,7 @@ namespace Physics {
 
         for (int i = 0; i < 3; ++i) {
             if (std::abs(rayDir[i]) < 0.0001f) {
-                // Ray is parallel to slab
+                // Ray is parallel to slab check
                 if (rayOrigin[i] < aabbMin[i] || rayOrigin[i] > aabbMax[i]) {
                     return result; // Miss
                 }
