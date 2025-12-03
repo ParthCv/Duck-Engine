@@ -7,7 +7,7 @@
 int main() {
     Engine engine;
 
-    if (!engine.initialize(WIDTH, HEIGHT, false)) {
+    if (!engine.initialize(WIDTH, HEIGHT, true)) {
         std::cerr << "Failed to initialize engine" << std::endl;
         return -1;
     }
