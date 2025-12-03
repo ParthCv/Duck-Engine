@@ -54,6 +54,7 @@ void World::update(float deltaTime)
     movementSystem.update(*this, deltaTime);
     boundsSystem.update(*this, deltaTime);
     lifecycleSystem.update(*this, deltaTime);
+    duckDeathSystem.update(*this, deltaTime);  // Handle duck-specific death visuals
     gunSystem.update(*this, *camera, deltaTime);
 
     EntityManager.Update(deltaTime);

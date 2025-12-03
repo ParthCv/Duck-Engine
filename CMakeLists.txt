@@ -67,6 +67,7 @@ add_executable(DuckEngine
         src/engine/game/ecs/GunEntity.h
         src/engine/ecs/system/GunSystem.h
         src/engine/ecs/system/GunSystem.cpp
+        src/engine/game/ecs/system/DuckDeathSystem.cpp
 )
 
 

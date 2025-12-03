@@ -4,11 +4,6 @@
 #include "../src/engine/ecs/components/Transform.h"
 #include "../src/engine/ecs/components/Velocity.h"
 #include "../src/engine/ecs/components/HealthComponent.h"
-#include "../src/engine/ecs/components/StaticMeshComponent.h"
-#include "../src/engine/core/managers/GameStateManager.h"
-#include "../src/engine/core/managers/AudioManager.h"
-#include "../src/engine/core/managers/ResourceManager.h"
-#include <iostream>
 
 void LifecycleSystem::update(World& world, float deltaTime) {
     for (auto& entity : world.EntityManager.GetEntities()) {
@@ -42,35 +37,22 @@ void LifecycleSystem::update(World& world, float deltaTime) {
     }
 }
 
-void LifecycleSystem::killDuck(Entity& entity) {
+void LifecycleSystem::killEntity(Entity& entity) {
     if (!entity.hasComponent<HealthComponent>()) return;
 
     auto& health = entity.getComponent<HealthComponent>();
     if (health.isDead) return;
 
+    // Set death flag
     health.isDead = true;
-    AudioManager::Get().PlaySound("quack");
-    GameStateManager::get().hitDuck();
-    std::cout << "Duck Died" << std::endl;
 
+    // Stop movement (generic death behavior)
     if (entity.hasComponent<Velocity>()) {
         auto& velocity = entity.getComponent<Velocity>();
-        // Stop the bird mid-air
         velocity.Direction = glm::vec3(0.0f);
         velocity.Speed = 0.0f;
     }
 
-    // Keep the rotation as-is so the duck doesn't visually "jump" when killed
-    // The duck will fall in whatever orientation it had when shot (more natural)
-
-    if (entity.hasComponent<StaticMeshComponent>() && entity.hasComponent<Transform>()) {
-        auto& mesh = entity.getComponent<StaticMeshComponent>();
-        auto& transform = entity.getComponent<Transform>();
-
-        mesh.Mesh = ResourceManager::Get().GetStaticMesh("turkey.obj");
-        mesh.material = ResourceManager::Get().GetMaterial("turkey");
-
-        // Scale down the turkey model to match the duck size (turkey model is larger)
-        transform.scale = glm::vec3(2.0f);
-    }
+    // Keep the rotation as-is so the entity doesn't visually "jump" when killed
+    // Game-specific systems (like DuckDeathSystem) should handle visual transformations
 }

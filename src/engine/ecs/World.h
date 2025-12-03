@@ -10,6 +10,7 @@
 #include "../ecs/system/BoundsSystem.h"
 #include "../ecs/system/LifecycleSystem.h"
 #include "../ecs/system/GunSystem.h"
+#include "../game/ecs/system/DuckDeathSystem.h"
 
 class DuckSpawnerManager;
 
@@ -27,6 +28,7 @@ public:
     MovementSystem movementSystem;
     BoundsSystem boundsSystem;
     LifecycleSystem lifecycleSystem;
+    DuckDeathSystem duckDeathSystem;
     GunSystem gunSystem;
 
     World();
