@@ -65,14 +65,6 @@ public:
                 pitch = -89.0f;
         }
 
-        // === SHOOTING RANGE CONSTRAINT ===
-        // Restrict Yaw to 180 degrees centered on -90 (Forward)
-        // Range: [-180, 0]
-        // if (yaw > 0.0f)
-        //     yaw = 0.0f;
-        // if (yaw < -180.0f)
-        //     yaw = -180.0f;
-
         updateCameraVectors();
     }
 

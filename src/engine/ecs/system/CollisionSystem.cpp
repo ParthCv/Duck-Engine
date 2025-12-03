@@ -38,7 +38,7 @@ CollisionSystem::RaycastResult CollisionSystem::Raycast(
 
         if (hit.hit && hit.distance < closestDistance) {
             result.hit = true;
-            result.hitEntity = entity;
+            result.hitEntityID = entity->getID();
             result.hitInfo = hit;
             closestDistance = hit.distance;
         }
@@ -66,14 +66,13 @@ CollisionSystem::RaycastResult CollisionSystem::RaycastFromEntity(
         raycastSource.maxDistance
     );
 
-    // ECS Pattern: Update the component data with the result
     raycastSource.lastHit = result.hit;
 
     if (result.hit) {
         raycastSource.lastHitPoint = result.hitInfo.point;
-        raycastSource.hitEntity = result.hitEntity; // Store the Duck/Entity hit
+        raycastSource.hitEntityID = result.hitEntityID; // Store the Duck/Entity ID hit
     } else {
-        raycastSource.hitEntity = nullptr; // Clear it on miss
+        raycastSource.hitEntityID = INVALID_ENTITY_ID; // Clear it on miss
     }
 
     return result;
@@ -90,7 +89,7 @@ std::vector<Entity*> CollisionSystem::GetEntitiesInBox(
     for (auto* entity : entities) {
         if (!entity->getIsActive()) continue;
 
-        // Skip dead entities (they shouldn't be included in area queries)
+        // Skip dead entities
         if (entity->hasComponent<HealthComponent>()) {
             auto& health = entity->getComponent<HealthComponent>();
             if (health.isDead) continue;

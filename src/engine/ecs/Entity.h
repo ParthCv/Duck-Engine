@@ -2,34 +2,32 @@
 #include <array>
 #include <bitset>
 #include <cstddef>
+#include <cstdint>
 
 #include "ComponentType.h"
 
 
 class World;
-/*
- * Define the maximum amount of components an Entity can have.
- */
+
+
+using EntityID = std::uint64_t;
+constexpr EntityID INVALID_ENTITY_ID = 0;
+
+//maximum amount of components an Entity can have.
+
 constexpr std::size_t MAX_COMPONENTS = 32;
 
-/*
- * A bitset is like an array, but 1 or 0.
- * bitset[0] = 1; entity has a component
- * Bit operation are fast and work well for checking things each frame.
- */
 using ComponentBitSet = std::bitset<MAX_COMPONENTS>;
 
-/*
- * Fixed-size array, where each index is a Component (represented by void* pointer)
- * The index corresponds to the ComponentTypeID.
- * We use a fixed number of components so there's no dynamic allocation.
- */
+// Each index is a Component , The index corresponds to the ComponentTypeID.
 using ComponentArray = std::array<void*, MAX_COMPONENTS>;
 
 class Entity
 {
 ComponentArray ComponentArray{};
 ComponentBitSet ComponentBitSet{};
+
+EntityID entityID = INVALID_ENTITY_ID;
 
 public:
     virtual ~Entity();
@@ -39,15 +37,14 @@ public:
 
     Entity(World& InWorld);
 
+    EntityID getID() const { return entityID; }
+
     virtual void update(float deltaTime);
 
     virtual void beginPlay();
 
     bool getIsActive() const;
 
-    /*
-     * Marks this Entity for destruction.
-     */
     void destroy();
 
     template<typename T>
@@ -62,7 +59,6 @@ public:
         // Implements Perfect Fowarding; everything is not treated as a l-value. More efficient with moves and temporaries.
         T* component(new T(std::forward<nArgs>(args)...));
 
-        // Add the new component to the Array
         ComponentArray[getComponentTypeID<T>()] = component;
         ComponentBitSet[getComponentTypeID<T>()] = true;
 

@@ -11,6 +11,5 @@ struct RaycastSource {
     bool lastHit = false;
     glm::vec3 lastHitPoint{};
 
-    // ECS Pattern: Store the hit entity here so systems can process it later
-    Entity* hitEntity = nullptr;
+    EntityID hitEntityID = INVALID_ENTITY_ID;
 };

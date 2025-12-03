@@ -6,7 +6,7 @@
 #include "managers/AudioManager.h"
 #include "managers/UIStateManager.h"
 #include "managers/InputManager.h"
-#include "managers/GameStateManager.h"
+#include "../game/ecs/system/GameStateSystem.h"
 #include "../game/EventQueue.h"
 #include "../ecs/components/DuckComponent.h"
 
@@ -158,7 +158,6 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
     cubeMaterial.loadAOMap("../assets/textures/pbr/ao.png");
 
     floorMaterial.loadAlbedoMap("../assets/textures/pbr_ground/albedo.png");
-    // floorMaterial.loadAOMap("../assets/textures/pbr_ground/ao.png");
     floorMaterial.loadNormalMap("../assets/textures/pbr_ground/normals.png");
     floorMaterial.loadRoughnessMap("../assets/textures/pbr_ground/roughness.png");
 
@@ -204,6 +203,9 @@ bool Engine::initialize(int width, int height, bool fullscreen) {
 
     world.camera = &camera;
     world.beginPlay();
+
+    // Set game state entity for UI manager
+    uiManager.setGameStateEntity(world.getGameStateEntity());
 
     updateLoadingScreen();
 
@@ -265,20 +267,20 @@ void Engine::processInput() {
 }
 
 void Engine::update(float deltaTime) {
-    // Update input first (Always needed for UI navigation)
+    // Update input first
     InputManager::update();
 
-    // Update game state (Handles camera inputs when playing, UI logic, Etc)
+    // Update game state
     stateManager.update(deltaTime);
 
-    // Update UI (Always needed)
+    // Update UI
     uiManager.update(deltaTime);
 
     if (stateManager.getCurrentState() == GameState::PLAYING) {
         world.update(deltaTime);
     }
 
-    // Process game events (e.g., GameOverEvent)
+    // Process game events
     processGameEvents();
 }
 
@@ -435,8 +437,11 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
     if (newState == GameState::MENU && (oldState == GameState::PLAYING || oldState == GameState::PAUSED || oldState == GameState::GAME_OVER)) {
         std::cout << "[Engine] Cleaning up game state and entities..." << std::endl;
 
-        // Reset game state (score, round, bullets, etc.) without sound effects
-        GameStateManager::get().resetGameState();
+        // Reset game state
+        Entity* gameState = world.getGameStateEntity();
+        if (gameState) {
+            GameStateSystem::resetGameState(*gameState);
+        }
 
         // Destroy only duck entities (keep player, gun, environment)
         auto duckEntities = world.EntityManager.GetEntitiesWith<DuckComponent>();
@@ -455,7 +460,7 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
         }
 
         // Clear any pending events
-        GameStateManager::get().clearEvents();
+        GameStateSystem::clearEvents();
 
         std::cout << "[Engine] Game cleanup complete" << std::endl;
     }
@@ -481,7 +486,7 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
         }
 
         // Clear any pending events
-        GameStateManager::get().clearEvents();
+        GameStateSystem::clearEvents();
 
         std::cout << "[Engine] Restart cleanup complete" << std::endl;
     }
@@ -539,8 +544,7 @@ void Engine::handleStateChange(GameState oldState, GameState newState) {
 }
 
 void Engine::processGameEvents() {
-    auto& events = GameStateManager::get().getEvents();
-    const auto& gameOverEvents = events.get<GameOverEvent>();
+    const auto& gameOverEvents = GameStateSystem::getEvents<GameOverEvent>();
 
     // Check if a GameOverEvent was emitted
     if (!gameOverEvents.empty()) {

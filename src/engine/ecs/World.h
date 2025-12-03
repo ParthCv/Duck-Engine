@@ -10,13 +10,13 @@
 #include "../ecs/system/BoundsSystem.h"
 #include "../ecs/system/LifecycleSystem.h"
 #include "../ecs/system/GunSystem.h"
+#include "../game/ecs/system/DuckDeathSystem.h"
 
 class DuckSpawnerManager;
 
 class World
 {
 public:
-    // TODO: Remove later: Temp Variables
     Camera* camera;
     Shader* basicShader;
     EntityManager EntityManager;
@@ -27,6 +27,7 @@ public:
     MovementSystem movementSystem;
     BoundsSystem boundsSystem;
     LifecycleSystem lifecycleSystem;
+    DuckDeathSystem duckDeathSystem;
     GunSystem gunSystem;
 
     World();
@@ -38,8 +39,13 @@ public:
     void addLightsToWorld();
 
     void cleanUp();
+
+    // Get the game state entity for ECS-based state management
+    Entity* getGameStateEntity() const { return gameStateEntity; }
+
 private:
     Entity* gunEntity = nullptr;
+    Entity* gameStateEntity = nullptr;
 
     // Recoil State
     float gunRecoilOffset = 0.0f; // Z-axis kickback

@@ -204,22 +204,10 @@ public:
     // Utility
     void setDebugMode(bool enabled) { debugMode = enabled; }
 
+    // Set game state entity for ECS-based UI updates
+    void setGameStateEntity(class Entity* entity) { gameStateEntity = entity; }
+
     void renderLoadingScreen();
-
-    // enum class DuckState {
-    //     NOT_SPAWNED,
-    //     SPAWNED,
-    //     HIT,
-    //     ESCAPED
-    // };
-    //
-    // DuckState duckStates[10];
-    //
-    // int currentAmmo = 10;
-    // int currentScore = 0;
-    // int currentRound = 1;
-
-    // void resetDuckStates();
 
     void renderDuckStatusBar();
 
@@ -229,15 +217,6 @@ public:
 
     void renderRound();
 
-    // void setDuckState(int duckIndex, DuckState state) {duckStates[duckIndex] = state;}
-
-    // void setAmmo(int ammo) { currentAmmo = glm::clamp(ammo, 0, 10); }
-    //
-    // void setScore(int score) { currentScore = score; }
-    //
-    // void setRound(int round) { currentRound = round; }
-    //
-    // void addScore(int points) { currentScore += points; }
 private:
     // OpenGL rendering setup
     Shader uiShader;
@@ -266,6 +245,9 @@ private:
 
     // Flag to control HUD rendering
     bool showGameplayHUD;
+
+    // Game state entity for ECS-based state access
+    class Entity* gameStateEntity = nullptr;
 
     struct SpriteCoords {
         int x, y, w, h;

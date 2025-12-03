@@ -13,6 +13,8 @@ public:
 
     std::vector<std::unique_ptr<Entity>>& GetEntities();
 
+    Entity* GetEntityByID(EntityID id);
+
     Entity& CreateEntity(World& InWorld);
 
     Entity& CreateDeferredEntity(World& InWorld);

@@ -6,9 +6,9 @@
 #include "../../ecs/Component.h"
 #include "../../utils/InputUtils.h"
 #include "../../ecs/system/CollisionSystem.h"
+#include "../../game/ecs/system/GameStateSystem.h"
 #include "InputManager.h"
 #include "AudioManager.h"
-#include "GameStateManager.h"
 
 UIStateManager::UIStateManager()
     : currentState(GameState::MENU)
@@ -110,7 +110,12 @@ void UIStateManager::restartGame() {
     std::cout << "[UIStateManager] restarting game..." << std::endl;
 
     // Reset game state to initial values
-    GameStateManager::get().resetGameState();
+    if (worldContext) {
+        Entity* gameState = worldContext->getGameStateEntity();
+        if (gameState) {
+            GameStateSystem::resetGameState(*gameState);
+        }
+    }
 
     // Transition back to playing state
     setState(GameState::PLAYING);
@@ -172,41 +177,6 @@ void UIStateManager::updatePlaying(float deltaTime) {
     // --- 3. DUCK SPAWNING LOGIC ---
     static float spawnTimer = 0.0f;
     const float SPAWN_INTERVAL = 2.0f;
-
-    // spawnTimer += deltaTime;
-    // if (spawnTimer >= SPAWN_INTERVAL) {
-    //     spawnTimer = 0.0f;
-    //
-    //     // Determine spawn side: 50% Left (-1), 50% Right (+1) relative to camera
-    //     bool spawnLeft = (rand() % 2) == 0;
-    //     float sideMultiplier = spawnLeft ? -1.0f : 1.0f;
-    //
-    //     float distForward = 15.0f;  // Distance in front of camera
-    //     float distSide = 35.0f;     // How far to the left/right
-    //     float randUp = 0.0f + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 6.0f;
-    //
-    //     // Position = CameraPos + (Forward * depth) + (Right * side) + (Up * height)
-    //     glm::vec3 spawnPos = worldContext->camera->position
-    //                        + (cameraFwd * distForward)
-    //                        + (cameraRight * (distSide * sideMultiplier))
-    //                        + (cameraUp * randUp);
-    //
-    //     // Spawn the duck
-    //     DuckEntity& newDuck = worldContext->EntityManager.CreateDuckEntity(*worldContext, spawnPos);
-    //     GameStateManager::get().decrementNumOfDucks();
-    //     if (newDuck.hasComponent<Velocity>() && newDuck.hasComponent<Transform>()) {
-    //         //float speed = 2.0f;
-    //         float speed = GameStateManager::get().getDuckSpeedBasedOnRound();
-    //
-    //         newDuck.getComponent<Transform>().rotation = camRot;
-    //
-    //         if (!spawnLeft) {
-    //              newDuck.getComponent<Transform>().WorldRotate(180.0f, glm::vec3(0,1,0));
-    //         }
-    //
-    //         newDuck.getComponent<Velocity>().setVelocity(glm::vec3(1.0f, 0.0f, 0.0f), speed);
-    //     }
-    // }
 
     // Update all entities in the world
     worldContext->EntityManager.Update(deltaTime);
