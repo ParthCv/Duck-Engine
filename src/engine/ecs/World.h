@@ -17,7 +17,6 @@ class DuckSpawnerManager;
 class World
 {
 public:
-    // TODO: Remove later: Temp Variables
     Camera* camera;
     Shader* basicShader;
     EntityManager EntityManager;
@@ -40,8 +39,13 @@ public:
     void addLightsToWorld();
 
     void cleanUp();
+
+    // Get the game state entity for ECS-based state management
+    Entity* getGameStateEntity() const { return gameStateEntity; }
+
 private:
     Entity* gunEntity = nullptr;
+    Entity* gameStateEntity = nullptr;
 
     // Recoil State
     float gunRecoilOffset = 0.0f; // Z-axis kickback

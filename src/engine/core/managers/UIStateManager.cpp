@@ -6,9 +6,9 @@
 #include "../../ecs/Component.h"
 #include "../../utils/InputUtils.h"
 #include "../../ecs/system/CollisionSystem.h"
+#include "../../game/ecs/system/GameStateSystem.h"
 #include "InputManager.h"
 #include "AudioManager.h"
-#include "GameStateManager.h"
 
 UIStateManager::UIStateManager()
     : currentState(GameState::MENU)
@@ -110,7 +110,12 @@ void UIStateManager::restartGame() {
     std::cout << "[UIStateManager] restarting game..." << std::endl;
 
     // Reset game state to initial values
-    GameStateManager::get().resetGameState();
+    if (worldContext) {
+        Entity* gameState = worldContext->getGameStateEntity();
+        if (gameState) {
+            GameStateSystem::resetGameState(*gameState);
+        }
+    }
 
     // Transition back to playing state
     setState(GameState::PLAYING);

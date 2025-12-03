@@ -204,6 +204,9 @@ public:
     // Utility
     void setDebugMode(bool enabled) { debugMode = enabled; }
 
+    // Set game state entity for ECS-based UI updates
+    void setGameStateEntity(class Entity* entity) { gameStateEntity = entity; }
+
     void renderLoadingScreen();
 
     // enum class DuckState {
@@ -266,6 +269,9 @@ private:
 
     // Flag to control HUD rendering
     bool showGameplayHUD;
+
+    // Game state entity for ECS-based state access
+    class Entity* gameStateEntity = nullptr;
 
     struct SpriteCoords {
         int x, y, w, h;

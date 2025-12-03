@@ -4,7 +4,9 @@
 #include "UIStateManager.h"
 #include "InputManager.h"
 #include "AudioManager.h"
-#include "GameStateManager.h"
+#include "../../ecs/Entity.h"
+#include "../../game/ecs/system/GameStateSystem.h"
+#include "../../game/ecs/components/GameRoundComponent.h"
 
 
 UIManager::UIManager()
@@ -71,12 +73,16 @@ void UIManager::renderDuckStatusBar() {
     );
 
 
-    for (int i = 0; i < GameStateManager::get().getMaxNumOfDucks(); i++) {
+    if (!gameStateEntity) return; // Early exit if no game state
+
+    int maxDucks = GameStateSystem::getMaxNumOfDucks(*gameStateEntity);
+    for (int i = 0; i < maxDucks; i++) {
         int duckX = panelX + 10 + (i * spacing);
         int duckY = panelY + (panelHeight - duckSize) / 2;
 
         SpriteCoords sprite;
-        switch (GameStateManager::get().getDuckStateAtIndex(i)) {
+        int duckStateInt = GameStateSystem::getDuckStateAtIndex(*gameStateEntity, i);
+        switch (static_cast<DuckState>(duckStateInt)) {
             case DuckState::NOT_SPAWNED:
                 sprite = sprite_duck_not_spawned;
                 break;
@@ -128,11 +134,15 @@ void UIManager::renderAmmoBar() {
 
     int bulletStartY = panelY + panelHeight - bulletSize - 10;
 
+    if (!gameStateEntity) return; // Early exit if no game state
 
-    for (int i = 0; i < GameStateManager::get().getMaxNumOfBullets(); i++) {
+    int maxBullets = GameStateSystem::getMaxNumOfBullets(*gameStateEntity);
+    int currentBullets = GameStateSystem::getNumOfBullets(*gameStateEntity);
+
+    for (int i = 0; i < maxBullets; i++) {
         int bulletX = panelX + 10 + (i * spacing);
 
-        if (i < GameStateManager::get().getNumOfBullets()) {
+        if (i < currentBullets) {
             renderSprite(
                 glm::vec2(bulletX, bulletStartY),
                 glm::vec2(bulletSize, bulletSize),
@@ -174,7 +184,8 @@ void UIManager::renderScore() {
 
     // Score value (larger, gold color)
     float scoreScale = 36.0f / 30.0f;
-    std::string scoreText = formatScore(GameStateManager::get().getScore());
+    int score = gameStateEntity ? GameStateSystem::getScore(*gameStateEntity) : 0;
+    std::string scoreText = formatScore(score);
     font.renderText(
         scoreText,
         panelX + 10,
@@ -216,7 +227,8 @@ void UIManager::renderRound() {
 
     // Round value (larger, white)
     float roundScale = 36.0f / 30.0f;
-    std::string roundText = std::to_string(GameStateManager::get().getRound());
+    int round = gameStateEntity ? GameStateSystem::getRound(*gameStateEntity) : 1;
+    std::string roundText = std::to_string(round);
     font.renderText(
         roundText,
         panelX + 10,
@@ -983,9 +995,9 @@ void UIManager::setupGameOverUI(UIStateManager* stateManager) {
 
     std::cout << "[UIManager] Setting up GAME OVER UI" << std::endl;
 
-    // Get actual score from GameStateManager
-    int actualScore = GameStateManager::get().getScore();
-    int roundReached = GameStateManager::get().getRound();
+    // Get actual score from gameStateEntity
+    int actualScore = gameStateEntity ? GameStateSystem::getScore(*gameStateEntity) : 0;
+    int roundReached = gameStateEntity ? GameStateSystem::getRound(*gameStateEntity) : 1;
 
     // Game Over title
     UIText gameOverTitle;

@@ -12,8 +12,11 @@ enum class DuckState {
 struct GameRoundComponent {
     int currentRound = 1;
     int maxDucksPerRound = 10;
-    int ducksSpawned = 0;
-    int ducksResolved = 0;
+
+    // Two separate counters for UI tracking
+    int duckSpawnIndex = 0;     // Next slot to mark as SPAWNED (0-9)
+    int duckResolveIndex = 0;   // Next slot to mark as HIT/ESCAPED (0-9)
+
     int ducksEscaped = 0;
     int maxDucksEscapedAllowed = 3;
 

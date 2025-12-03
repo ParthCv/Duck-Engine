@@ -7,7 +7,7 @@
 #include "../src/engine/ecs/components/HealthComponent.h"
 #include "../src/engine/renderer/Camera.h"
 #include "glm/gtc/quaternion.hpp"
-#include "../../core/managers/GameStateManager.h"
+#include "../../game/ecs/system/GameStateSystem.h"
 #include "../../core/managers/AudioManager.h"
 #include "../../ecs/system/CollisionSystem.h"
 
@@ -61,13 +61,16 @@ void GunSystem::applyRecoil(Entity& gunEntity) {
 }
 
 void GunSystem::fire(World& world, Entity& gunEntity, Entity& sourceEntity, const Camera& camera) {
+    // Get game state entity for ammo tracking
+    Entity* gameState = world.getGameStateEntity();
+    if (!gameState) return;
 
-    if (!GameStateManager::get().hasBulletsRemaining()) {
+    if (!GameStateSystem::hasAmmo(*gameState)) {
         AudioManager::Get().PlaySound("no-ammo", 0.5f);
         return;
     }
 
-    GameStateManager::get().shootBullet();
+    GameStateSystem::consumeAmmo(*gameState);
     AudioManager::Get().PlaySound("shoot", 0.5f);
 
     applyRecoil(gunEntity);

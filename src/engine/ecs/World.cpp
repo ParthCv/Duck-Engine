@@ -4,9 +4,10 @@
 #include <ctime>
 
 #include "Component.h"
-#include "../core/managers/GameStateManager.h"
 #include "../game/DuckFactory.h"
 #include "../game/ecs/GunEntity.h"
+#include "../game/ecs/components/GameRoundComponent.h"
+#include "../game/ecs/system/GameStateSystem.h"
 #include "../renderer/Camera.h"
 #include "GLFW/glfw3.h"
 #include "../ecs/system/CollisionSystem.h"
@@ -29,7 +30,7 @@ World::World()
 
     duckSpawnerManager = new DuckSpawnerManager(*this);
 
-    GameStateManager::get().resetDuckStates();  // Initialize Duck State array
+    // Duck states will be initialized when gameStateEntity is created in beginPlay()
 }
 
 void World::update(float deltaTime)
@@ -41,15 +42,6 @@ void World::update(float deltaTime)
     float recoverySpeed = 10.0f;
     gunRecoilOffset = glm::mix(gunRecoilOffset, 0.0f, deltaTime * recoverySpeed);
     gunRecoilPitch  = glm::mix(gunRecoilPitch, 0.0f, deltaTime * recoverySpeed);
-
-    // if (lightManager.getDirectionalLightCount() > 0) {
-    //     auto& dirLight = lightManager.getDirectionalLight(0);
-    //
-    //     // Rotate around Y axis
-    //     float angle = deltaTime * 0.2f; // Rotation speed
-    //     glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
-    //     dirLight.direction = glm::vec3(rotation * glm::vec4(dirLight.direction, 0.0f));
-    // }
 
     movementSystem.update(*this, deltaTime);
     boundsSystem.update(*this, deltaTime);
@@ -72,6 +64,19 @@ void World::beginPlay()
 
     // Create the gun entity (GunSystem will handle positioning and rotation)
     gunEntity = &EntityManager.CreateEntityOfType<GunEntity>(*this, "rifle.obj");
+
+    // This gameStateEntity stores the game state in components - following ECS principles now
+    gameStateEntity = &EntityManager.CreateEntity(*this);
+    gameStateEntity->addComponent<GameRoundComponent>();
+    gameStateEntity->addComponent<AmmoComponent>();
+    gameStateEntity->addComponent<ScoreComponent>();
+    gameStateEntity->addComponent<DuckUIStateComponent>();
+
+    // Initialize duck UI states
+    auto& duckUI = gameStateEntity->getComponent<DuckUIStateComponent>();
+    for (int i = 0; i < DuckUIStateComponent::MAX_DUCKS; i++) {
+        duckUI.states[i] = DuckState::NOT_SPAWNED;
+    }
 
     EnvironmentGenerator envGenerator{*this, EntityManager};
     envGenerator.generate(20.f, 64, 5, 20.f, glm::vec3(0.f));
